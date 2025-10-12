@@ -1,0 +1,41 @@
+# Ignore files
+node_modules/
+.next/
+dist/
+build/
+*.log
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data
+data_raw/
+*.parquet

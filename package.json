@@ -1,0 +1,30 @@
+{
+  "name": "goal-impact",
+  "version": "1.0.0",
+  "description": "Soccer data analytics platform with Goal Value and Points Added metrics",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:setup": "cd apps/api && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "db:migrate": "cd apps/api && source venv/bin/activate && alembic upgrade head",
+    "ingest": "cd apps/api && source venv/bin/activate && python3 scripts/ingest_safe.py"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.10.12",
+    "turbo": "^1.10.12",
+    "prettier": "^3.0.0"
+  },
+  "packageManager": "yarn@1.22.19",
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  }
+}
