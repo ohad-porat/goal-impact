@@ -38,9 +38,7 @@ class PlayerStats(Base):
     total_xg_xag_per_90 = Column(Float)
     non_pk_xg_per_90 = Column(Float)
     npxg_and_xag_per_90 = Column(Float)
-    points_added = Column(Float)
     goal_value = Column(Float)
-    pa_avg = Column(Float)
     gv_avg = Column(Float)
 
     player_id = Column(Integer, ForeignKey('players.id'))
