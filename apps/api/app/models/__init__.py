@@ -10,6 +10,8 @@ from .matches import Match
 from .events import Event
 from .player_stats import PlayerStats
 from .team_stats import TeamStats
+from .goal_value_lookup import GoalValueLookup
+from .stats_metadata import StatsCalculationMetadata
 
 __all__ = [
     'Base',
@@ -21,5 +23,7 @@ __all__ = [
     'Match',
     'Event',
     'PlayerStats',
-    'TeamStats'
+    'TeamStats',
+    'GoalValueLookup',
+    'StatsCalculationMetadata'
 ]

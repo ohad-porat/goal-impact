@@ -18,7 +18,6 @@ class Event(Base):
     xg = Column(Float)
     post_shot_xg = Column(Float)
     xg_difference = Column(Float)
-    points_added = Column(Float)
     goal_value = Column(Float)
 
     match_id = Column(Integer, ForeignKey('matches.id'))
