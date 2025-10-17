@@ -7,7 +7,7 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.core.goal_value import GoalValueCalculator, GoalValueAnalyzer, GoalValueUpdater
+from app.core.goal_value import GoalValueCalculator, GoalValueAnalyzer, EventGoalValueUpdater, PlayerStatsGoalValueUpdater
 
 
 def main():
@@ -17,6 +17,8 @@ def main():
                        help='Calculate goal value statistics')
     parser.add_argument('--update-goal-values', action='store_true',
                        help='Update goal_value field for all existing goal events')
+    parser.add_argument('--update-player-stats', action='store_true',
+                       help='Update goal_value and gv_avg fields for all player stats records')
     parser.add_argument('--show-dataframe', action='store_true',
                        help='Display goal value data as DataFrame for visualization')
     parser.add_argument('--show-sample-sizes', action='store_true',
@@ -37,7 +39,11 @@ def main():
         calculator.run()
     
     elif args.update_goal_values:
-        updater = GoalValueUpdater()
+        updater = EventGoalValueUpdater()
+        updater.run()
+    
+    elif args.update_player_stats:
+        updater = PlayerStatsGoalValueUpdater()
         updater.run()
     
     elif args.show_dataframe:

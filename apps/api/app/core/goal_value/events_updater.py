@@ -1,4 +1,4 @@
-"""Goal Value Updater - updates goal_value field in events table."""
+"""Event Goal Value Updater - updates goal_value field in events table."""
 
 from sqlalchemy import or_
 from app.core.database import Session
@@ -6,7 +6,7 @@ from app.models import Event
 from .repository import GoalValueRepository
 
 
-class GoalValueUpdater:
+class EventGoalValueUpdater:
     """Updates goal_value for all goal events based on lookup table."""
     
     def __init__(self):
