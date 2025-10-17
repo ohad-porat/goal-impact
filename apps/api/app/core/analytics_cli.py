@@ -7,7 +7,7 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.core.goal_value import GoalValueCalculator, GoalValueAnalyzer
+from app.core.goal_value import GoalValueCalculator, GoalValueAnalyzer, GoalValueUpdater
 
 
 def main():
@@ -15,6 +15,8 @@ def main():
     parser = argparse.ArgumentParser(description='FBRef Analytics Calculator')
     parser.add_argument('--calculate-goal-value', action='store_true',
                        help='Calculate goal value statistics')
+    parser.add_argument('--update-goal-values', action='store_true',
+                       help='Update goal_value field for all existing goal events')
     parser.add_argument('--show-dataframe', action='store_true',
                        help='Display goal value data as DataFrame for visualization')
     parser.add_argument('--show-sample-sizes', action='store_true',
@@ -33,6 +35,10 @@ def main():
     if args.calculate_goal_value:
         calculator = GoalValueCalculator()
         calculator.run()
+    
+    elif args.update_goal_values:
+        updater = GoalValueUpdater()
+        updater.run()
     
     elif args.show_dataframe:
         analyzer = GoalValueAnalyzer()
