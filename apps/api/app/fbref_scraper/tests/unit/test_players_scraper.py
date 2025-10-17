@@ -390,7 +390,6 @@ class TestPlayersScraper:
         season = SeasonFactory(competition=competition, start_year=2021, end_year=2022)
         team_stats = TeamStatsFactory(season=season, fbref_url='/en/squads/test-team/')
         
-        # Create existing player and player stats
         player = Player(name="Bukayo Saka", fbref_id="12345678", fbref_url="/en/players/12345678/", nation_id=nation.id)
         existing_player_stats = PlayerStats(
             player_id=player.id,

@@ -61,7 +61,6 @@ class SeasonsScraper(WebScraper):
                 }
 
                 if seasonal_mode:
-                    # Check if season already exists
                     existing_season = self.session.query(Season).filter_by(
                         start_year=start_year, 
                         end_year=end_year, 
@@ -69,7 +68,6 @@ class SeasonsScraper(WebScraper):
                     ).first()
                     
                     if existing_season:
-                        # Check if URL has changed (season became archived)
                         if existing_season.fbref_url != fbref_url:
                             existing_season.fbref_url = fbref_url
                             self.session.commit()
@@ -77,7 +75,6 @@ class SeasonsScraper(WebScraper):
                         else:
                             self.log_skip("season", f"{season_str} for {competition.name}")
                     else:
-                        # New season detected
                         self.find_or_create_record(
                             Season,
                             {'start_year': start_year, 'end_year': end_year, 'competition_id': competition.id},
@@ -86,7 +83,6 @@ class SeasonsScraper(WebScraper):
                         )
                         self.logger.info(f"Created new season: {season_str} for {competition.name}")
                 else:
-                    # Normal initial mode
                     self.find_or_create_record(
                         Season,
                         {'start_year': start_year, 'end_year': end_year, 'competition_id': competition.id},

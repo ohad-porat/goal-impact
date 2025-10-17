@@ -21,7 +21,7 @@ class ScraperConfig:
     def __post_init__(self) -> None:
         """Initialize default values after dataclass creation."""
         if self.SELECTED_NATIONS is None:
-            self.SELECTED_NATIONS = ['Belgium', 'England', 'France', 'Germany', 'Italy', 'Netherlands', 'Portugal', 'Spain', 'United States']
+            self.SELECTED_NATIONS = ['Brazil', 'England', 'France', 'Germany', 'Italy', 'Netherlands', 'Portugal', 'Spain']
         
         if self.RATE_LIMITS is None:
             self.RATE_LIMITS = {
