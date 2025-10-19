@@ -1,11 +1,11 @@
 """Database setup and initialization for FBRef API."""
 
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import Event
 
 # Database configuration
-DATABASE_URL = 'sqlite:///db/fbref_database.db'
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create an engine
 engine = create_engine(DATABASE_URL, echo=False)

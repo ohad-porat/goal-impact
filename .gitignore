@@ -9,6 +9,12 @@ build/
 .env.production.local
 .env.development.local
 
+# Turbo
+.turbo/
+
+# Next.js
+next-env.d.ts
+
 # Python
 __pycache__/
 *.py[cod]
