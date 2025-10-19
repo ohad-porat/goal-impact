@@ -229,6 +229,22 @@ class WebScraper(BaseScraper):
         else:
             return self.soup.find_all(tag, **kwargs)
 
+    def get_fbref_competition_name(self, db_competition_name: str, season_start_year: int = None) -> str:
+        """Map database competition names to FBRef dropdown text."""
+        mapping = {
+            'Fußball-Bundesliga': 'Bundesliga',
+            'Campeonato Brasileiro Série A': 'Série A',
+        }
+        
+        # Handle French league name change
+        if db_competition_name == 'Ligue 1' and season_start_year is not None:
+            if season_start_year <= 2001:
+                return 'Division 1'
+            else:
+                return 'Ligue 1'
+        
+        return mapping.get(db_competition_name, db_competition_name)
+
     def find_or_create_record(self, model_class: Type[T], filters: Dict[str, Union[str, int]], data_dict: Dict[str, Union[str, int, float]], description: str) -> T:
         """Find an existing record or create a new one in the database."""
         existing = self.session.query(model_class).filter_by(**filters).first()

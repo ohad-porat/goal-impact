@@ -101,18 +101,18 @@ class TeamStatsScraper(WebScraper):
                         'xg': team_stats_data.get('xG', None),
                         'xga': team_stats_data.get('xGA', None),
                         'xgd': team_stats_data.get('xGD', None),
-                        'xgd_per_90': team_stats_data.get('xGD/90', None)
+                        'xgd_per_90': team_stats_data.get('xGD/90', None),
+                        'attendance': team_stats_data.get('Attendance', None),
+                        'notes': team_stats_data.get('Notes', None)
                     }
 
                     if update_mode:
-                        # Update existing team stats
                         existing_team_stats = self.session.query(TeamStats).filter_by(
                             team_id=team.id, 
                             season_id=season.id
                         ).first()
                         
                         if existing_team_stats:
-                            # Update all stats fields
                             stats_fields = [k for k in team_stats_dict.keys() if k not in ['team_id', 'season_id']]
                             for field in stats_fields:
                                 if field in team_stats_dict:
@@ -122,20 +122,17 @@ class TeamStatsScraper(WebScraper):
                         else:
                             self.logger.warning(f"No existing team stats found for {team_stats_data['Squad']} {season.start_year}-{season.end_year}")
                     elif seasonal_mode:
-                        # Handle seasonal updates (URL changes and new seasons)
                         existing_team_stats = self.session.query(TeamStats).filter_by(
                             team_id=team.id, 
                             season_id=season.id
                         ).first()
                         
                         if existing_team_stats:
-                            # Check if URL has changed
                             if existing_team_stats.fbref_url != fbref_url:
                                 existing_team_stats.fbref_url = fbref_url
                                 self.session.commit()
                                 self.logger.info(f"Updated team stats URL: {team_stats_data['Squad']} {season.start_year}-{season.end_year}")
                         else:
-                            # Create new team stats for new season
                             self.find_or_create_record(
                                 TeamStats,
                                 {'team_id': team.id, 'season_id': season.id},
@@ -144,7 +141,6 @@ class TeamStatsScraper(WebScraper):
                             )
                             self.logger.info(f"Created new team stats: {team_stats_data['Squad']} {season.start_year}-{season.end_year}")
                     else:
-                        # Normal initial mode
                         self.find_or_create_record(
                             TeamStats,
                             {'team_id': team.id, 'season_id': season.id},

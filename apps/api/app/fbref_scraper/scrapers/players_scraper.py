@@ -42,23 +42,7 @@ class PlayersScraper(WebScraper):
                 url = f"{config.FBREF_BASE_URL}{team_stats.fbref_url}"
                 self.load_page(url)
                 
-                goal_logs_element = self.find_element('a', text='Goal Logs')
-                if goal_logs_element:
-                    goal_logs_url = goal_logs_element['href']
-                else:
-                    li_elements = self.find_elements('li', class_='full hasmore')
-                    goal_logs_url = None
-                    for li_element in li_elements:
-                        span_element = li_element.find('span', text='Goal Logs')
-                        if span_element:
-                            all_competitions_element = li_element.find('a', text='All Competitions')
-                            if all_competitions_element:
-                                goal_logs_url = all_competitions_element['href']
-                                break
-                    if not goal_logs_url:
-                        self.log_progress(f"No goal logs URL found for {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}, continuing with None")
-                        goal_logs_url = None
-                        
+                goal_logs_url = self._get_domestic_league_goal_logs_url(team_stats)
                 team_stats.goal_logs_url = goal_logs_url
                 self.session.commit()
 
@@ -150,7 +134,6 @@ class PlayersScraper(WebScraper):
                     }
 
                     if update_mode:
-                        # Update existing player stats
                         existing_player_stats = self.session.query(PlayerStats).filter_by(
                             player_id=player.id, 
                             season_id=team_stats.season_id, 
@@ -158,7 +141,6 @@ class PlayersScraper(WebScraper):
                         ).first()
                         
                         if existing_player_stats:
-                            # Update all stats fields
                             stats_fields = [k for k in player_stats_dict.keys() if k not in ['player_id', 'season_id', 'team_id']]
                             for field in stats_fields:
                                 if field in player_stats_dict:
@@ -168,7 +150,6 @@ class PlayersScraper(WebScraper):
                         else:
                             self.logger.warning(f"No existing player stats found for {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
                     elif seasonal_mode:
-                        # Create new player stats for new season
                         self.find_or_create_record(
                             PlayerStats,
                             {'player_id': player.id, 'season_id': team_stats.season_id, 'team_id': team_stats.team_id},
@@ -177,7 +158,6 @@ class PlayersScraper(WebScraper):
                         )
                         self.logger.info(f"Created new player stats: {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
                     else:
-                        # Normal initial mode
                         self.find_or_create_record(
                             PlayerStats,
                             {'player_id': player.id, 'season_id': team_stats.season_id, 'team_id': team_stats.team_id},
@@ -193,6 +173,25 @@ class PlayersScraper(WebScraper):
         
         self.clear_progress()
         self.log_progress("Players scraping completed successfully")
+
+    def _get_domestic_league_goal_logs_url(self, team_stats) -> Optional[str]:
+        """Get goal logs URL for domestic league only."""
+        goal_logs_element = self.find_element('a', text='Goal Logs')
+        if goal_logs_element:
+            return goal_logs_element['href']
+        
+        li_elements = self.find_elements('li', class_='full hasmore')
+        domestic_league_name = self.get_fbref_competition_name(team_stats.season.competition.name, team_stats.season.start_year)
+        
+        for li_element in li_elements:
+            span_element = li_element.find('span', text='Goal Logs')
+            if span_element:
+                domestic_league_element = li_element.find('a', text=domestic_league_name)
+                if domestic_league_element:
+                    return domestic_league_element['href']
+        
+        self.log_progress(f"No domestic league goal logs found for {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
+        return None
 
     def _get_player_stat_value(self, series, keys):
         """Extract player stat value from pandas series with error handling."""
