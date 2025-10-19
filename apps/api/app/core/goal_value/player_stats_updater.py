@@ -13,8 +13,6 @@ class PlayerStatsGoalValueUpdater:
         self.update_count = 0
         self.error_count = 0
         self.errors = []
-        self.players_with_goals_count = 0
-        self.players_with_goal_value_count = 0
         self.all_player_stats = None
     
     def run(self):
@@ -24,9 +22,6 @@ class PlayerStatsGoalValueUpdater:
         print("Aggregating goal values by player and season...")
         self._aggregate_player_goal_values()
         
-        print("Counting players with goals_scored > 0...")
-        self._count_players_with_goals()
-        
         print("Updating player_stats records...")
         self._batch_update()
         
@@ -35,52 +30,74 @@ class PlayerStatsGoalValueUpdater:
         print("Player stats goal value update completed successfully!")
     
     def _aggregate_player_goal_values(self):
-        """Calculate goal values for each player_stats record."""
+        """Calculate goal values for each player_stats record using optimized bulk query."""
         self.all_player_stats = self.session.query(PlayerStats).all()
+        print(f"Found {len(self.all_player_stats)} player stats records to process")
         
-        for player_stat in self.all_player_stats:
-            goal_events = self.session.query(Event).join(
-                Match, Event.match_id == Match.id
-            ).filter(
-                Event.player_id == player_stat.player_id,
-                Match.season_id == player_stat.season_id,
-                Event.event_type == 'goal',
-                Event.goal_value.isnot(None)
-            ).all()
-            
-            team_goal_values = []
-            for event in goal_events:
-                home_scored = event.home_team_goals_post_event > event.home_team_goals_pre_event
-                away_scored = event.away_team_goals_post_event > event.away_team_goals_pre_event
-                
-                if home_scored and not away_scored:
-                    if event.match.home_team_id == player_stat.team_id:
-                        team_goal_values.append(event.goal_value)
-                elif away_scored and not home_scored:
-                    if event.match.away_team_id == player_stat.team_id:
-                        team_goal_values.append(event.goal_value)
-            
-            if team_goal_values:
-                total_goal_value = sum(team_goal_values)
-                gv_avg = total_goal_value / len(team_goal_values)
-            else:
-                total_goal_value = 0.0
-                gv_avg = 0.0
-            
-            key = (player_stat.player_id, player_stat.season_id, player_stat.team_id)
+        player_stats_lookup = {}
+        for ps in self.all_player_stats:
+            key = (ps.player_id, ps.season_id, ps.team_id)
+            player_stats_lookup[key] = ps
+        
+        print("Created player stats lookup dictionary")
+        
+        goal_events_query = self.session.query(
+            Event.player_id,
+            Match.season_id,
+            Event.home_team_goals_post_event,
+            Event.home_team_goals_pre_event,
+            Event.away_team_goals_post_event,
+            Event.away_team_goals_pre_event,
+            Event.goal_value,
+            Match.home_team_id,
+            Match.away_team_id
+        ).join(
+            Match, Event.match_id == Match.id
+        ).filter(
+            Event.event_type == 'goal',
+            Event.goal_value.isnot(None)
+        ).all()
+        
+        print(f"Found {len(goal_events_query)} goal events with goal values")
+        
+        for ps in self.all_player_stats:
+            key = (ps.player_id, ps.season_id, ps.team_id)
             self.aggregated_data[key] = {
-                'total_goal_value': total_goal_value,
-                'gv_avg': gv_avg
+                'total_goal_value': 0.0,
+                'gv_avg': 0.0,
+                'goal_count': 0
             }
         
+        print(f"Initialized {len(self.aggregated_data)} player-season-team combinations with zero values")
+        
+        processed_count = 0
+        for event in goal_events_query:
+            player_id, season_id, home_post, home_pre, away_post, away_pre, goal_value, home_team_id, away_team_id = event
+            
+            home_scored = home_post > home_pre
+            away_scored = away_post > away_pre
+            
+            if home_scored and not away_scored:
+                scoring_team_id = home_team_id
+            elif away_scored and not home_scored:
+                scoring_team_id = away_team_id
+            else:
+                continue
+            
+            key = (player_id, season_id, scoring_team_id)
+            if key in self.aggregated_data:
+                self.aggregated_data[key]['total_goal_value'] += goal_value
+                self.aggregated_data[key]['goal_count'] += 1
+            
+            processed_count += 1
+            if processed_count % 50000 == 0:
+                print(f"Processed {processed_count}/{len(goal_events_query)} goal events...")
+        
+        for key, data in self.aggregated_data.items():
+            if data['goal_count'] > 0:
+                data['gv_avg'] = data['total_goal_value'] / data['goal_count']
+        
         print(f"Processed {len(self.aggregated_data)} player-season-team combinations")
-    
-    def _count_players_with_goals(self):
-        """Count players with goals_scored > 0."""
-        self.players_with_goals_count = self.session.query(PlayerStats).filter(
-            PlayerStats.goals_scored > 0
-        ).count()
-        print(f"Found {self.players_with_goals_count} player-season records with goals_scored > 0")
     
     def _batch_update(self):
         """Batch update player_stats records with calculated goal values."""
@@ -97,9 +114,6 @@ class PlayerStatsGoalValueUpdater:
                     'goal_value': round(data['total_goal_value'], 3),
                     'gv_avg': round(data['gv_avg'], 3)
                 })
-                
-                if data['total_goal_value'] > 0:
-                    self.players_with_goal_value_count += 1
                 
                 self.update_count += 1
                 
@@ -135,13 +149,10 @@ class PlayerStatsGoalValueUpdater:
         print("\n" + "="*60)
         print("PLAYER STATS GOAL VALUE UPDATE SUMMARY")
         print("="*60)
-        print(f"Players with goal events (goal_value data): {len(self.aggregated_data)}")
-        print(f"Players with goals_scored > 0: {self.players_with_goals_count}")
-        print(f"Players updated with goal_value > 0: {self.players_with_goal_value_count}")
-        print(f"Difference (goals_scored vs goal_value): {self.players_with_goals_count - self.players_with_goal_value_count}")
-        print(f"Successfully updated player stats records: {self.update_count}")
+        print(f"Total player stats records processed: {self.update_count}")
+        print(f"Records with goal_value > 0: {sum(1 for data in self.aggregated_data.values() if data['total_goal_value'] > 0)}")
+        print(f"Records with goal_value = 0: {sum(1 for data in self.aggregated_data.values() if data['total_goal_value'] == 0)}")
         print(f"Records with errors: {self.error_count}")
-        print(f"Total player stats records processed: {self.update_count + self.error_count}")
         
         if self.errors and len(self.errors) <= 10:
             print("\nErrors encountered:")

@@ -181,7 +181,7 @@ class PlayersScraper(WebScraper):
             return goal_logs_element['href']
         
         li_elements = self.find_elements('li', class_='full hasmore')
-        domestic_league_name = self.get_fbref_competition_name(team_stats.season.competition.name)
+        domestic_league_name = self.get_fbref_competition_name(team_stats.season.competition.name, team_stats.season.start_year)
         
         for li_element in li_elements:
             span_element = li_element.find('span', text='Goal Logs')
