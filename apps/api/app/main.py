@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+"""Main FastAPI application entry point."""
+
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.core.config import settings
 from app.routers import leagues
 
@@ -9,6 +12,8 @@ app = FastAPI(
     version="1.0.0",
 )
 
+api_v1 = APIRouter(prefix="/api/v1")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_HOSTS,
@@ -17,7 +22,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(leagues.router, prefix="/api/leagues", tags=["leagues"])
+api_v1.include_router(leagues.router, prefix="/leagues", tags=["leagues"])
+
+app.include_router(api_v1)
 
 @app.get("/")
 async def root():

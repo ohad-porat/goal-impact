@@ -11,7 +11,7 @@ class ScraperConfig:
     YEAR_RANGE: Tuple[int, int] = (1992, 2024)
     RATE_LIMITS: Optional[Dict[str, int]] = None
     DEBUG: bool = True
-    DATABASE_URL: str = 'sqlite:///db/fbref_database.db'
+    DATABASE_URL: str = 'sqlite:///db/database.db'
     REQUEST_TIMEOUT: int = 60
     FBREF_BASE_URL: str = 'https://fbref.com'
     LOG_LEVEL: str = 'INFO'
