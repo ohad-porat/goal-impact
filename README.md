@@ -1,6 +1,6 @@
 # Goal Impact
 
-A full-stack web application for soccer data analytics featuring proprietary **Goal Value (GV)** and **Points Added (PA)** metrics. Built with Next.js frontend and FastAPI backend in a monorepo architecture.
+A full-stack web application for soccer data analytics featuring proprietary Goal Value (GV) metric. Built with Next.js frontend and FastAPI backend in a monorepo architecture.
 
 ## Tech Stack
 
