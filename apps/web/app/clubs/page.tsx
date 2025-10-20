@@ -1,5 +1,6 @@
-import { ClubsResponse } from '../../lib/types/clubs'
+import { ClubsResponse } from '../../lib/types/club'
 import { api } from '../../lib/api'
+import Link from 'next/link'
 
 async function getClubsByNation(): Promise<ClubsResponse> {
   const response = await fetch(api.clubs, {
@@ -31,7 +32,7 @@ export default async function ClubsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.nations.map((nationData) => (
               <div key={nationData.nation.id} className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-                <div className="bg-gray-700 px-4 py-3 border-b border-gray-600">
+                <div className="bg-gray-700 px-4 py-3 border-b border-gray-600 text-center">
                   <h2 className="text-xl font-semibold text-white">
                     {nationData.nation.name}
                   </h2>
@@ -42,11 +43,15 @@ export default async function ClubsPage() {
                   ) : (
                     <div className="space-y-1">
                       {nationData.clubs.map((club) => (
-                        <div key={club.id} className="px-4 py-2 hover:bg-slate-700 transition-colors -mx-4">
+                        <Link 
+                          key={club.id} 
+                          href={`/clubs/${club.id}`}
+                          className="block px-4 py-2 hover:bg-slate-700 transition-colors -mx-4"
+                        >
                           <p className="text-white font-medium text-sm">
                             {club.name}
                           </p>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   )}

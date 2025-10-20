@@ -6,9 +6,9 @@ export const tableStyles = {
     text: {
       primary: "text-sm font-medium text-white",
       secondary: "text-sm text-gray-300",
-      center: "px-3 py-2 text-center text-gray-300",
+      center: "text-center text-gray-300",
       teamName: "text-base font-medium text-white",
-      points: "px-3 py-2 text-center text-white font-bold"
+      points: "text-center text-white font-bold"
     }
   },
   
@@ -22,16 +22,3 @@ export const tableStyles = {
     }
   }
 }
-
-export const leagueTableColumns = [
-  { key: 'position', label: 'Pos', align: 'left' },
-  { key: 'team_name', label: 'Club', align: 'left' },
-  { key: 'matches_played', label: 'MP', align: 'center' },
-  { key: 'wins', label: 'W', align: 'center' },
-  { key: 'draws', label: 'D', align: 'center' },
-  { key: 'losses', label: 'L', align: 'center' },
-  { key: 'goals_for', label: 'GF', align: 'center' },
-  { key: 'goals_against', label: 'GA', align: 'center' },
-  { key: 'goal_difference', label: 'GD', align: 'center' },
-  { key: 'points', label: 'Pts', align: 'center' }
-]

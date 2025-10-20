@@ -16,6 +16,7 @@ export interface Season {
 
 export interface TeamTableEntry {
   position: number
+  team_id: number
   team_name: string
   matches_played: number
   wins: number

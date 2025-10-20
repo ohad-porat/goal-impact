@@ -88,6 +88,7 @@ async def get_league_table(league_id: int, season_id: int, db: Session = Depends
     for stats in team_stats:
         team_info = {
             "position": stats.ranking,
+            "team_id": stats.team.id,
             "team_name": stats.team.name,
             "matches_played": stats.matches_played,
             "wins": stats.wins,
