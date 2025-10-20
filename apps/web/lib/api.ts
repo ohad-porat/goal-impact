@@ -4,4 +4,5 @@ export const api = {
   leagues: `${API_BASE_URL}/leagues/`,
   leagueSeasons: (leagueId: number) => `${API_BASE_URL}/leagues/${leagueId}/seasons`,
   leagueTable: (leagueId: number, seasonId: number) => `${API_BASE_URL}/leagues/${leagueId}/table/${seasonId}`,
+  clubs: `${API_BASE_URL}/clubs/`,
 }
