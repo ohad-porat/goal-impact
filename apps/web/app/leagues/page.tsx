@@ -1,5 +1,7 @@
+import Link from 'next/link'
 import { League } from '../../lib/types'
 import { api } from '../../lib/api'
+import { tableStyles } from '../../lib/tableStyles'
 
 async function getLeagues(): Promise<League[]> {
   const response = await fetch(api.leagues, {
@@ -17,15 +19,7 @@ async function getLeagues(): Promise<League[]> {
 export default async function LeaguesPage() {
   const leagues = await getLeagues()
   
-  const classes = {
-    header: "px-6 py-3 text-left text-sm font-bold text-white uppercase tracking-wider",
-    cell: "px-6 py-4 whitespace-nowrap",
-    text: {
-      primary: "text-sm font-medium text-white",
-      secondary: "text-sm text-gray-300",
-      center: "px-6 py-4 text-center text-gray-400"
-    }
-  }
+  const styles = tableStyles.standard
 
   return (
     <div className="min-h-screen py-8">
@@ -39,45 +33,47 @@ export default async function LeaguesPage() {
             <table className="min-w-full divide-y divide-gray-700">
               <thead className="bg-gray-700">
                 <tr>
-                  <th className={classes.header}>Name</th>
-                  <th className={classes.header}>Country</th>
-                  <th className={classes.header}>Gender</th>
-                  <th className={classes.header}>Tier</th>
-                  <th className={classes.header}>Available Seasons</th>
+                  <th className={styles.header}>Name</th>
+                  <th className={styles.header}>Country</th>
+                  <th className={styles.header}>Gender</th>
+                  <th className={styles.header}>Tier</th>
+                  <th className={styles.header}>Available Seasons</th>
                 </tr>
               </thead>
               <tbody className="bg-gray-800 divide-y divide-gray-700">
                 {leagues.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className={classes.text.center}>
+                    <td colSpan={5} className={styles.text.center}>
                       No leagues found
                     </td>
                   </tr>
                 ) : (
                   leagues.map((league) => (
                     <tr key={league.id} className="hover:bg-slate-700 transition-colors">
-                      <td className={classes.cell}>
-                        <div className={classes.text.primary}>
-                          {league.name}
-                        </div>
+                      <td className={styles.cell}>
+                        <Link href={`/leagues/${league.id}`} className="hover:text-orange-400 transition-colors">
+                          <div className={styles.text.primary}>
+                            {league.name}
+                          </div>
+                        </Link>
                       </td>
-                      <td className={classes.cell}>
-                        <div className={classes.text.secondary}>
+                      <td className={styles.cell}>
+                        <div className={styles.text.secondary}>
                           {league.country}
                         </div>
                       </td>
-                      <td className={classes.cell}>
-                        <div className={classes.text.secondary}>
+                      <td className={styles.cell}>
+                        <div className={styles.text.secondary}>
                           {league.gender === 'M' ? 'Men' : league.gender === 'F' ? 'Women' : league.gender}
                         </div>
                       </td>
-                      <td className={classes.cell}>
-                        <div className={classes.text.secondary}>
+                      <td className={styles.cell}>
+                        <div className={styles.text.secondary}>
                           {league.tier || 'N/A'}
                         </div>
                       </td>
-                      <td className={classes.cell}>
-                        <div className={classes.text.secondary}>
+                      <td className={styles.cell}>
+                        <div className={styles.text.secondary}>
                           {league.available_seasons}
                         </div>
                       </td>
