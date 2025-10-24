@@ -6,4 +6,5 @@ export const api = {
   leagueTable: (leagueId: number, seasonId: number) => `${API_BASE_URL}/leagues/${leagueId}/table/${seasonId}`,
   clubs: `${API_BASE_URL}/clubs/`,
   clubDetails: (clubId: number) => `${API_BASE_URL}/clubs/${clubId}`,
+  teamSeasonSquad: (teamId: number, seasonId: number) => `${API_BASE_URL}/clubs/${teamId}/seasons/${seasonId}`,
 }
