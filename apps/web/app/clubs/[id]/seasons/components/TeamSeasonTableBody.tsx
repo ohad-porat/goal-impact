@@ -27,7 +27,7 @@ export function TeamSeasonTableBody({ players }: TeamSeasonTableBodyProps) {
         
         return (
           <tr key={player.id} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
-            <td className={`${teamSeason.cell} text-center pl-3 w-[320px]`}>
+            <td className={`${teamSeason.cell} text-center px-2 w-[320px]`}>
               <span className={teamSeason.text.primary}>
                 {player.name}
               </span>
