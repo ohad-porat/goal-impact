@@ -9,7 +9,7 @@ import { LeagueTableHeader } from '../components/LeagueTableHeader'
 import { LeagueTableBody } from '../components/LeagueTableBody'
 
 const fetchWithErrorHandling = async (url: string) => {
-  const response = await fetch(url, { cache: 'force-cache' })
+  const response = await fetch(url, { cache: 'no-cache' })
   if (!response.ok) {
     throw new Error(`Failed to fetch data from ${url}`)
   }
@@ -103,7 +103,7 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
       <div className="px-6 py-4">
         <div className="max-w-7xl mx-auto">
           <Link href="/leagues" className="text-gray-300 hover:text-white transition-colors text-sm">
-            Competitions
+            Leagues
           </Link>
           <span className="text-gray-300 mx-2 text-sm">/</span>
           <span className="text-white text-sm">{tableData.league.name}</span>
@@ -132,7 +132,7 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700">
+            <table className="min-w-full divide-y divide-gray-700 table-fixed">
               <LeagueTableHeader />
               <LeagueTableBody tableData={tableData} />
             </table>
@@ -142,4 +142,3 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
     </div>
   )
 }
-

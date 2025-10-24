@@ -63,7 +63,7 @@ export default async function ClubShowPage({ params }: ClubShowPageProps) {
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-700">
                 <ClubSeasonsTableHeader />
-                <ClubSeasonsTableBody seasons={seasons} />
+                <ClubSeasonsTableBody seasons={seasons} teamId={clubId} />
               </table>
             </div>
           </div>
