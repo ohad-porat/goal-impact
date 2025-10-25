@@ -1,23 +1,20 @@
-import { tableStyles } from '../../../../../lib/tableStyles'
-import { PlayerSeasonData } from '../../../../../lib/types/club'
+import { tableStyles } from '../../../../lib/tableStyles'
+import { PlayerSeasonRecord } from '../../../../lib/types/player'
 import Link from 'next/link'
 
-interface TeamSeasonTableBodyProps {
-  players: PlayerSeasonData[]
-  seasonId?: number
-  teamId?: number
-  from?: string
+interface PlayerTableBodyProps {
+  seasons: PlayerSeasonRecord[]
 }
 
-export function TeamSeasonTableBody({ players, seasonId, teamId, from }: TeamSeasonTableBodyProps) {
+export function PlayerTableBody({ seasons }: PlayerTableBodyProps) {
   const { teamSeason } = tableStyles
   
-  if (players.length === 0) {
+  if (seasons.length === 0) {
     return (
       <tbody className="bg-slate-800 divide-y divide-gray-700">
         <tr>
-          <td colSpan={20} className="px-6 py-8 text-center">
-            <p className="text-gray-400 text-lg">No player data available</p>
+          <td colSpan={23} className="px-6 py-8 text-center">
+            <p className="text-gray-400 text-lg">No season data available</p>
           </td>
         </tr>
       </tbody>
@@ -26,18 +23,36 @@ export function TeamSeasonTableBody({ players, seasonId, teamId, from }: TeamSea
 
   return (
     <tbody className="bg-slate-800 divide-y divide-gray-700">
-      {players.map((playerData, index) => {
-        const { player, stats } = playerData
+      {seasons.map((seasonData, index) => {
+        const { season, team, competition, league_rank, stats } = seasonData
         
         return (
-          <tr key={player.id} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
-            <td className={`${teamSeason.cell} text-center px-2 w-[320px]`}>
+          <tr key={`${season.id}-${team.id}`} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
+            <td className={`${teamSeason.cell} text-center px-2 w-[120px]`}>
+              <span className={teamSeason.text.primary}>
+                {season.display_name}
+              </span>
+            </td>
+            
+            <td className={`${teamSeason.cell} text-center px-2 w-[200px]`}>
               <Link 
-                href={`/players/${player.id}?from=${from}&season=${seasonId}&teamId=${teamId}`}
+                href={`/clubs/${team.id}/seasons?season=${season.id}`}
                 className={`${teamSeason.text.primary} hover:text-orange-400 transition-colors`}
               >
-                {player.name}
+                {team.name}
               </Link>
+            </td>
+            
+            <td className={`${teamSeason.cell} text-center px-2 w-[150px]`}>
+              <span className={teamSeason.text.primary}>
+                {competition.name}
+              </span>
+            </td>
+            
+            <td className={`${teamSeason.cell} text-center w-[80px]`}>
+              <span className={teamSeason.text.center}>
+                {league_rank !== null ? league_rank : '-'}
+              </span>
             </td>
             
             <td className={`${teamSeason.cell} text-center w-[85px]`}>
