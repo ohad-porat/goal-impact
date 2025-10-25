@@ -64,7 +64,7 @@ export interface ClubDetailsResponse {
   seasons: ClubDetails['seasons']
 }
 
-export interface PlayerSeasonStats {
+export interface TeamPlayerSeasonStats {
   matches_played: number | null
   matches_started: number | null
   total_minutes: number | null
@@ -91,7 +91,7 @@ export interface PlayerSeasonData {
     id: number
     name: string
   }
-  stats: PlayerSeasonStats
+  stats: TeamPlayerSeasonStats
 }
 
 export interface TeamSeasonSquadResponse {
