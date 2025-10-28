@@ -1,7 +1,7 @@
 import React from 'react'
 import { tableStyles } from '../../../../../lib/tableStyles'
 
-export function TeamSeasonTableHeader() {
+export function TeamSeasonRosterTableHeader() {
   const { teamSeason } = tableStyles
   
   return (

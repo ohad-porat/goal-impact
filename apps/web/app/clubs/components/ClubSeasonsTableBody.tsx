@@ -1,5 +1,6 @@
 import { tableStyles } from '../../../lib/tableStyles'
 import { ClubSeason } from '../../../lib/types/club'
+import { getShortLeagueName } from '../../../lib/utils'
 import Link from 'next/link'
 
 interface ClubSeasonsTableBodyProps {
@@ -36,7 +37,7 @@ export function ClubSeasonsTableBody({ seasons, teamId }: ClubSeasonsTableBodyPr
             </td>
             <td className={`${tableStyles.compact.cell} text-center w-[250px]`}>
               <span className={tableStyles.compact.text.primary}>
-                {competition.name}
+                {getShortLeagueName(competition.name || '')}
               </span>
             </td>
             <td className={`${tableStyles.compact.cell} text-center w-[50px]`}>

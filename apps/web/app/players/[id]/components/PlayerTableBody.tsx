@@ -1,5 +1,6 @@
 import { tableStyles } from '../../../../lib/tableStyles'
 import { PlayerSeasonRecord } from '../../../../lib/types/player'
+import { getShortLeagueName } from '../../../../lib/utils'
 import Link from 'next/link'
 
 interface PlayerTableBodyProps {
@@ -45,7 +46,7 @@ export function PlayerTableBody({ seasons }: PlayerTableBodyProps) {
             
             <td className={`${teamSeason.cell} text-center px-2 w-[150px]`}>
               <span className={teamSeason.text.primary}>
-                {competition.name}
+                {getShortLeagueName(competition.name)}
               </span>
             </td>
             

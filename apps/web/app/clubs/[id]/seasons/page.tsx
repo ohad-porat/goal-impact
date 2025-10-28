@@ -1,8 +1,8 @@
 import { TeamSeasonSquadResponse } from '../../../../lib/types/club'
 import { api } from '../../../../lib/api'
 import { ErrorDisplay } from '../../../../components/ErrorDisplay'
-import { TeamSeasonTableHeader } from './components/TeamSeasonTableHeader'
-import { TeamSeasonTableBody } from './components/TeamSeasonTableBody'
+import { TeamSeasonRosterTableHeader } from './components/TeamSeasonRosterTableHeader'
+import { TeamSeasonRosterTableBody } from './components/TeamSeasonRosterTableBody'
 import Link from 'next/link'
 
 interface TeamSeasonPageProps {
@@ -98,8 +98,8 @@ export default async function TeamSeasonPage({ params, searchParams }: TeamSeaso
           <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-700">
-                <TeamSeasonTableHeader />
-                <TeamSeasonTableBody players={players} seasonId={seasonId} teamId={teamId} from={from} />
+                <TeamSeasonRosterTableHeader />
+                <TeamSeasonRosterTableBody players={players} seasonId={seasonId} teamId={teamId} from={from} />
               </table>
             </div>
           </div>

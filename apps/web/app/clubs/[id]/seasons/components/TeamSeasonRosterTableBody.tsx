@@ -2,14 +2,14 @@ import { tableStyles } from '../../../../../lib/tableStyles'
 import { PlayerSeasonData } from '../../../../../lib/types/club'
 import Link from 'next/link'
 
-interface TeamSeasonTableBodyProps {
+interface TeamSeasonRosterTableBodyProps {
   players: PlayerSeasonData[]
   seasonId?: number
   teamId?: number
   from?: string
 }
 
-export function TeamSeasonTableBody({ players, seasonId, teamId, from }: TeamSeasonTableBodyProps) {
+export function TeamSeasonRosterTableBody({ players, seasonId, teamId, from }: TeamSeasonRosterTableBodyProps) {
   const { teamSeason } = tableStyles
   
   if (players.length === 0) {
