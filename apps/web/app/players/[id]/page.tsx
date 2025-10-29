@@ -113,10 +113,10 @@ export default async function PlayerPage({ params, searchParams }: PlayerPagePro
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-8">
+        <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8 py-8">
           <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
+              <table className="min-w-full divide-y divide-gray-700 table-fixed">
                 <PlayerTableHeader />
                 <PlayerTableBody seasons={seasons} />
               </table>

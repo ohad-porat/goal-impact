@@ -10,4 +10,3 @@ export function getShortLeagueName(competitionName: string): string {
 
   return shortNames[competitionName] || competitionName
 }
-
