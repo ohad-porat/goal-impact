@@ -1,5 +1,6 @@
 import { tableStyles } from '../../../lib/tableStyles'
 import { ClubSeason } from '../../../lib/types/club'
+import { getShortLeagueName } from '../../../lib/utils'
 import Link from 'next/link'
 
 interface ClubSeasonsTableBodyProps {
@@ -28,7 +29,7 @@ export function ClubSeasonsTableBody({ seasons, teamId }: ClubSeasonsTableBodyPr
           <tr key={`${season.id}-${competition.id}`} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
             <td className={`${tableStyles.compact.cell} text-center pl-6 w-[120px]`}>
               <Link 
-                href={`/clubs/${teamId}/seasons?season=${season.id}`}
+                href={`/clubs/${teamId}/seasons?season=${season.id}&from=team`}
                 className={`${tableStyles.compact.text.primary} hover:text-orange-400 transition-colors`}
               >
                 {season.year_range}
@@ -36,7 +37,7 @@ export function ClubSeasonsTableBody({ seasons, teamId }: ClubSeasonsTableBodyPr
             </td>
             <td className={`${tableStyles.compact.cell} text-center w-[250px]`}>
               <span className={tableStyles.compact.text.primary}>
-                {competition.name}
+                {getShortLeagueName(competition.name || '')}
               </span>
             </td>
             <td className={`${tableStyles.compact.cell} text-center w-[50px]`}>
