@@ -4,7 +4,7 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import leagues, clubs, players
+from app.routers import leagues, clubs, players, nations
 
 app = FastAPI(
     title="Goal Impact API",
@@ -25,6 +25,7 @@ app.add_middleware(
 api_v1.include_router(leagues.router, prefix="/leagues", tags=["leagues"])
 api_v1.include_router(clubs.router, prefix="/clubs", tags=["clubs"])
 api_v1.include_router(players.router, prefix="/players", tags=["players"])
+api_v1.include_router(nations.router, prefix="/nations", tags=["nations"])
 
 app.include_router(api_v1)
 
