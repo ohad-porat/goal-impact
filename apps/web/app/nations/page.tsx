@@ -1,6 +1,8 @@
 import { Nation } from '../../lib/types'
 import { api } from '../../lib/api'
 import { tableStyles } from '../../lib/tableStyles'
+import { ErrorDisplay } from '../../components/ErrorDisplay'
+import Link from 'next/link'
 
 async function getNations(): Promise<Nation[]> {
   const response = await fetch(api.nations, {
@@ -16,8 +18,13 @@ async function getNations(): Promise<Nation[]> {
 }
 
 export default async function NationsPage() {
-  const nations = await getNations()
-  
+  let nations: Nation[] = []
+  try {
+    nations = await getNations()
+  } catch (error) {
+    return <ErrorDisplay message="Failed to load nations." />
+  }
+
   const styles = tableStyles.standard
 
   return (
@@ -50,7 +57,9 @@ export default async function NationsPage() {
                     <tr key={nation.id} className="hover:bg-slate-700 transition-colors">
                       <td className={styles.cell}>
                         <div className={styles.text.primary}>
-                          {nation.name}
+                          <Link href={`/nations/${nation.id}`} className={`${styles.text.primary} hover:text-orange-400 transition-colors`}>
+                            {nation.name}
+                          </Link>
                         </div>
                       </td>
                       <td className={`${styles.cell} text-center`}>
