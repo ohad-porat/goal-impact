@@ -9,4 +9,5 @@ export const api = {
   teamSeasonSquad: (teamId: number, seasonId: number) => `${API_BASE_URL}/clubs/${teamId}/seasons/${seasonId}`,
   playerDetails: (playerId: number) => `${API_BASE_URL}/players/${playerId}`,
   nations: `${API_BASE_URL}/nations/`,
+  nationDetails: (nationId: number) => `${API_BASE_URL}/nations/${nationId}`,
 }

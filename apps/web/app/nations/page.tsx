@@ -1,6 +1,8 @@
 import { Nation } from '../../lib/types'
 import { api } from '../../lib/api'
 import { tableStyles } from '../../lib/tableStyles'
+import { ErrorDisplay } from '../../components/ErrorDisplay'
+import Link from 'next/link'
 
 async function getNations(): Promise<Nation[]> {
   const response = await fetch(api.nations, {
@@ -16,15 +18,20 @@ async function getNations(): Promise<Nation[]> {
 }
 
 export default async function NationsPage() {
-  const nations = await getNations()
-  
+  let nations: Nation[] = []
+  try {
+    nations = await getNations()
+  } catch (error) {
+    return <ErrorDisplay message="Failed to load nations." />
+  }
+
   const styles = tableStyles.standard
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Nations</h1>
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold text-white">Nations</h1>
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
@@ -50,7 +57,9 @@ export default async function NationsPage() {
                     <tr key={nation.id} className="hover:bg-slate-700 transition-colors">
                       <td className={styles.cell}>
                         <div className={styles.text.primary}>
-                          {nation.name}
+                          <Link href={`/nations/${nation.id}`} className={`${styles.text.primary} hover:text-orange-400 transition-colors`}>
+                            {nation.name}
+                          </Link>
                         </div>
                       </td>
                       <td className={`${styles.cell} text-center`}>
