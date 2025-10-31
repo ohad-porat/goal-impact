@@ -6,6 +6,7 @@ import { LeagueTableData, Season } from '../../../lib/types'
 import { api } from '../../../lib/api'
 import { LeagueTableHeader } from '../components/LeagueTableHeader'
 import { LeagueTableBody } from '../components/LeagueTableBody'
+import { ErrorDisplay } from '../../../components/ErrorDisplay'
 
 const fetchWithErrorHandling = async (url: string) => {
   const response = await fetch(url, { cache: 'no-cache' })
@@ -49,11 +50,12 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
   const seasonId = searchParams.season ? parseInt(searchParams.season) : null
   const [tableData, setTableData] = useState<LeagueTableData | null>(null)
   const [seasons, setSeasons] = useState<Season[]>([])
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   React.useEffect(() => {
     if (isNaN(leagueId)) {
-      router.push('/leagues')
+      setError(`The league ID "${params.id}" is not valid.`)
       return
     }
 
@@ -62,7 +64,7 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
         const seasonsData = await getLeagueSeasons(leagueId)
         
         if (seasonsData.length === 0) {
-          router.push('/leagues')
+          setError("The requested league has no available seasons.")
           return
         }
 
@@ -73,24 +75,30 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
       } catch (error) {
         console.error('Error fetching league data:', error)
         if (error instanceof Error && error.message === 'Invalid season') {
-          router.replace(`/leagues/${leagueId}`)
+          setError("The requested season is not valid.")
         } else {
-          router.push('/leagues')
+          setError("The requested league could not be found or does not exist.")
         }
       }
     }
 
     loadInitialData()
-  }, [leagueId, seasonId, router])
+  }, [leagueId, seasonId, params.id])
 
   const handleSeasonChange = async (newSeasonId: number) => {
     try {
+      setError(null)
       const newData = await getLeagueTable(leagueId, newSeasonId)
       setTableData(newData)
       router.replace(`/leagues/${leagueId}?season=${newSeasonId}`, { scroll: false })
     } catch (error) {
       console.error('Error fetching table data:', error)
+      setError("Failed to load league table data for the selected season.")
     }
+  }
+
+  if (error) {
+    return <ErrorDisplay message={error} />
   }
 
   if (!tableData) {
