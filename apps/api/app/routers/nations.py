@@ -46,7 +46,7 @@ async def get_nation_details(
             country_code=nation.country_code,
             governing_body=nation.governing_body or "N/A",
         ),
-        competitions=[CompetitionSummary(**comp) for comp in competitions_data],
+        competitions=[CompetitionSummary(**competition) for competition in competitions_data],
         clubs=clubs_data,
         players=[PlayerSummary(**player) for player in players_data],
     )

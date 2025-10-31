@@ -184,9 +184,9 @@ def get_team_season_squad_stats(
                 id=player.id,
                 name=player.name
             ),
-            stats=transform_player_stats(stats)
+            stats=transform_player_stats(player_stats)
         )
-        for stats, player in player_stats_query
+        for player_stats, player in player_stats_query
     ]
     
     season_display = SeasonDisplay(

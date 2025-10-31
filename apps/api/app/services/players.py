@@ -80,9 +80,9 @@ def get_player_seasons_stats(db: Session, player_id: int) -> tuple[Optional[Play
                 name=competition.name
             ),
             league_rank=team_stats.ranking if team_stats else None,
-            stats=transform_player_stats(stats)
+            stats=transform_player_stats(player_stats)
         )
-        for stats, season, team, competition, team_stats in player_stats_query
+        for player_stats, season, team, competition, team_stats in player_stats_query
     ]
     
     player_info = PlayerInfo(

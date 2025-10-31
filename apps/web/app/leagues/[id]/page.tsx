@@ -18,7 +18,7 @@ const fetchWithErrorHandling = async (url: string) => {
 
 const getTargetSeasonId = (seasonId: number | null, seasons: Season[]): number => {
   if (seasonId && !isNaN(seasonId)) {
-    const requestedSeason = seasons.find(s => s.id === seasonId)
+    const requestedSeason = seasons.find(season => season.id === seasonId)
     if (!requestedSeason) {
       throw new Error('Invalid season')
     }

@@ -22,7 +22,7 @@ def format_season_range(seasons: List[Season]) -> str:
     if not seasons:
         return "No seasons available"
     
-    sorted_seasons = sorted(seasons, key=lambda s: s.start_year)
+    sorted_seasons = sorted(seasons, key=lambda season: season.start_year)
     first_season = sorted_seasons[0]
     last_season = sorted_seasons[-1]
     
@@ -103,19 +103,19 @@ def get_league_table_for_season(
     
     table_data = [
         LeagueTableEntry(
-            position=stats.ranking,
-            team_id=stats.team.id,
-            team_name=stats.team.name,
-            matches_played=stats.matches_played,
-            wins=stats.wins,
-            draws=stats.draws,
-            losses=stats.losses,
-            goals_for=stats.goals_for,
-            goals_against=stats.goals_against,
-            goal_difference=stats.goal_difference,
-            points=stats.points
+            position=team_stat.ranking,
+            team_id=team_stat.team.id,
+            team_name=team_stat.team.name,
+            matches_played=team_stat.matches_played,
+            wins=team_stat.wins,
+            draws=team_stat.draws,
+            losses=team_stat.losses,
+            goals_for=team_stat.goals_for,
+            goals_against=team_stat.goals_against,
+            goal_difference=team_stat.goal_difference,
+            points=team_stat.points
         )
-        for stats in team_stats
+        for team_stat in team_stats
     ]
     
     league_info = LeagueInfo(
