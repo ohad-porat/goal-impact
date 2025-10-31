@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from pydantic import BaseModel
+from app.schemas.players import SeasonDisplay
 
 
 class LeagueSummary(BaseModel):
@@ -21,19 +22,10 @@ class LeaguesListResponse(BaseModel):
     leagues: List[LeagueSummary]
 
 
-class SeasonInfo(BaseModel):
-    """Season information."""
-    
-    id: int
-    start_year: int
-    end_year: Optional[int]
-    display_name: str
-
-
 class LeagueSeasonsResponse(BaseModel):
     """Response for league seasons endpoint."""
     
-    seasons: List[SeasonInfo]
+    seasons: List[SeasonDisplay]
 
 
 class LeagueInfo(BaseModel):
@@ -64,5 +56,5 @@ class LeagueTableResponse(BaseModel):
     """Response for league table endpoint."""
     
     league: LeagueInfo
-    season: SeasonInfo
+    season: SeasonDisplay
     table: List[LeagueTableEntry]

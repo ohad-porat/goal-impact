@@ -27,13 +27,9 @@ export function NationPlayersTable({ players }: NationPlayersTableProps) {
                 players.map((player) => (
                   <tr key={player.id} className="hover:bg-slate-700 transition-colors">
                     <td className="pl-6 pr-3 py-2 whitespace-nowrap">
-                      {player.has_stats ? (
-                        <Link href={`/players/${player.id}`} className="text-white hover:text-orange-400 transition-colors">
-                          {player.name}
-                        </Link>
-                      ) : (
-                        <span className="text-white">{player.name}</span>
-                      )}
+                      <Link href={`/players/${player.id}`} className="text-white hover:text-orange-400 transition-colors">
+                        {player.name}
+                      </Link>
                     </td>
                     <td className="px-3 py-2 text-center w-32 whitespace-nowrap text-white">
                       {(player.total_goal_value ?? 0).toFixed(2)}

@@ -5,21 +5,19 @@ from .nations import (
     NationsListResponse,
     NationDetailsResponse,
     CompetitionSummary,
-    ClubSummary,
     PlayerSummary,
 )
 from .clubs import (
+    ClubSummary,
     ClubByNation,
     ClubsByNationResponse,
     ClubDetailsResponse,
     SeasonStats,
     TeamSeasonSquadResponse,
-    PlayerStatsBasic,
 )
 from .leagues import (
     LeagueSummary,
     LeaguesListResponse,
-    SeasonInfo,
     LeagueSeasonsResponse,
     LeagueTableEntry,
     LeagueTableResponse,
@@ -27,7 +25,8 @@ from .leagues import (
 from .players import (
     PlayerDetailsResponse,
     SeasonData,
-    PlayerStatsDetailed,
+    PlayerStats,
+    SeasonDisplay,
 )
 
 __all__ = [
@@ -42,14 +41,13 @@ __all__ = [
     "ClubDetailsResponse",
     "SeasonStats",
     "TeamSeasonSquadResponse",
-    "PlayerStatsBasic",
     "LeagueSummary",
     "LeaguesListResponse",
-    "SeasonInfo",
     "LeagueSeasonsResponse",
     "LeagueTableEntry",
     "LeagueTableResponse",
     "PlayerDetailsResponse",
     "SeasonData",
-    "PlayerStatsDetailed",
+    "PlayerStats",
+    "SeasonDisplay",
 ]

@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from pydantic import BaseModel
+from app.schemas.clubs import ClubSummary
 
 
 class NationSummary(BaseModel):
@@ -39,24 +40,12 @@ class CompetitionSummary(BaseModel):
     has_seasons: bool
 
 
-class ClubSummary(BaseModel):
-    """Club summary for nation details."""
-    
-    id: int
-    name: str
-    avg_position: Optional[float]
-    stats_count: int
-    has_stats: bool
-
-
 class PlayerSummary(BaseModel):
     """Player summary for nation details."""
     
     id: int
     name: str
     total_goal_value: float
-    stats_count: int
-    has_stats: bool
 
 
 class NationDetailsResponse(BaseModel):

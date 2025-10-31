@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from pydantic import BaseModel
+from app.schemas.players import PlayerStats, SeasonDisplay
 
 
 class NationBasic(BaseModel):
@@ -12,8 +13,8 @@ class NationBasic(BaseModel):
     country_code: str
 
 
-class ClubBasic(BaseModel):
-    """Basic club information with average position."""
+class ClubSummary(BaseModel):
+    """Club summary with average position."""
     
     id: int
     name: str
@@ -24,7 +25,7 @@ class ClubByNation(BaseModel):
     """Club group by nation."""
     
     nation: NationBasic
-    clubs: List[ClubBasic]
+    clubs: List[ClubSummary]
 
 
 class ClubsByNationResponse(BaseModel):
@@ -47,15 +48,6 @@ class ClubInfo(BaseModel):
     id: int
     name: str
     nation: NationDetailed
-
-
-class SeasonInfoBasic(BaseModel):
-    """Basic season information."""
-    
-    id: int
-    start_year: int
-    end_year: Optional[int]
-    year_range: str
 
 
 class CompetitionInfo(BaseModel):
@@ -85,7 +77,7 @@ class TeamStatsInfo(BaseModel):
 class SeasonStats(BaseModel):
     """Season statistics for a club."""
     
-    season: SeasonInfoBasic
+    season: SeasonDisplay
     competition: CompetitionInfo
     stats: TeamStatsInfo
 
@@ -104,44 +96,11 @@ class PlayerBasic(BaseModel):
     name: str
 
 
-class PlayerStatsBasic(BaseModel):
-    """Player statistics for squad view."""
-    
-    matches_played: Optional[int]
-    matches_started: Optional[int]
-    total_minutes: Optional[int]
-    minutes_divided_90: Optional[float]
-    goals_scored: Optional[int]
-    assists: Optional[int]
-    total_goal_assists: Optional[int]
-    non_pk_goals: Optional[int]
-    pk_made: Optional[int]
-    pk_attempted: Optional[int]
-    yellow_cards: Optional[int]
-    red_cards: Optional[int]
-    goal_value: Optional[float]
-    gv_avg: Optional[float]
-    goal_per_90: Optional[float]
-    assists_per_90: Optional[float]
-    total_goals_assists_per_90: Optional[float]
-    non_pk_goals_per_90: Optional[float]
-    non_pk_goal_and_assists_per_90: Optional[float]
-
-
 class SquadPlayer(BaseModel):
     """Player in squad with stats."""
     
     player: PlayerBasic
-    stats: PlayerStatsBasic
-
-
-class SeasonDisplay(BaseModel):
-    """Season display information."""
-    
-    id: int
-    start_year: int
-    end_year: Optional[int]
-    display_name: str
+    stats: PlayerStats
 
 
 class CompetitionDisplay(BaseModel):

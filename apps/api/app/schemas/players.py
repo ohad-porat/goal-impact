@@ -43,8 +43,8 @@ class CompetitionInfo(BaseModel):
     name: str
 
 
-class PlayerStatsDetailed(BaseModel):
-    """Detailed player statistics."""
+class PlayerStats(BaseModel):
+    """Player statistics."""
     
     matches_played: Optional[int]
     matches_started: Optional[int]
@@ -74,7 +74,7 @@ class SeasonData(BaseModel):
     team: TeamInfo
     competition: CompetitionInfo
     league_rank: Optional[int]
-    stats: PlayerStatsDetailed
+    stats: PlayerStats
 
 
 class PlayerDetailsResponse(BaseModel):
