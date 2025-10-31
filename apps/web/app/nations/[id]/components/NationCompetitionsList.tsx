@@ -8,11 +8,11 @@ interface NationCompetitionsListProps {
 export function NationCompetitionsList({ competitions }: NationCompetitionsListProps) {
   return (
     <div className="mb-10 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-semibold text-white mb-3">Competitions</h2>
+      <h2 className="text-2xl font-semibold text-white mb-3">Leagues</h2>
       <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div className="p-4">
           {competitions.length === 0 ? (
-            <p className="text-gray-400 text-sm">No competitions found.</p>
+            <p className="text-gray-400 text-sm">No leagues found.</p>
           ) : (
             <ul className="divide-y divide-gray-700">
               {competitions.map((competition) => (

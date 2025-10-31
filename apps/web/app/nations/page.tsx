@@ -28,10 +28,10 @@ export default async function NationsPage() {
   const styles = tableStyles.standard
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Nations</h1>
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold text-white">Nations</h1>
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">

@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { LeagueTableData, Season } from '../../../lib/types'
 import { api } from '../../../lib/api'
 import { LeagueTableHeader } from '../components/LeagueTableHeader'
@@ -100,20 +99,10 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
 
   return (
     <div className="min-h-screen">
-      <div className="px-6 py-4">
-        <div className="max-w-7xl mx-auto">
-          <Link href="/leagues" className="text-gray-300 hover:text-white transition-colors text-sm">
-            Leagues
-          </Link>
-          <span className="text-gray-300 mx-2 text-sm">/</span>
-          <span className="text-white text-sm">{tableData.league.name}</span>
-        </div>
-      </div>
-
-      <div className="px-6 py-4">
-        <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
           <div className="flex items-center">
-            <h1 className="text-4xl font-bold text-white ml-4">{tableData.league.name}</h1>
+            <h1 className="text-4xl font-bold text-white">{tableData.league.name}</h1>
             <select
               value={tableData.season.id}
               onChange={(e) => handleSeasonChange(parseInt(e.target.value))}
@@ -127,15 +116,15 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
             </select>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700 table-fixed">
-              <LeagueTableHeader />
-              <LeagueTableBody tableData={tableData} />
-            </table>
+        <div className="py-8">
+          <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-700 table-fixed">
+                <LeagueTableHeader />
+                <LeagueTableBody tableData={tableData} />
+              </table>
+            </div>
           </div>
         </div>
       </div>
