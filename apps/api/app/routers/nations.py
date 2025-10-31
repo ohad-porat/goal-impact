@@ -9,10 +9,16 @@ from app.services.nations import (
 from app.core.database import get_db
 from app.models.nations import Nation
 from app.models.players import Player
+from app.schemas.nations import (
+    NationsListResponse,
+    NationSummary,
+    NationDetailsResponse,
+    NationInfo,
+)
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/", response_model=NationsListResponse)
 async def get_nations(db: Session = Depends(get_db)):
     """Get all nations with their details including player count"""
     nations_query = db.query(
@@ -28,21 +34,21 @@ async def get_nations(db: Session = Depends(get_db)):
         Nation.governing_body
     ).order_by(Nation.name).all()
     
-    nations_data = []
-    for nation in nations_query:
-        nation_info = {
-            "id": nation.id,
-            "name": nation.name,
-            "country_code": nation.country_code,
-            "governing_body": nation.governing_body or "N/A",
-            "player_count": nation.player_count
-        }
-        nations_data.append(nation_info)
+    nations_data = [
+        NationSummary(
+            id=nation.id,
+            name=nation.name,
+            country_code=nation.country_code,
+            governing_body=nation.governing_body or "N/A",
+            player_count=nation.player_count
+        )
+        for nation in nations_query
+    ]
     
-    return {"nations": nations_data}
+    return NationsListResponse(nations=nations_data)
 
 
-@router.get("/{nation_id}")
+@router.get("/{nation_id}", response_model=NationDetailsResponse)
 async def get_nation_details(
     nation_id: int,
     db: Session = Depends(get_db),
@@ -53,20 +59,20 @@ async def get_nation_details(
     if not nation:
         raise HTTPException(status_code=404, detail="Nation not found")
 
-    competitions = get_competitions_for_nation(db, nation_id)
+    competitions_data = get_competitions_for_nation(db, nation_id)
+    clubs_data = get_top_clubs_for_nation(db, nation_id, limit=10)
+    players_data = get_top_players_for_nation(db, nation_id, limit=20)
 
-    clubs = get_top_clubs_for_nation(db, nation_id, limit=10)
+    from app.schemas.nations import CompetitionSummary, ClubSummary, PlayerSummary
 
-    players = get_top_players_for_nation(db, nation_id, limit=20)
-
-    return {
-        "nation": {
-            "id": nation.id,
-            "name": nation.name,
-            "country_code": nation.country_code,
-            "governing_body": nation.governing_body or "N/A",
-        },
-        "competitions": competitions,
-        "clubs": clubs,
-        "players": players,
-    }
+    return NationDetailsResponse(
+        nation=NationInfo(
+            id=nation.id,
+            name=nation.name,
+            country_code=nation.country_code,
+            governing_body=nation.governing_body or "N/A",
+        ),
+        competitions=[CompetitionSummary(**comp) for comp in competitions_data],
+        clubs=[ClubSummary(**club) for club in clubs_data],
+        players=[PlayerSummary(**player) for player in players_data],
+    )

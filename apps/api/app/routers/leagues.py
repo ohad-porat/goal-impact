@@ -6,10 +6,19 @@ from app.models.nations import Nation
 from app.models.seasons import Season
 from app.models.team_stats import TeamStats
 from app.models.teams import Team
+from app.schemas.leagues import (
+    LeaguesListResponse,
+    LeagueSummary,
+    LeagueSeasonsResponse,
+    SeasonInfo,
+    LeagueTableResponse,
+    LeagueInfo,
+    LeagueTableEntry,
+)
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/", response_model=LeaguesListResponse)
 async def get_leagues(db: Session = Depends(get_db)):
     """Get all available leagues with their details"""
     competitions = db.query(Competition).join(Nation).all()
@@ -30,19 +39,20 @@ async def get_leagues(db: Session = Depends(get_db)):
         else:
             available_seasons = "No seasons available"
         
-        league_info = {
-            "id": competition.id,
-            "name": competition.name,
-            "country": competition.nation.name if competition.nation else "Unknown",
-            "gender": competition.gender,
-            "tier": competition.tier,
-            "available_seasons": available_seasons
-        }
-        leagues_data.append(league_info)
+        leagues_data.append(
+            LeagueSummary(
+                id=competition.id,
+                name=competition.name,
+                country=competition.nation.name if competition.nation else "Unknown",
+                gender=competition.gender,
+                tier=competition.tier,
+                available_seasons=available_seasons
+            )
+        )
     
-    return {"leagues": leagues_data}
+    return LeaguesListResponse(leagues=leagues_data)
 
-@router.get("/{league_id}/seasons")
+@router.get("/{league_id}/seasons", response_model=LeagueSeasonsResponse)
 async def get_league_seasons(league_id: int, db: Session = Depends(get_db)):
     """Get all available seasons for a specific league"""
     competition = db.query(Competition).filter(Competition.id == league_id).first()
@@ -52,21 +62,21 @@ async def get_league_seasons(league_id: int, db: Session = Depends(get_db)):
     
     seasons = db.query(Season).filter(Season.competition_id == league_id).all()
     
-    seasons_data = []
-    for season in seasons:
-        season_info = {
-            "id": season.id,
-            "start_year": season.start_year,
-            "end_year": season.end_year,
-            "display_name": f"{season.start_year}/{season.end_year}" if season.start_year != season.end_year else str(season.start_year)
-        }
-        seasons_data.append(season_info)
+    seasons_data = [
+        SeasonInfo(
+            id=season.id,
+            start_year=season.start_year,
+            end_year=season.end_year,
+            display_name=f"{season.start_year}/{season.end_year}" if season.start_year != season.end_year else str(season.start_year)
+        )
+        for season in seasons
+    ]
     
-    seasons_data.sort(key=lambda x: x["start_year"], reverse=True)
+    seasons_data.sort(key=lambda x: x.start_year, reverse=True)
     
-    return {"seasons": seasons_data}
+    return LeagueSeasonsResponse(seasons=seasons_data)
 
-@router.get("/{league_id}/table/{season_id}")
+@router.get("/{league_id}/table/{season_id}", response_model=LeagueTableResponse)
 async def get_league_table(league_id: int, season_id: int, db: Session = Depends(get_db)):
     """Get league table for a specific league and season"""
     competition = db.query(Competition).filter(Competition.id == league_id).first()
@@ -84,34 +94,34 @@ async def get_league_table(league_id: int, season_id: int, db: Session = Depends
         TeamStats.season_id == season_id
     ).order_by(TeamStats.ranking).all()
     
-    table_data = []
-    for stats in team_stats:
-        team_info = {
-            "position": stats.ranking,
-            "team_id": stats.team.id,
-            "team_name": stats.team.name,
-            "matches_played": stats.matches_played,
-            "wins": stats.wins,
-            "draws": stats.draws,
-            "losses": stats.losses,
-            "goals_for": stats.goals_for,
-            "goals_against": stats.goals_against,
-            "goal_difference": stats.goal_difference,
-            "points": stats.points
-        }
-        table_data.append(team_info)
+    table_data = [
+        LeagueTableEntry(
+            position=stats.ranking,
+            team_id=stats.team.id,
+            team_name=stats.team.name,
+            matches_played=stats.matches_played,
+            wins=stats.wins,
+            draws=stats.draws,
+            losses=stats.losses,
+            goals_for=stats.goals_for,
+            goals_against=stats.goals_against,
+            goal_difference=stats.goal_difference,
+            points=stats.points
+        )
+        for stats in team_stats
+    ]
     
-    return {
-        "league": {
-            "id": competition.id,
-            "name": competition.name,
-            "country": competition.nation.name if competition.nation else "Unknown"
-        },
-        "season": {
-            "id": season.id,
-            "start_year": season.start_year,
-            "end_year": season.end_year,
-            "display_name": f"{season.start_year}/{season.end_year}" if season.start_year != season.end_year else str(season.start_year)
-        },
-        "table": table_data
-    }
+    return LeagueTableResponse(
+        league=LeagueInfo(
+            id=competition.id,
+            name=competition.name,
+            country=competition.nation.name if competition.nation else "Unknown"
+        ),
+        season=SeasonInfo(
+            id=season.id,
+            start_year=season.start_year,
+            end_year=season.end_year,
+            display_name=f"{season.start_year}/{season.end_year}" if season.start_year != season.end_year else str(season.start_year)
+        ),
+        table=table_data
+    )
