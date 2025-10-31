@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { League } from '../../lib/types'
 import { api } from '../../lib/api'
 import { tableStyles } from '../../lib/tableStyles'
+import { ErrorDisplay } from '../../components/ErrorDisplay'
 
 async function getLeagues(): Promise<League[]> {
   const response = await fetch(api.leagues, {
@@ -17,7 +18,12 @@ async function getLeagues(): Promise<League[]> {
 }
 
 export default async function LeaguesPage() {
-  const leagues = await getLeagues()
+  let leagues: League[] = []
+  try {
+    leagues = await getLeagues()
+  } catch (error) {
+    return <ErrorDisplay message="Failed to load leagues." />
+  }
   
   const styles = tableStyles.standard
 

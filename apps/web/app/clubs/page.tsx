@@ -1,6 +1,7 @@
 import { ClubsResponse } from '../../lib/types/club'
 import { api } from '../../lib/api'
 import Link from 'next/link'
+import { ErrorDisplay } from '../../components/ErrorDisplay'
 
 async function getClubsByNation(): Promise<ClubsResponse> {
   const response = await fetch(api.clubs, {
@@ -15,7 +16,12 @@ async function getClubsByNation(): Promise<ClubsResponse> {
 }
 
 export default async function ClubsPage() {
-  const data = await getClubsByNation()
+  let data: ClubsResponse
+  try {
+    data = await getClubsByNation()
+  } catch (error) {
+    return <ErrorDisplay message="Failed to load clubs." />
+  }
   
   return (
     <div className="min-h-screen">

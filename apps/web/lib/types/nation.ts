@@ -22,16 +22,12 @@ export interface NationClubSummary {
   id: number
   name: string
   avg_position: number | null
-  stats_count: number
-  has_stats: boolean
 }
 
 export interface NationPlayerSummary {
   id: number
   name: string
   total_goal_value: number
-  stats_count: number
-  has_stats: boolean
 }
 
 export interface NationDetailsResponse {

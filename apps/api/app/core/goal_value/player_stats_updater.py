@@ -35,9 +35,9 @@ class PlayerStatsGoalValueUpdater:
         print(f"Found {len(self.all_player_stats)} player stats records to process")
         
         player_stats_lookup = {}
-        for ps in self.all_player_stats:
-            key = (ps.player_id, ps.season_id, ps.team_id)
-            player_stats_lookup[key] = ps
+        for player_stat in self.all_player_stats:
+            key = (player_stat.player_id, player_stat.season_id, player_stat.team_id)
+            player_stats_lookup[key] = player_stat
         
         print("Created player stats lookup dictionary")
         
@@ -60,8 +60,8 @@ class PlayerStatsGoalValueUpdater:
         
         print(f"Found {len(goal_events_query)} goal events with goal values")
         
-        for ps in self.all_player_stats:
-            key = (ps.player_id, ps.season_id, ps.team_id)
+        for player_stat in self.all_player_stats:
+            key = (player_stat.player_id, player_stat.season_id, player_stat.team_id)
             self.aggregated_data[key] = {
                 'total_goal_value': 0.0,
                 'gv_avg': 0.0,

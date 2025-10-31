@@ -27,13 +27,9 @@ export function NationClubsTable({ clubs }: NationClubsTableProps) {
                 clubs.map((club) => (
                   <tr key={club.id} className="hover:bg-slate-700 transition-colors">
                     <td className="pl-6 pr-3 py-2 whitespace-nowrap">
-                      {club.has_stats ? (
-                        <Link href={`/clubs/${club.id}`} className="text-white hover:text-orange-400 transition-colors">
-                          {club.name}
-                        </Link>
-                      ) : (
-                        <span className="text-white">{club.name}</span>
-                      )}
+                      <Link href={`/clubs/${club.id}`} className="text-white hover:text-orange-400 transition-colors">
+                        {club.name}
+                      </Link>
                     </td>
                     <td className="px-3 py-2 text-center w-32 whitespace-nowrap text-white">
                       {club.avg_position !== null && club.avg_position !== undefined ? club.avg_position.toFixed(1) : '-'}
