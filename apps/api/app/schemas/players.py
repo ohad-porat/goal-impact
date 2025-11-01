@@ -3,13 +3,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
-
-class NationInfo(BaseModel):
-    """Nation information."""
-    
-    id: Optional[int]
-    name: Optional[str]
-    country_code: Optional[str]
+from app.schemas.common import NationInfo
 
 
 class PlayerInfo(BaseModel):

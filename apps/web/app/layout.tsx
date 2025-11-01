@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-slate-900`}>
         <Navbar />
-        <main className="pt-12">
+        <main className="pt-12 pb-12">
           {children}
         </main>
       </body>

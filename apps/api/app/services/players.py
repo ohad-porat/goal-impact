@@ -6,14 +6,13 @@ from sqlalchemy.orm import Session, joinedload
 from app.models import Player, PlayerStats as PlayerStatsModel, Season, Team, Competition, TeamStats
 from app.schemas.players import (
     PlayerInfo,
-    NationInfo,
     SeasonData,
     SeasonDisplay,
     TeamInfo,
     CompetitionInfo,
     PlayerStats,
 )
-from app.services.common import format_season_display_name
+from app.services.common import format_season_display_name, build_nation_info
 
 
 def transform_player_stats(stats: PlayerStatsModel) -> PlayerStats:
@@ -88,11 +87,7 @@ def get_player_seasons_stats(db: Session, player_id: int) -> tuple[Optional[Play
     player_info = PlayerInfo(
         id=player.id,
         name=player.name,
-        nation=NationInfo(
-            id=player.nation.id if player.nation else None,
-            name=player.nation.name if player.nation else None,
-            country_code=player.nation.country_code if player.nation else None
-        )
+        nation=build_nation_info(player.nation)
     )
     
     return player_info, seasons_data

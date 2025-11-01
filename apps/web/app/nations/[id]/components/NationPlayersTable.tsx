@@ -7,7 +7,7 @@ interface NationPlayersTableProps {
 
 export function NationPlayersTable({ players }: NationPlayersTableProps) {
   return (
-    <div className="mb-10 max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto">
       <h2 className="text-2xl font-semibold text-white mb-3">Top Players</h2>
       <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
