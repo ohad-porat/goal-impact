@@ -1,17 +1,17 @@
 """Leaders-related business logic services."""
 
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from app.models import Player, PlayerStats, Nation
+from app.models import Player, PlayerStats, Nation, Season
 from app.schemas.leaders import CareerTotalsPlayer
 from app.services.common import build_nation_info
 
 
-def get_career_totals(db: Session, limit: int = 50) -> List[CareerTotalsPlayer]:
-    """Get top players by career goal value totals."""    
-    career_stats = (
+def get_career_totals(db: Session, limit: int = 50, league_id: Optional[int] = None) -> List[CareerTotalsPlayer]:
+    """Get top players by career goal value totals, optionally filtered by league."""
+    query = (
         db.query(
             Player.id,
             Player.name,
@@ -22,6 +22,13 @@ def get_career_totals(db: Session, limit: int = 50) -> List[CareerTotalsPlayer]:
         )
         .join(PlayerStats, Player.id == PlayerStats.player_id)
         .filter(PlayerStats.goal_value.isnot(None))
+    )
+    
+    if league_id is not None:
+        query = query.join(Season, PlayerStats.season_id == Season.id).filter(Season.competition_id == league_id)
+    
+    career_stats = (
+        query
         .group_by(Player.id, Player.name, Player.nation_id)
         .having(func.sum(PlayerStats.goal_value) > 0)
         .subquery()

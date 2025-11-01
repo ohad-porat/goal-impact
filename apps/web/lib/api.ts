@@ -10,5 +10,11 @@ export const api = {
   playerDetails: (playerId: number) => `${API_BASE_URL}/players/${playerId}`,
   nations: `${API_BASE_URL}/nations/`,
   nationDetails: (nationId: number) => `${API_BASE_URL}/nations/${nationId}`,
-  leadersCareerTotals: () => `${API_BASE_URL}/leaders/career-totals`,
+  leadersCareerTotals: (leagueId?: number) => {
+    const url = new URL(`${API_BASE_URL}/leaders/career-totals`)
+    if (leagueId !== undefined) {
+      url.searchParams.set('league_id', leagueId.toString())
+    }
+    return url.toString()
+  },
 }
