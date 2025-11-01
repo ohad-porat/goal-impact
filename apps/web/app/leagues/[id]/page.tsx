@@ -125,7 +125,7 @@ export default function LeagueShowPage({ params, searchParams }: LeagueShowPageP
           </div>
         </div>
 
-        <div className="py-8">
+        <div>
           <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-700 table-fixed">
