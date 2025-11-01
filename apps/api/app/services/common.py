@@ -4,7 +4,9 @@ from typing import Optional, Tuple
 from sqlalchemy import or_
 from sqlalchemy.sql.elements import BooleanClauseList
 from app.models.seasons import Season
+from app.models.teams import Team
 from app.schemas.common import NationInfo
+from app.schemas.clubs import ClubInfo, NationDetailed
 
 
 def format_season_display_name(start_year: int, end_year: Optional[int]) -> str:
@@ -45,4 +47,17 @@ def build_season_filter_for_all_leagues(normalized_start: int, normalized_end: i
     return or_(
         (Season.start_year == normalized_start) & (Season.end_year == normalized_end),
         (Season.start_year == normalized_end) & (Season.end_year == normalized_end)
+    )
+
+
+def build_club_info(team: Team) -> ClubInfo:
+    """Build ClubInfo from Team model."""
+    return ClubInfo(
+        id=team.id,
+        name=team.name,
+        nation=NationDetailed(
+            id=team.nation.id if team.nation else None,
+            name=team.nation.name if team.nation else "Unknown",
+            country_code=team.nation.country_code if team.nation else None
+        )
     )

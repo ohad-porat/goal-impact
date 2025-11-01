@@ -3,7 +3,8 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import Player, PlayerStats as PlayerStatsModel, Season, Team, Competition, TeamStats
+from app.models import Player, PlayerStats as PlayerStatsModel, Season, Team, Competition, TeamStats, Event, Match
+from sqlalchemy import or_
 from app.schemas.players import (
     PlayerInfo,
     SeasonData,
@@ -12,7 +13,9 @@ from app.schemas.players import (
     CompetitionInfo,
     PlayerStats,
 )
+from app.schemas.clubs import PlayerGoalLogEntry, PlayerBasic
 from app.services.common import format_season_display_name, build_nation_info
+from app.services.goal_log import build_player_career_goal_log_entry
 
 
 def transform_player_stats(stats: PlayerStatsModel) -> PlayerStats:
@@ -91,3 +94,54 @@ def get_player_seasons_stats(db: Session, player_id: int) -> tuple[Optional[Play
     )
     
     return player_info, seasons_data
+
+
+def get_player_career_goal_log(
+    db: Session,
+    player_id: int
+) -> tuple[Optional[PlayerBasic], List[PlayerGoalLogEntry]]:
+    """Get goal log for a player across their entire career."""
+    player = db.query(Player).filter(Player.id == player_id).first()
+    if not player:
+        return None, []
+    
+    goals_query = (
+        db.query(Event, Match, Season)
+        .join(Match, Event.match_id == Match.id)
+        .join(Season, Match.season_id == Season.id)
+        .filter(
+            Event.player_id == player_id,
+            or_(Event.event_type == "goal", Event.event_type == "own goal")
+        )
+        .all()
+    )
+    
+    goal_entries_with_date_season = []
+    for goal_event, match, season in goals_query:
+        season_display_name = format_season_display_name(season.start_year, season.end_year)
+        goal_entry = build_player_career_goal_log_entry(db, goal_event, match, player, season_display_name)
+        if goal_entry:
+            goal_entries_with_date_season.append((
+                match.date if match.date else None,
+                season.start_year,
+                goal_entry
+            ))
+    
+    goal_entries_with_date_season.sort(key=lambda g: (
+        g[1] if g[1] is not None else 0,
+        g[0] if g[0] is not None else "",
+        g[2].minute
+    ))
+    
+    goal_entries = []
+    for date_obj, _, goal_entry in goal_entries_with_date_season:
+        date_str = date_obj.strftime("%d/%m/%Y") if date_obj else ""
+        goal_entry.date = date_str
+        goal_entries.append(goal_entry)
+    
+    player_basic = PlayerBasic(
+        id=player.id,
+        name=player.name
+    )
+    
+    return player_basic, goal_entries

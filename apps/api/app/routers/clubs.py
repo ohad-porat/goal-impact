@@ -5,11 +5,13 @@ from app.services.clubs import (
     get_clubs_by_nation,
     get_club_with_seasons,
     get_team_season_squad_stats,
+    get_team_season_goal_log,
 )
 from app.schemas.clubs import (
     ClubsByNationResponse,
     ClubDetailsResponse,
     TeamSeasonSquadResponse,
+    TeamSeasonGoalLogResponse,
 )
 
 router = APIRouter()
@@ -51,4 +53,24 @@ async def get_team_season_squad(team_id: int, season_id: int, db: Session = Depe
         season=season_display,
         competition=competition_display,
         players=players_data
+    )
+
+@router.get("/{team_id}/seasons/{season_id}/goals", response_model=TeamSeasonGoalLogResponse)
+async def get_team_season_goal_log_route(team_id: int, season_id: int, db: Session = Depends(get_db)):
+    """Get goal log for a team in a specific season"""
+    club_info, season_display, competition_display, goals_data = get_team_season_goal_log(
+        db, team_id, season_id
+    )
+    
+    if not club_info or not season_display:
+        if not club_info:
+            raise HTTPException(status_code=404, detail="Team not found")
+        else:
+            raise HTTPException(status_code=404, detail="Season not found")
+    
+    return TeamSeasonGoalLogResponse(
+        team=club_info,
+        season=season_display,
+        competition=competition_display,
+        goals=goals_data
     )

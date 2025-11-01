@@ -42,4 +42,3 @@ async def get_by_season_leaders(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching by-season leaders: {str(e)}")
-

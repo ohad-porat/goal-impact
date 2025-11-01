@@ -11,6 +11,9 @@ from app.models.competitions import Competition
 from app.models.seasons import Season
 from app.models.players import Player
 from app.models.player_stats import PlayerStats
+from app.models.events import Event
+from app.models.matches import Match
+from sqlalchemy import or_
 from app.schemas.clubs import (
     ClubSummary,
     ClubByNation,
@@ -23,23 +26,15 @@ from app.schemas.clubs import (
     SquadPlayer,
     PlayerBasic,
     CompetitionDisplay,
+    GoalLogEntry,
+)
+from app.services.goal_log import (
+    build_team_season_goal_log_entry,
+    sort_and_format_goal_entries,
 )
 from app.schemas.players import SeasonDisplay
-from app.services.common import format_season_display_name
+from app.services.common import format_season_display_name, build_club_info
 from app.services.players import transform_player_stats
-
-
-def _build_club_info(team: Team) -> ClubInfo:
-    """Build ClubInfo from Team model."""
-    return ClubInfo(
-        id=team.id,
-        name=team.name,
-        nation=NationDetailed(
-            id=team.nation.id if team.nation else None,
-            name=team.nation.name if team.nation else "Unknown",
-            country_code=team.nation.country_code if team.nation else None
-        )
-    )
 
 
 def get_top_clubs_for_nation_core(
@@ -149,7 +144,7 @@ def get_club_with_seasons(db: Session, club_id: int) -> tuple[Optional[ClubInfo]
         for team_stat, season, competition in team_stats_query
     ]
     
-    return _build_club_info(team), seasons_data
+    return build_club_info(team), seasons_data
 
 
 def get_team_season_squad_stats(
@@ -201,4 +196,56 @@ def get_team_season_squad_stats(
         name=season.competition.name if season.competition else "Unknown"
     )
     
-    return _build_club_info(team), season_display, competition_display, players_data
+    return build_club_info(team), season_display, competition_display, players_data
+
+
+def get_team_season_goal_log(
+    db: Session,
+    team_id: int,
+    season_id: int
+) -> tuple[Optional[ClubInfo], Optional[SeasonDisplay], Optional[CompetitionDisplay], List[GoalLogEntry]]:
+    """Get goal log for a team in a specific season."""
+    team = db.query(Team).options(joinedload(Team.nation)).filter(Team.id == team_id).first()
+    if not team:
+        return None, None, None, []
+    
+    season = db.query(Season).options(joinedload(Season.competition)).filter(Season.id == season_id).first()
+    if not season:
+        return None, None, None, []
+    
+    goals_query = (
+        db.query(Event, Match, Player)
+        .join(Match, Event.match_id == Match.id)
+        .join(Player, Event.player_id == Player.id)
+        .filter(
+            Match.season_id == season_id,
+            or_(Event.event_type == "goal", Event.event_type == "own goal"),
+            or_(
+                Match.home_team_id == team_id,
+                Match.away_team_id == team_id
+            )
+        )
+        .all()
+    )
+    
+    goal_entries_with_date = []
+    for goal_event, match, scorer in goals_query:
+        goal_entry = build_team_season_goal_log_entry(db, goal_event, match, scorer, team_id)
+        if goal_entry:
+            goal_entries_with_date.append((match.date if match.date else None, goal_entry))
+
+    goal_entries = sort_and_format_goal_entries(goal_entries_with_date)
+    
+    season_display = SeasonDisplay(
+        id=season.id,
+        start_year=season.start_year,
+        end_year=season.end_year,
+        display_name=format_season_display_name(season.start_year, season.end_year)
+    )
+    
+    competition_display = CompetitionDisplay(
+        id=season.competition.id if season.competition else None,
+        name=season.competition.name if season.competition else "Unknown"
+    )
+    
+    return build_club_info(team), season_display, competition_display, goal_entries
