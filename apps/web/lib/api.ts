@@ -7,7 +7,9 @@ export const api = {
   clubs: `${API_BASE_URL}/clubs/`,
   clubDetails: (clubId: number) => `${API_BASE_URL}/clubs/${clubId}`,
   teamSeasonSquad: (teamId: number, seasonId: number) => `${API_BASE_URL}/clubs/${teamId}/seasons/${seasonId}`,
+  teamSeasonGoalLog: (teamId: number, seasonId: number) => `${API_BASE_URL}/clubs/${teamId}/seasons/${seasonId}/goals`,
   playerDetails: (playerId: number) => `${API_BASE_URL}/players/${playerId}`,
+  playerGoalLog: (playerId: number) => `${API_BASE_URL}/players/${playerId}/goals`,
   nations: `${API_BASE_URL}/nations/`,
   nationDetails: (nationId: number) => `${API_BASE_URL}/nations/${nationId}`,
   leadersCareerTotals: (leagueId?: number) => {

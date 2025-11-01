@@ -116,3 +116,97 @@ export interface TeamSeasonSquadResponse {
   }
   players: PlayerSeasonData[]
 }
+
+export interface GoalLogEntry {
+  date: string
+  venue: string
+  scorer: {
+    id: number
+    name: string
+  }
+  opponent: {
+    id: number
+    name: string
+    nation: {
+      id: number | null
+      name: string
+      country_code: string | null
+    }
+  }
+  minute: number
+  score_before: string
+  score_after: string
+  goal_value: number | null
+  xg: number | null
+  post_shot_xg: number | null
+  assisted_by: {
+    id: number
+    name: string
+  } | null
+}
+
+export interface TeamSeasonGoalLogResponse {
+  team: {
+    id: number
+    name: string
+    nation: {
+      id: number | null
+      name: string
+      country_code: string | null
+    }
+  }
+  season: {
+    id: number
+    start_year: number | null
+    end_year: number | null
+    display_name: string
+  }
+  competition: {
+    id: number | null
+    name: string
+  }
+  goals: GoalLogEntry[]
+}
+
+export interface PlayerGoalLogEntry {
+  date: string
+  venue: string
+  team: {
+    id: number
+    name: string
+    nation: {
+      id: number | null
+      name: string
+      country_code: string | null
+    }
+  }
+  opponent: {
+    id: number
+    name: string
+    nation: {
+      id: number | null
+      name: string
+      country_code: string | null
+    }
+  }
+  minute: number
+  score_before: string
+  score_after: string
+  goal_value: number | null
+  xg: number | null
+  post_shot_xg: number | null
+  assisted_by: {
+    id: number
+    name: string
+  } | null
+  season_id: number
+  season_display_name: string
+}
+
+export interface PlayerGoalLogResponse {
+  player: {
+    id: number
+    name: string
+  }
+  goals: PlayerGoalLogEntry[]
+}

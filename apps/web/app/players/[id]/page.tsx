@@ -3,15 +3,11 @@ import { api } from '../../../lib/api'
 import { ErrorDisplay } from '../../../components/ErrorDisplay'
 import { PlayerTableHeader } from './components/PlayerTableHeader'
 import { PlayerTableBody } from './components/PlayerTableBody'
+import Link from 'next/link'
 
 interface PlayerPageProps {
   params: {
     id: string
-  }
-  searchParams: {
-    from?: string
-    season?: string
-    teamId?: string
   }
 }
 
@@ -27,11 +23,8 @@ async function getPlayerDetails(playerId: number): Promise<PlayerDetailsResponse
   return response.json()
 }
 
-export default async function PlayerPage({ params, searchParams }: PlayerPageProps) {
+export default async function PlayerPage({ params }: PlayerPageProps) {
   const playerId = parseInt(params.id)
-  const from = searchParams.from
-  const seasonId = searchParams.season ? parseInt(searchParams.season) : null
-  const teamId = searchParams.teamId ? parseInt(searchParams.teamId) : null
   
   if (isNaN(playerId)) {
     return <ErrorDisplay message={`The player ID "${params.id}" is not valid.`} />
@@ -44,17 +37,25 @@ export default async function PlayerPage({ params, searchParams }: PlayerPagePro
     return (
       <div className="min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <h1 className="text-4xl font-bold text-white">
-              {player.name}
-            </h1>
-            {player.nation?.name && (
-              <div className="mt-2">
-                <p className="text-xl text-gray-300">
-                  Country: {player.nation.name}
-                </p>
-              </div>
-            )}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-white">
+                {player.name}
+              </h1>
+              {player.nation?.name && (
+                <div className="mt-2">
+                  <p className="text-xl text-gray-300">
+                    Country: {player.nation.name}
+                  </p>
+                </div>
+              )}
+            </div>
+            <Link
+              href={`/players/${playerId}/goals`}
+              className="px-4 py-2 bg-slate-700 text-white font-semibold rounded-md border border-slate-600 hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+            >
+              View Goal Log
+            </Link>
           </div>
 
           <div>

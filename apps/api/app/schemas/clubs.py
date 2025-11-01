@@ -117,3 +117,53 @@ class TeamSeasonSquadResponse(BaseModel):
     season: SeasonDisplay
     competition: CompetitionDisplay
     players: List[SquadPlayer]
+
+
+class GoalLogEntry(BaseModel):
+    """Goal log entry with all relevant information."""
+    
+    date: str
+    venue: str
+    scorer: PlayerBasic
+    opponent: ClubInfo
+    minute: int
+    score_before: str
+    score_after: str
+    goal_value: Optional[float]
+    xg: Optional[float]
+    post_shot_xg: Optional[float]
+    assisted_by: Optional[PlayerBasic]
+
+
+class TeamSeasonGoalLogResponse(BaseModel):
+    """Response for team season goal log endpoint."""
+    
+    team: ClubInfo
+    season: SeasonDisplay
+    competition: CompetitionDisplay
+    goals: List[GoalLogEntry]
+
+
+class PlayerGoalLogEntry(BaseModel):
+    """Goal log entry for player career (with team instead of scorer)."""
+    
+    date: str
+    venue: str
+    team: ClubInfo
+    opponent: ClubInfo
+    minute: int
+    score_before: str
+    score_after: str
+    goal_value: Optional[float]
+    xg: Optional[float]
+    post_shot_xg: Optional[float]
+    assisted_by: Optional[PlayerBasic]
+    season_id: int
+    season_display_name: str
+
+
+class PlayerGoalLogResponse(BaseModel):
+    """Response for player career goal log endpoint."""
+    
+    player: PlayerBasic
+    goals: List[PlayerGoalLogEntry]
