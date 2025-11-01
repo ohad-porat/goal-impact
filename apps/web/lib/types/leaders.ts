@@ -31,4 +31,3 @@ export interface BySeasonPlayer {
 export interface BySeasonResponse {
   top_goal_value: BySeasonPlayer[]
 }
-
