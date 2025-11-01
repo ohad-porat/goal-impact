@@ -1,10 +1,11 @@
 """Player-related business logic services."""
 
+from datetime import date
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 
 from app.models import Player, PlayerStats as PlayerStatsModel, Season, Team, Competition, TeamStats, Event, Match
-from sqlalchemy import or_
+from sqlalchemy import or_, case, func
 from app.schemas.players import (
     PlayerInfo,
     SeasonData,
@@ -65,27 +66,55 @@ def get_player_seasons_stats(db: Session, player_id: int) -> tuple[Optional[Play
         .all()
     )
     
+    team_case = case(
+        (Event.home_team_goals_post_event > Event.home_team_goals_pre_event, Match.home_team_id),
+        else_=Match.away_team_id
+    )
+    earliest_dates = (
+        db.query(
+            Match.season_id,
+            team_case.label('team_id'),
+            func.min(Match.date).label('earliest_date')
+        )
+        .select_from(Event)
+        .join(Match, Event.match_id == Match.id)
+        .filter(
+            Event.player_id == player_id,
+            or_(Event.event_type == "goal", Event.event_type == "own goal")
+        )
+        .group_by(Match.season_id, team_case)
+        .all()
+    )
+    
+    date_map = {(season_id, team_id): earliest_date for season_id, team_id, earliest_date in earliest_dates}
+    
     seasons_data = [
-        SeasonData(
-            season=SeasonDisplay(
-                id=season.id,
-                start_year=season.start_year,
-                end_year=season.end_year,
-                display_name=format_season_display_name(season.start_year, season.end_year)
+        (
+            SeasonData(
+                season=SeasonDisplay(
+                    id=season.id,
+                    start_year=season.start_year,
+                    end_year=season.end_year,
+                    display_name=format_season_display_name(season.start_year, season.end_year)
+                ),
+                team=TeamInfo(
+                    id=team.id,
+                    name=team.name
+                ),
+                competition=CompetitionInfo(
+                    id=competition.id,
+                    name=competition.name
+                ),
+                league_rank=team_stats.ranking if team_stats else None,
+                stats=transform_player_stats(player_stats)
             ),
-            team=TeamInfo(
-                id=team.id,
-                name=team.name
-            ),
-            competition=CompetitionInfo(
-                id=competition.id,
-                name=competition.name
-            ),
-            league_rank=team_stats.ranking if team_stats else None,
-            stats=transform_player_stats(player_stats)
+            date_map.get((season.id, team.id))
         )
         for player_stats, season, team, competition, team_stats in player_stats_query
     ]
+    
+    seasons_data.sort(key=lambda x: (x[0].season.start_year, x[1] if x[1] else date.max))
+    seasons_data = [sd[0] for sd in seasons_data]
     
     player_info = PlayerInfo(
         id=player.id,
