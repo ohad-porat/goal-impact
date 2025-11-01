@@ -2,17 +2,17 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CareerTotalsTab } from './components/CareerTotalsTab'
+import { BySeasonTab } from './components/BySeasonTab'
 
-type TabType = 'career' | 'season' | 'team'
+type TabType = 'career' | 'season'
 
 const TABS: { id: TabType; label: string }[] = [
   { id: 'career', label: 'Career Totals' },
   { id: 'season', label: 'By Season' },
-  { id: 'team', label: 'By Team' },
 ]
 
 const isValidTab = (value: string | null): value is TabType => {
-  return value === 'career' || value === 'season' || value === 'team'
+  return value === 'career' || value === 'season'
 }
 
 function LeadersPage() {
@@ -53,16 +53,7 @@ function LeadersPage() {
 
         <div className="mt-8">
           {activeTab === 'career' && <CareerTotalsTab />}
-          {activeTab === 'season' && (
-            <div className="text-white text-center">
-              <p>By Season content will go here</p>
-            </div>
-          )}
-          {activeTab === 'team' && (
-            <div className="text-white text-center">
-              <p>By Team content will go here</p>
-            </div>
-          )}
+          {activeTab === 'season' && <BySeasonTab />}
         </div>
       </div>
     </div>

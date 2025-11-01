@@ -5,7 +5,6 @@ interface LeadersTableProps {
   title: string
   header: ReactNode
   body: ReactNode
-  loading?: boolean
   error?: string | null
   isEmpty?: boolean
 }
@@ -14,20 +13,11 @@ export function LeadersTable({
   title,
   header,
   body,
-  loading = false,
   error = null,
   isEmpty = false,
 }: LeadersTableProps) {
   if (error) {
     return <ErrorDisplay message={error} />
-  }
-
-  if (loading) {
-    return (
-      <div className="text-white text-center py-8">
-        <p>Loading {title.toLowerCase()}...</p>
-      </div>
-    )
   }
 
   if (isEmpty) {

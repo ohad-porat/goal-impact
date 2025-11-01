@@ -14,7 +14,7 @@ from app.schemas.leagues import (
     LeagueTableEntry,
 )
 from app.schemas.players import SeasonDisplay
-from app.services.common import format_season_display_name
+from app.services.common import format_season_display_name, normalize_season_years
 
 
 def format_season_range(seasons: List[Season]) -> str:
@@ -72,6 +72,49 @@ def get_league_seasons(db: Session, league_id: int) -> List[SeasonDisplay]:
     ]
     
     seasons_data.sort(key=lambda x: x.start_year, reverse=True)
+    return seasons_data
+
+
+def get_all_unique_seasons(db: Session) -> List[SeasonDisplay]:
+    """Get all unique seasons grouped by logical period."""
+    all_seasons = db.query(Season).all()
+    season_groups = {}
+    
+    for season in all_seasons:
+        normalized_start, normalized_end = normalize_season_years(season.start_year, season.end_year)
+        key = (normalized_start, normalized_end)
+        if key not in season_groups:
+            season_groups[key] = []
+        season_groups[key].append(season)
+    
+    seasons_data = []
+    seen_display_names = set()
+    
+    for (normalized_start, normalized_end), seasons in season_groups.items():
+        representative = None
+        for season in seasons:
+            if season.start_year != season.end_year:
+                representative = season
+                break
+        
+        if not representative:
+            representative = seasons[0]
+        
+        display_name = format_season_display_name(normalized_start, normalized_end)
+        
+        if display_name not in seen_display_names:
+            seen_display_names.add(display_name)
+            seasons_data.append(
+                SeasonDisplay(
+                    id=representative.id,
+                    start_year=normalized_start,
+                    end_year=normalized_end,
+                    display_name=display_name
+                )
+            )
+    
+    seasons_data.sort(key=lambda x: x.start_year, reverse=True)
+    
     return seasons_data
 
 

@@ -17,4 +17,13 @@ export const api = {
     }
     return url.toString()
   },
+  leadersBySeason: (seasonId: number, leagueId?: number) => {
+    const url = new URL(`${API_BASE_URL}/leaders/by-season`)
+    url.searchParams.set('season_id', seasonId.toString())
+    if (leagueId !== undefined) {
+      url.searchParams.set('league_id', leagueId.toString())
+    }
+    return url.toString()
+  },
+  allSeasons: `${API_BASE_URL}/leagues/seasons`,
 }

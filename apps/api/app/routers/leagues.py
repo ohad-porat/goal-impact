@@ -6,6 +6,7 @@ from app.services.leagues import (
     get_all_leagues_with_season_ranges,
     get_league_seasons,
     get_league_table_for_season,
+    get_all_unique_seasons,
 )
 from app.schemas.leagues import (
     LeaguesListResponse,
@@ -20,6 +21,12 @@ async def get_leagues(db: Session = Depends(get_db)):
     """Get all available leagues with their details"""
     leagues_data = get_all_leagues_with_season_ranges(db)
     return LeaguesListResponse(leagues=leagues_data)
+
+@router.get("/seasons", response_model=LeagueSeasonsResponse)
+async def get_all_seasons_route(db: Session = Depends(get_db)):
+    """Get all unique seasons across all leagues, sorted by start_year descending."""
+    seasons_data = get_all_unique_seasons(db)
+    return LeagueSeasonsResponse(seasons=seasons_data)
 
 @router.get("/{league_id}/seasons", response_model=LeagueSeasonsResponse)
 async def get_league_seasons_route(league_id: int, db: Session = Depends(get_db)):
