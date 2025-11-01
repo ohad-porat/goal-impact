@@ -11,7 +11,7 @@ from app.models.nations import Nation
 from app.schemas.nations import (
     NationsListResponse,
     NationDetailsResponse,
-    NationInfo,
+    NationDetails,
     CompetitionSummary,
     PlayerSummary,
 )
@@ -40,7 +40,7 @@ async def get_nation_details(
     players_data = get_top_players_for_nation(db, nation_id, limit=20)
 
     return NationDetailsResponse(
-        nation=NationInfo(
+        nation=NationDetails(
             id=nation.id,
             name=nation.name,
             country_code=nation.country_code,

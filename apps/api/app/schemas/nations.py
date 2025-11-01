@@ -21,8 +21,8 @@ class NationsListResponse(BaseModel):
     nations: List[NationSummary]
 
 
-class NationInfo(BaseModel):
-    """Basic nation information."""
+class NationDetails(BaseModel):
+    """Detailed nation information with governing body."""
     
     id: int
     name: str
@@ -51,7 +51,7 @@ class PlayerSummary(BaseModel):
 class NationDetailsResponse(BaseModel):
     """Response for nation details endpoint."""
     
-    nation: NationInfo
+    nation: NationDetails
     competitions: List[CompetitionSummary]
     clubs: List[ClubSummary]
     players: List[PlayerSummary]
