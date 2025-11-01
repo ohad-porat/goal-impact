@@ -16,6 +16,7 @@ export function useBySeasonData(seasonId?: number, leagueId?: number) {
         return
       }
 
+      setData(null)
       setLoading(true)
       setError(null)
       try {

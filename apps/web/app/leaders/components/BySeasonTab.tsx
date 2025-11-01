@@ -13,7 +13,7 @@ export function BySeasonTab() {
   const { leagues, loading: loadingLeagues } = useLeagues()
   const { leagueId, seasonId, selectedLeagueId, selectedSeasonId, updateParams } = useLeaderFilters()
   const { seasons, loading: loadingSeasons } = useSeasons(leagueId)
-  const { data: bySeason, loading, error } = useBySeasonData(seasonId, leagueId)
+  const { data: bySeason, error } = useBySeasonData(seasonId, leagueId)
 
   const handleLeagueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLeagueId = event.target.value === '' ? null : event.target.value
@@ -25,7 +25,8 @@ export function BySeasonTab() {
     updateParams('season', { season_id: newSeasonId })
   }
 
-  const isEmpty = !bySeason || bySeason.top_goal_value.length === 0
+  const isEmpty = bySeason !== null && bySeason.top_goal_value.length === 0
+  const shouldRenderTable = bySeason !== null || error
 
   return (
     <div>
@@ -62,14 +63,15 @@ export function BySeasonTab() {
           </select>
         </div>
       </div>
-      <LeadersTable
-        title=""
-        header={<BySeasonTableHeader />}
-        body={<BySeasonTableBody players={bySeason?.top_goal_value || []} />}
-        loading={loading}
-        error={error}
-        isEmpty={isEmpty}
-      />
+      {shouldRenderTable ? (
+        <LeadersTable
+          title=""
+          header={<BySeasonTableHeader />}
+          body={<BySeasonTableBody players={bySeason?.top_goal_value || []} />}
+          error={error}
+          isEmpty={isEmpty}
+        />
+      ) : null}
     </div>
   )
 }

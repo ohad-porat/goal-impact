@@ -14,12 +14,11 @@ export function CareerTotalsTab() {
   const { leagues, loading: loadingLeagues } = useLeagues()
   const { leagueId, selectedLeagueId, updateParams } = useLeaderFilters()
   const [careerTotals, setCareerTotals] = useState<CareerTotalsResponse | null>(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchCareerTotals = async () => {
-      setLoading(true)
+      setCareerTotals(null)
       setError(null)
       try {
         const response = await fetch(api.leadersCareerTotals(leagueId), { cache: 'no-cache' })
@@ -31,8 +30,6 @@ export function CareerTotalsTab() {
       } catch (err) {
         console.error('Error fetching career totals:', err)
         setError('Failed to load career totals data.')
-      } finally {
-        setLoading(false)
       }
     }
     fetchCareerTotals()
@@ -43,7 +40,7 @@ export function CareerTotalsTab() {
     updateParams('career', { league_id: newLeagueId })
   }
 
-  const isEmpty = !careerTotals || careerTotals.top_goal_value.length === 0
+  const isEmpty = careerTotals !== null && careerTotals.top_goal_value.length === 0
 
   return (
     <div>
@@ -64,14 +61,15 @@ export function CareerTotalsTab() {
           ))}
         </select>
       </div>
-      <LeadersTable
-        title=""
-        header={<CareerTotalsTableHeader />}
-        body={<CareerTotalsTableBody players={careerTotals?.top_goal_value || []} />}
-        loading={loading}
-        error={error}
-        isEmpty={isEmpty}
-      />
+      {careerTotals !== null || error ? (
+        <LeadersTable
+          title=""
+          header={<CareerTotalsTableHeader />}
+          body={<CareerTotalsTableBody players={careerTotals?.top_goal_value || []} />}
+          error={error}
+          isEmpty={isEmpty}
+        />
+      ) : null}
     </div>
   )
 }
