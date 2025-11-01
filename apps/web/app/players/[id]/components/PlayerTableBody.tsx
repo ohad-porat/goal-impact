@@ -1,4 +1,8 @@
+'use client'
+
+import { useState, useRef } from 'react'
 import { tableStyles } from '../../../../lib/tableStyles'
+import { StatCell } from '../../../../lib/components/StatCell'
 import { PlayerSeasonRecord } from '../../../../lib/types/player'
 import { getShortLeagueName } from '../../../../lib/utils'
 import Link from 'next/link'
@@ -9,6 +13,8 @@ interface PlayerTableBodyProps {
 
 export function PlayerTableBody({ seasons }: PlayerTableBodyProps) {
   const { statsTable } = tableStyles
+  const [hoveredSeasonGroup, setHoveredSeasonGroup] = useState<string | null>(null)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   if (seasons.length === 0) {
     return (
@@ -22,18 +28,58 @@ export function PlayerTableBody({ seasons }: PlayerTableBodyProps) {
     )
   }
 
+  const getSeasonName = (index: number) => seasons[index].season.display_name
+
+  const getSeasonRowSpan = (currentIndex: number): number => {
+    const currentSeasonName = getSeasonName(currentIndex)
+    let rowSpan = 1
+    
+    for (let i = currentIndex + 1; i < seasons.length; i++) {
+      if (getSeasonName(i) === currentSeasonName) {
+        rowSpan++
+      } else {
+        break
+      }
+    }
+    
+    return rowSpan
+  }
+
+  const getSeasonGroupClass = (seasonName: string) => `season-group-${seasonName.replace(/[^a-zA-Z0-9]/g, '-')}`
+  
+  const handleMouseEnter = (group: string) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    setHoveredSeasonGroup(group)
+  }
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => setHoveredSeasonGroup(null), 50)
+  }
+
   return (
     <tbody className="bg-slate-800 divide-y divide-gray-700">
       {seasons.map((seasonData, index) => {
-        const { season, team, competition, league_rank, stats } = seasonData
-        
+        const { season, team, competition, league_rank, stats } = seasonData        
+        const isFirstOccurrence = index === 0 || getSeasonName(index) !== getSeasonName(index - 1)
+        const rowSpan = isFirstOccurrence ? getSeasonRowSpan(index) : undefined
+        const seasonGroupClass = getSeasonGroupClass(getSeasonName(index))
+        const isHovered = hoveredSeasonGroup === seasonGroupClass
+        const rowBg = isHovered ? 'bg-slate-700' : (index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750')
+
         return (
-          <tr key={`${season.id}-${team.id}`} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
-            <td className={`${statsTable.cell} px-2`}>
-              <span className={statsTable.text.primary}>
-                {season.display_name}
-              </span>
-            </td>
+          <tr 
+            key={`${season.id}-${team.id}`} 
+            className={`${seasonGroupClass} ${rowBg} transition-colors`}
+            onMouseEnter={() => handleMouseEnter(seasonGroupClass)}
+            onMouseLeave={handleMouseLeave}
+          >
+            {isFirstOccurrence && (
+              <td rowSpan={rowSpan} className={`${statsTable.cell} px-2 align-middle transition-colors${isHovered ? ' bg-slate-700' : ''}`}>
+                <span className={statsTable.text.primary}>
+                  {season.display_name}
+                </span>
+              </td>
+            )}
             
             <td className={`${statsTable.cell} px-2 max-w-[170px] overflow-hidden`}>
               <Link 
@@ -52,84 +98,21 @@ export function PlayerTableBody({ seasons }: PlayerTableBodyProps) {
               </span>
             </td>
             
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {league_rank !== null ? league_rank : '-'}
-              </span>
-            </td>
-            
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.goal_value !== null ? stats.goal_value.toFixed(2) : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.gv_avg !== null ? stats.gv_avg.toFixed(2) : '-'}
-              </span>
-            </td>
-            
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.goals_scored !== null ? stats.goals_scored : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.assists !== null ? stats.assists : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.total_goal_assists !== null ? stats.total_goal_assists : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.non_pk_goals !== null ? stats.non_pk_goals : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.pk_made !== null ? stats.pk_made : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.pk_attempted !== null ? stats.pk_attempted : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.yellow_cards !== null ? stats.yellow_cards : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.red_cards !== null ? stats.red_cards : '-'}
-              </span>
-            </td>
-            
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.matches_played !== null ? stats.matches_played : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.matches_started !== null ? stats.matches_started : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell}`}>
-              <span className={statsTable.text.center}>
-                {stats.total_minutes !== null ? stats.total_minutes.toLocaleString() : '-'}
-              </span>
-            </td>
-            <td className={`${statsTable.cell} border-r`}>
-              <span className={statsTable.text.center}>
-                {stats.minutes_divided_90 !== null ? stats.minutes_divided_90 : '-'}
-              </span>
-            </td>
+            <StatCell value={league_rank} />
+            <StatCell value={stats.goal_value} formatter={(v) => v.toFixed(2)} />
+            <StatCell value={stats.gv_avg} formatter={(v) => v.toFixed(2)} />
+            <StatCell value={stats.goals_scored} />
+            <StatCell value={stats.assists} />
+            <StatCell value={stats.total_goal_assists} />
+            <StatCell value={stats.non_pk_goals} />
+            <StatCell value={stats.pk_made} />
+            <StatCell value={stats.pk_attempted} />
+            <StatCell value={stats.yellow_cards} />
+            <StatCell value={stats.red_cards} />
+            <StatCell value={stats.matches_played} />
+            <StatCell value={stats.matches_started} />
+            <StatCell value={stats.total_minutes} formatter={(v) => v.toLocaleString()} />
+            <StatCell value={stats.minutes_divided_90} className="border-r" />
           </tr>
         )
       })}

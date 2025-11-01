@@ -1,4 +1,5 @@
 import { tableStyles } from '../../../lib/tableStyles'
+import { StatCell } from '../../../lib/components/StatCell'
 import { CareerTotalsPlayer } from '../../../lib/types/leaders'
 import Link from 'next/link'
 
@@ -44,26 +45,28 @@ export function CareerTotalsTableBody({ players }: CareerTotalsTableBodyProps) {
               {player.nation?.name || '-'}
             </span>
           </td>
-          <td className={`${tableStyles.compact.cell} text-center w-[100px]`}>
-            <span className={tableStyles.compact.text.center}>
-              {player.total_goal_value.toFixed(2)}
-            </span>
-          </td>
-          <td className={`${tableStyles.compact.cell} text-center w-[100px]`}>
-            <span className={tableStyles.compact.text.center}>
-              {player.goal_value_avg.toFixed(2)}
-            </span>
-          </td>
-          <td className={`${tableStyles.compact.cell} text-center w-[80px]`}>
-            <span className={tableStyles.compact.text.center}>
-              {player.total_goals}
-            </span>
-          </td>
-          <td className={`${tableStyles.compact.cell} text-center w-[80px]`}>
-            <span className={tableStyles.compact.text.center}>
-              {player.total_matches}
-            </span>
-          </td>
+          <StatCell 
+            value={player.total_goal_value} 
+            formatter={(v) => v.toFixed(2)} 
+            style="compact"
+            className="w-[100px]"
+          />
+          <StatCell 
+            value={player.goal_value_avg} 
+            formatter={(v) => v.toFixed(2)} 
+            style="compact"
+            className="w-[100px]"
+          />
+          <StatCell 
+            value={player.total_goals} 
+            style="compact"
+            className="w-[80px]"
+          />
+          <StatCell 
+            value={player.total_matches} 
+            style="compact"
+            className="w-[80px]"
+          />
         </tr>
       ))}
     </tbody>
