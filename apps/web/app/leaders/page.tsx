@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CareerTotalsTab } from './components/CareerTotalsTab'
+import { BySeasonTab } from './components/BySeasonTab'
 
 type TabType = 'career' | 'season' | 'team'
 
@@ -53,11 +54,7 @@ function LeadersPage() {
 
         <div className="mt-8">
           {activeTab === 'career' && <CareerTotalsTab />}
-          {activeTab === 'season' && (
-            <div className="text-white text-center">
-              <p>By Season content will go here</p>
-            </div>
-          )}
+          {activeTab === 'season' && <BySeasonTab />}
           {activeTab === 'team' && (
             <div className="text-white text-center">
               <p>By Team content will go here</p>

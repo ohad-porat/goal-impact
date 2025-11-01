@@ -1,47 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
 import { api } from '../../../lib/api'
 import { CareerTotalsResponse } from '../../../lib/types/leaders'
-import { League } from '../../../lib/types'
 import { getShortLeagueName } from '../../../lib/utils'
 import { CareerTotalsTableHeader } from './CareerTotalsTableHeader'
 import { CareerTotalsTableBody } from './CareerTotalsTableBody'
 import { LeadersTable } from './LeadersTable'
+import { useLeagues } from '../hooks/useLeagues'
+import { useLeaderFilters } from '../hooks/useLeaderFilters'
 
 export function CareerTotalsTab() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+  const { leagues, loading: loadingLeagues } = useLeagues()
+  const { leagueId, selectedLeagueId, updateParams } = useLeaderFilters()
   const [careerTotals, setCareerTotals] = useState<CareerTotalsResponse | null>(null)
-  const [leagues, setLeagues] = useState<League[]>([])
   const [loading, setLoading] = useState(false)
-  const [loadingLeagues, setLoadingLeagues] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
-  const selectedLeagueId = searchParams.get('league_id')
-  const leagueId = selectedLeagueId && !isNaN(parseInt(selectedLeagueId, 10)) 
-    ? parseInt(selectedLeagueId, 10) 
-    : undefined
-
-  useEffect(() => {
-    const fetchLeagues = async () => {
-      setLoadingLeagues(true)
-      try {
-        const response = await fetch(api.leagues, { cache: 'force-cache' })
-        if (!response.ok) {
-          throw new Error('Failed to fetch leagues')
-        }
-        const data = await response.json()
-        setLeagues(data.leagues || [])
-      } catch (err) {
-        console.error('Error fetching leagues:', err)
-      } finally {
-        setLoadingLeagues(false)
-      }
-    }
-    fetchLeagues()
-  }, [])
 
   useEffect(() => {
     const fetchCareerTotals = async () => {
@@ -66,18 +40,7 @@ export function CareerTotalsTab() {
 
   const handleLeagueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLeagueId = event.target.value === '' ? null : event.target.value
-    const params = new URLSearchParams(searchParams.toString())
-    
-    if (!params.get('view')) {
-      params.set('view', 'career')
-    }
-    
-    if (newLeagueId) {
-      params.set('league_id', newLeagueId)
-    } else {
-      params.delete('league_id')
-    }
-    router.push(`/leaders?${params.toString()}`, { scroll: false })
+    updateParams('career', { league_id: newLeagueId })
   }
 
   const isEmpty = !careerTotals || careerTotals.top_goal_value.length === 0

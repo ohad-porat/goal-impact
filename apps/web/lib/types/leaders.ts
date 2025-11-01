@@ -18,3 +18,17 @@ export interface CareerTotalsResponse {
   top_goal_value: CareerTotalsPlayer[]
 }
 
+export interface BySeasonPlayer {
+  player_id: number
+  player_name: string
+  clubs: string
+  total_goal_value: number
+  goal_value_avg: number
+  total_goals: number
+  total_matches: number
+}
+
+export interface BySeasonResponse {
+  top_goal_value: BySeasonPlayer[]
+}
+
