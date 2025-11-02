@@ -32,8 +32,9 @@ export function StatCell({
     ? (typeof value === 'number' && formatter ? formatter(value) : value)
     : '-'
 
+  const cellClasses = styleConfig.cell + (style === 'compact' ? ' text-center' : '')
   return (
-    <td className={className ? `${styleConfig.cell} ${className}` : styleConfig.cell}>
+    <td className={className ? `${cellClasses} ${className}` : cellClasses}>
       <span className={textConfig}>
         {displayValue}
       </span>
