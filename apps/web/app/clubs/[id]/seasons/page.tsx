@@ -62,7 +62,7 @@ export default async function TeamSeasonPage({ params, searchParams }: TeamSeaso
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-700 table-fixed">
                   <TeamSeasonRosterTableHeader />
-                  <TeamSeasonRosterTableBody players={players} seasonId={seasonId} teamId={teamId} />
+                  <TeamSeasonRosterTableBody players={players} />
                 </table>
               </div>
             </div>
