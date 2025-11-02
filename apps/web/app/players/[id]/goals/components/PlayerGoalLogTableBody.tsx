@@ -22,41 +22,10 @@ export function PlayerGoalLogTableBody({ goals }: PlayerGoalLogTableBodyProps) {
     )
   }
 
-  const rows: Array<{ type: 'goal' | 'season', data: PlayerGoalLogEntry | { season_id: number, display_name: string } }> = []
-  let currentSeasonDisplayName: string | null = null
-
-  goals.forEach((goal) => {
-    if (goal.season_display_name !== currentSeasonDisplayName) {
-      rows.push({
-        type: 'season',
-        data: {
-          season_id: goal.season_id,
-          display_name: goal.season_display_name
-        }
-      })
-      currentSeasonDisplayName = goal.season_display_name
-    }
-    rows.push({ type: 'goal', data: goal })
-  })
-
   return (
     <tbody className="bg-slate-800">
-      {rows.map((row, index) => {
-        if (row.type === 'season') {
-          const seasonData = row.data as { season_id: number, display_name: string }
-          return (
-            <tr key={`season-${seasonData.season_id}`} className="bg-gray-700 border-t-2 border-gray-600">
-              <td colSpan={10} className="px-3 py-1.5 text-center">
-                <span className="text-base font-bold text-white">
-                  {seasonData.display_name}
-                </span>
-              </td>
-            </tr>
-          )
-        }
-
-        const goal = row.data as PlayerGoalLogEntry
-        const goalIndex = rows.slice(0, index).filter(r => r.type === 'goal').length
+      {goals.map((goal, index) => {
+        const goalIndex = index
         
         return (
           <tr 
