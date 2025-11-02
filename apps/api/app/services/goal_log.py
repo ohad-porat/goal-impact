@@ -13,6 +13,10 @@ from app.services.common import build_club_info
 
 def is_goal_for_team(goal_event: Event, match: Match, team_id: int) -> bool:
     """Determine if a goal was scored FOR the specified team."""
+    if (goal_event.home_team_goals_post_event is None or 
+        goal_event.home_team_goals_pre_event is None):
+        return False
+    
     home_scored = goal_event.home_team_goals_post_event > goal_event.home_team_goals_pre_event
     
     if home_scored and match.home_team_id == team_id:
@@ -24,6 +28,12 @@ def is_goal_for_team(goal_event: Event, match: Match, team_id: int) -> bool:
 
 def format_score(goal_event: Event) -> Tuple[str, str]:
     """Format score before and after the goal."""
+    if (goal_event.home_team_goals_pre_event is None or 
+        goal_event.away_team_goals_pre_event is None or
+        goal_event.home_team_goals_post_event is None or 
+        goal_event.away_team_goals_post_event is None):
+        return "", ""
+    
     score_before = f"{goal_event.home_team_goals_pre_event}-{goal_event.away_team_goals_pre_event}"
     score_after = f"{goal_event.home_team_goals_post_event}-{goal_event.away_team_goals_post_event}"
     return score_before, score_after

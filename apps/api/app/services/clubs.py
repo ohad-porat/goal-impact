@@ -74,13 +74,75 @@ def get_top_clubs_for_nation_core(
 
 def get_clubs_by_nation(db: Session, limit_per_nation: int = 5) -> List[ClubByNation]:
     """Get top clubs per nation based on average finishing position in tier 1 leagues."""
-    nations_with_competitions = db.query(Nation).join(Competition).distinct().all()
+    tier = "1st"
+    
+    team_avg_subquery = (
+        db.query(
+            Team.id,
+            Team.name,
+            Team.nation_id,
+            func.avg(TeamStats.ranking).label('avg_position')
+        )
+        .select_from(Team)
+        .join(TeamStats)
+        .join(Season)
+        .join(Competition)
+        .filter(
+            Competition.tier == tier,
+            TeamStats.ranking.isnot(None)
+        )
+        .group_by(Team.id, Team.name, Team.nation_id)
+        .subquery()
+    )
+    
+    ranked_subquery = (
+        db.query(
+            team_avg_subquery.c.id,
+            team_avg_subquery.c.name,
+            team_avg_subquery.c.nation_id,
+            team_avg_subquery.c.avg_position,
+            func.row_number().over(
+                partition_by=team_avg_subquery.c.nation_id,
+                order_by=[team_avg_subquery.c.avg_position, team_avg_subquery.c.name]
+            ).label('row_num')
+        )
+        .subquery()
+    )
+    
+    top_teams = (
+        db.query(
+            ranked_subquery.c.id,
+            ranked_subquery.c.name,
+            ranked_subquery.c.nation_id,
+            ranked_subquery.c.avg_position
+        )
+        .filter(ranked_subquery.c.row_num <= limit_per_nation)
+        .all()
+    )
+    
+    nation_ids = list(set([team.nation_id for team in top_teams]))
+    if not nation_ids:
+        return []
+    
+    nations = db.query(Nation).filter(Nation.id.in_(nation_ids)).all()
+    nations_dict = {nation.id: nation for nation in nations}
+    
+    teams_by_nation = {}
+    for team in top_teams:
+        if team.nation_id not in teams_by_nation:
+            teams_by_nation[team.nation_id] = []
+        teams_by_nation[team.nation_id].append(
+            ClubSummary(
+                id=team.id,
+                name=team.name,
+                avg_position=round(float(team.avg_position), 1)
+            )
+        )
     
     result = []
-    for nation in nations_with_competitions:
-        clubs = get_top_clubs_for_nation_core(db, nation.id, limit=limit_per_nation)
-        
-        if clubs:
+    for nation_id, clubs in teams_by_nation.items():
+        if nation_id in nations_dict:
+            nation = nations_dict[nation_id]
             result.append(
                 ClubByNation(
                     nation=NationBasic(
