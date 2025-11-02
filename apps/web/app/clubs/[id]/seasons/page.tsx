@@ -11,7 +11,6 @@ interface TeamSeasonPageProps {
   }
   searchParams: {
     season?: string
-    from?: string
   }
 }
 
@@ -30,7 +29,6 @@ async function getTeamSeasonSquad(teamId: number, seasonId: number): Promise<Tea
 export default async function TeamSeasonPage({ params, searchParams }: TeamSeasonPageProps) {
   const teamId = parseInt(params.id)
   const seasonId = searchParams.season ? parseInt(searchParams.season) : null
-  const from = searchParams.from
   
   if (isNaN(teamId)) {
     return <ErrorDisplay message={`The team ID "${params.id}" is not valid.`} />
@@ -64,7 +62,7 @@ export default async function TeamSeasonPage({ params, searchParams }: TeamSeaso
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-700 table-fixed">
                   <TeamSeasonRosterTableHeader />
-                  <TeamSeasonRosterTableBody players={players} seasonId={seasonId} teamId={teamId} from={from} />
+                  <TeamSeasonRosterTableBody players={players} seasonId={seasonId} teamId={teamId} />
                 </table>
               </div>
             </div>

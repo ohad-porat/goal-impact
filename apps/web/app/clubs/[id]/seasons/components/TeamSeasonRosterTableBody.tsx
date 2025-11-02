@@ -7,10 +7,9 @@ interface TeamSeasonRosterTableBodyProps {
   players: PlayerSeasonData[]
   seasonId?: number
   teamId?: number
-  from?: string
 }
 
-export function TeamSeasonRosterTableBody({ players, seasonId, teamId, from }: TeamSeasonRosterTableBodyProps) {
+export function TeamSeasonRosterTableBody({ players, seasonId, teamId }: TeamSeasonRosterTableBodyProps) {
   const { statsTable } = tableStyles
 
   if (players.length === 0) {
@@ -34,7 +33,7 @@ export function TeamSeasonRosterTableBody({ players, seasonId, teamId, from }: T
           <tr key={player.id} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
             <td className={`${statsTable.cell} px-2 max-w-[320px] overflow-hidden`}>
               <Link 
-                href={`/players/${player.id}?from=${from}&season=${seasonId}&teamId=${teamId}`}
+                href={`/players/${player.id}?season=${seasonId}&teamId=${teamId}`}
                 className={`${statsTable.text.primary} hover:text-orange-400 transition-colors`}
               >
                 <span className="block truncate">

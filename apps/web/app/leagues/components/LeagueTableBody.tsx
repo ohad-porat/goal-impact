@@ -30,7 +30,7 @@ export function LeagueTableBody({ tableData }: LeagueTableBodyProps) {
           </td>
           <td className={`${tableStyles.compact.cell} text-left w-[200px]`}>
             <Link 
-              href={`/clubs/${team.team_id}/seasons?season=${tableData.season.id}&from=league`}
+              href={`/clubs/${team.team_id}/seasons?season=${tableData.season.id}`}
               className={`${tableStyles.compact.text.primary} hover:text-orange-400 transition-colors`}
             >
               {team.team_name}
