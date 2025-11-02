@@ -2,7 +2,6 @@
 
 from datetime import date
 from typing import List, Optional, Tuple
-from sqlalchemy.orm import Session, joinedload
 
 from app.models.events import Event
 from app.models.matches import Match
@@ -30,28 +29,17 @@ def format_score(goal_event: Event) -> Tuple[str, str]:
     return score_before, score_after
 
 
-def get_assist_for_goal(db: Session, match: Match, goal_event: Event) -> Optional[PlayerBasic]:
-    """Get the assisting player for a goal, if available."""
-    assist_event = (
-        db.query(Event)
-        .filter(
-            Event.match_id == match.id,
-            Event.minute == goal_event.minute,
-            Event.event_type == "assist"
-        )
-        .first()
-    )
-    
-    if not assist_event:
-        return None
-    
-    assisting_player = db.query(Player).filter(Player.id == assist_event.player_id).first()
-    if not assisting_player:
+def get_assist_for_goal_from_data(
+    assist_event: Optional[Event],
+    assist_player: Optional[Player]
+) -> Optional[PlayerBasic]:
+    """Get the assisting player for a goal from pre-loaded data."""
+    if not assist_event or not assist_player:
         return None
     
     return PlayerBasic(
-        id=assisting_player.id,
-        name=assisting_player.name
+        id=assist_player.id,
+        name=assist_player.name
     )
 
 
@@ -67,31 +55,25 @@ def get_venue_for_team(match: Match, team_id: int) -> str:
     return "Home" if match.home_team_id == team_id else "Away"
 
 
-def get_opponent_team(db: Session, match: Match, team_id: int) -> Optional[Team]:
-    """Get the opponent team for a given team in a match."""
-    opponent_team_id = match.away_team_id if match.home_team_id == team_id else match.home_team_id
-    return db.query(Team).options(joinedload(Team.nation)).filter(Team.id == opponent_team_id).first()
-
-
-def build_team_season_goal_log_entry(
-    db: Session,
+def build_team_season_goal_log_entry_from_data(
     goal_event: Event,
     match: Match,
     scorer: Player,
-    team_id: int
+    team_id: int,
+    opponent_team: Optional[Team],
+    assist_event: Optional[Event] = None,
+    assist_player: Optional[Player] = None
 ) -> Optional[GoalLogEntry]:
-    """Build a GoalLogEntry from goal event data for a team/season (only goals FOR the team)."""
+    """Build a GoalLogEntry from pre-loaded data for a team/season."""
     if not is_goal_for_team(goal_event, match, team_id):
         return None
     
-    venue = get_venue_for_team(match, team_id)
-    
-    opponent_team = get_opponent_team(db, match, team_id)
     if not opponent_team:
         return None
     
+    venue = get_venue_for_team(match, team_id)
     score_before, score_after = format_score(goal_event)
-    assisted_by = get_assist_for_goal(db, match, goal_event)
+    assisted_by = get_assist_for_goal_from_data(assist_event, assist_player)
     scorer_name = format_scorer_name(scorer, goal_event.event_type)
     
     return GoalLogEntry(
@@ -112,10 +94,15 @@ def build_team_season_goal_log_entry(
     )
 
 
-def sort_and_format_goal_entries(
+def _format_date(date_obj: Optional[date]) -> str:
+    """Format date object to string."""
+    return date_obj.strftime("%d/%m/%Y") if date_obj else ""
+
+
+def sort_and_format_team_season_goal_entries(
     goal_entries_with_date: List[Tuple[Optional[date], GoalLogEntry]]
 ) -> List[GoalLogEntry]:
-    """Sort goal entries by date and minute, then format dates."""
+    """Sort team season goal entries by date and minute, then format dates."""
     goal_entries_with_date.sort(key=lambda g: (
         g[0] if g[0] is not None else "",
         g[1].minute
@@ -123,35 +110,47 @@ def sort_and_format_goal_entries(
     
     goal_entries = []
     for date_obj, goal_entry in goal_entries_with_date:
-        date_str = date_obj.strftime("%d/%m/%Y") if date_obj else ""
-        goal_entry.date = date_str
+        goal_entry.date = _format_date(date_obj)
         goal_entries.append(goal_entry)
     
     return goal_entries
 
 
-def build_player_career_goal_log_entry(
-    db: Session,
+def sort_and_format_player_career_goal_entries(
+    goal_entries_with_date_season: List[Tuple[Optional[date], Optional[int], PlayerGoalLogEntry]]
+) -> List[PlayerGoalLogEntry]:
+    """Sort player career goal entries by season, date and minute, then format dates."""
+    goal_entries_with_date_season.sort(key=lambda g: (
+        g[1] if g[1] is not None else 0,
+        g[0] if g[0] is not None else "",
+        g[2].minute
+    ))
+    
+    goal_entries = []
+    for date_obj, _, goal_entry in goal_entries_with_date_season:
+        goal_entry.date = _format_date(date_obj)
+        goal_entries.append(goal_entry)
+    
+    return goal_entries
+
+
+def build_player_career_goal_log_entry_from_data(
     goal_event: Event,
     match: Match,
     scorer: Player,
-    season_display_name: str
+    season_display_name: str,
+    player_team: Optional[Team],
+    opponent_team: Optional[Team],
+    assist_event: Optional[Event] = None,
+    assist_player: Optional[Player] = None
 ) -> Optional[PlayerGoalLogEntry]:
-    """Build a PlayerGoalLogEntry from goal event data for a player/career (all goals BY the player)."""
-    home_scored = goal_event.home_team_goals_post_event > goal_event.home_team_goals_pre_event
-    scoring_team_id = match.home_team_id if home_scored else match.away_team_id
-    
-    player_team = db.query(Team).options(joinedload(Team.nation)).filter(Team.id == scoring_team_id).first()
-    if not player_team:
+    """Build a PlayerGoalLogEntry from pre-loaded data for a player/career."""
+    if not player_team or not opponent_team:
         return None
     
-    venue = get_venue_for_team(match, scoring_team_id)
-    opponent_team = get_opponent_team(db, match, scoring_team_id)
-    if not opponent_team:
-        return None
-    
+    venue = get_venue_for_team(match, player_team.id)
     score_before, score_after = format_score(goal_event)
-    assisted_by = get_assist_for_goal(db, match, goal_event)
+    assisted_by = get_assist_for_goal_from_data(assist_event, assist_player)
     
     return PlayerGoalLogEntry(
         date="",
@@ -168,3 +167,5 @@ def build_player_career_goal_log_entry(
         season_id=match.season_id,
         season_display_name=season_display_name
     )
+
+

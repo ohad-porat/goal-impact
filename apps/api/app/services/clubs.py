@@ -1,8 +1,8 @@
 """Club-related business logic services."""
 
 from typing import List, Optional
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload, aliased
+from sqlalchemy import func, case, and_, or_
 
 from app.models.nations import Nation
 from app.models.teams import Team
@@ -13,13 +13,11 @@ from app.models.players import Player
 from app.models.player_stats import PlayerStats
 from app.models.events import Event
 from app.models.matches import Match
-from sqlalchemy import or_
 from app.schemas.clubs import (
     ClubSummary,
     ClubByNation,
     NationBasic,
     ClubInfo,
-    NationDetailed,
     SeasonStats,
     CompetitionInfo,
     TeamStatsInfo,
@@ -29,8 +27,8 @@ from app.schemas.clubs import (
     GoalLogEntry,
 )
 from app.services.goal_log import (
-    build_team_season_goal_log_entry,
-    sort_and_format_goal_entries,
+    build_team_season_goal_log_entry_from_data,
+    sort_and_format_team_season_goal_entries,
 )
 from app.schemas.players import SeasonDisplay
 from app.services.common import format_season_display_name, build_club_info
@@ -213,10 +211,40 @@ def get_team_season_goal_log(
     if not season:
         return None, None, None, []
     
+    EventAssist = aliased(Event)
+    PlayerAssist = aliased(Player)
+    TeamOpponent = aliased(Team)
+    
+    opponent_team_id_case = case(
+        (Match.home_team_id == team_id, Match.away_team_id),
+        else_=Match.home_team_id
+    )
+    
     goals_query = (
-        db.query(Event, Match, Player)
+        db.query(
+            Event,
+            Match,
+            Player,
+            EventAssist,
+            PlayerAssist,
+            TeamOpponent
+        )
         .join(Match, Event.match_id == Match.id)
         .join(Player, Event.player_id == Player.id)
+        .outerjoin(
+            EventAssist,
+            and_(
+                EventAssist.match_id == Event.match_id,
+                EventAssist.minute == Event.minute,
+                EventAssist.event_type == "assist"
+            )
+        )
+        .outerjoin(PlayerAssist, EventAssist.player_id == PlayerAssist.id)
+        .join(
+            TeamOpponent,
+            opponent_team_id_case == TeamOpponent.id
+        )
+        .options(joinedload(TeamOpponent.nation))
         .filter(
             Match.season_id == season_id,
             or_(Event.event_type == "goal", Event.event_type == "own goal"),
@@ -229,12 +257,15 @@ def get_team_season_goal_log(
     )
     
     goal_entries_with_date = []
-    for goal_event, match, scorer in goals_query:
-        goal_entry = build_team_season_goal_log_entry(db, goal_event, match, scorer, team_id)
+    for goal_event, match, scorer, assist_event, assist_player, opponent_team in goals_query:
+        goal_entry = build_team_season_goal_log_entry_from_data(
+            goal_event, match, scorer, team_id,
+            opponent_team, assist_event, assist_player
+        )
         if goal_entry:
             goal_entries_with_date.append((match.date if match.date else None, goal_entry))
 
-    goal_entries = sort_and_format_goal_entries(goal_entries_with_date)
+    goal_entries = sort_and_format_team_season_goal_entries(goal_entries_with_date)
     
     season_display = SeasonDisplay(
         id=season.id,

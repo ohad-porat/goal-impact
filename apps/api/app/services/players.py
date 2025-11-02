@@ -2,10 +2,10 @@
 
 from datetime import date
 from typing import List, Optional
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, aliased
 
 from app.models import Player, PlayerStats as PlayerStatsModel, Season, Team, Competition, TeamStats, Event, Match
-from sqlalchemy import or_, case, func
+from sqlalchemy import or_, case, func, and_
 from app.schemas.players import (
     PlayerInfo,
     SeasonData,
@@ -16,7 +16,10 @@ from app.schemas.players import (
 )
 from app.schemas.clubs import PlayerGoalLogEntry, PlayerBasic
 from app.services.common import format_season_display_name, build_nation_info
-from app.services.goal_log import build_player_career_goal_log_entry
+from app.services.goal_log import (
+    build_player_career_goal_log_entry_from_data,
+    sort_and_format_player_career_goal_entries,
+)
 
 
 def transform_player_stats(stats: PlayerStatsModel) -> PlayerStats:
@@ -134,10 +137,51 @@ def get_player_career_goal_log(
     if not player:
         return None, []
     
+    EventAssist = aliased(Event)
+    PlayerAssist = aliased(Player)
+    
+    scoring_team_id_case = case(
+        (Event.home_team_goals_post_event > Event.home_team_goals_pre_event, Match.home_team_id),
+        else_=Match.away_team_id
+    )
+    
+    TeamScoring = aliased(Team)
+    TeamOpponent = aliased(Team)
+    
     goals_query = (
-        db.query(Event, Match, Season)
+        db.query(
+            Event,
+            Match,
+            Season,
+            EventAssist,
+            PlayerAssist,
+            TeamScoring,
+            TeamOpponent
+        )
         .join(Match, Event.match_id == Match.id)
         .join(Season, Match.season_id == Season.id)
+        .outerjoin(
+            EventAssist,
+            and_(
+                EventAssist.match_id == Event.match_id,
+                EventAssist.minute == Event.minute,
+                EventAssist.event_type == "assist"
+            )
+        )
+        .outerjoin(PlayerAssist, EventAssist.player_id == PlayerAssist.id)
+        .join(
+            TeamScoring,
+            scoring_team_id_case == TeamScoring.id
+        )
+        .options(joinedload(TeamScoring.nation))
+        .join(
+            TeamOpponent,
+            case(
+                (Match.home_team_id == TeamScoring.id, Match.away_team_id),
+                else_=Match.home_team_id
+            ) == TeamOpponent.id
+        )
+        .options(joinedload(TeamOpponent.nation))
         .filter(
             Event.player_id == player_id,
             or_(Event.event_type == "goal", Event.event_type == "own goal")
@@ -146,9 +190,12 @@ def get_player_career_goal_log(
     )
     
     goal_entries_with_date_season = []
-    for goal_event, match, season in goals_query:
+    for goal_event, match, season, assist_event, assist_player, player_team, opponent_team in goals_query:
         season_display_name = format_season_display_name(season.start_year, season.end_year)
-        goal_entry = build_player_career_goal_log_entry(db, goal_event, match, player, season_display_name)
+        goal_entry = build_player_career_goal_log_entry_from_data(
+            goal_event, match, player, season_display_name,
+            player_team, opponent_team, assist_event, assist_player
+        )
         if goal_entry:
             goal_entries_with_date_season.append((
                 match.date if match.date else None,
@@ -156,17 +203,7 @@ def get_player_career_goal_log(
                 goal_entry
             ))
     
-    goal_entries_with_date_season.sort(key=lambda g: (
-        g[1] if g[1] is not None else 0,
-        g[0] if g[0] is not None else "",
-        g[2].minute
-    ))
-    
-    goal_entries = []
-    for date_obj, _, goal_entry in goal_entries_with_date_season:
-        date_str = date_obj.strftime("%d/%m/%Y") if date_obj else ""
-        goal_entry.date = date_str
-        goal_entries.append(goal_entry)
+    goal_entries = sort_and_format_player_career_goal_entries(goal_entries_with_date_season)
     
     player_basic = PlayerBasic(
         id=player.id,
