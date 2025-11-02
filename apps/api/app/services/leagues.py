@@ -1,7 +1,7 @@
 """League-related business logic services."""
 
 from typing import List, Optional, Tuple
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.competitions import Competition
 from app.models.nations import Nation
@@ -36,12 +36,16 @@ def format_season_range(seasons: List[Season]) -> str:
 
 def get_all_leagues_with_season_ranges(db: Session) -> List[LeagueSummary]:
     """Get all available leagues with their season ranges formatted."""
-    competitions = db.query(Competition).join(Nation).all()
+    competitions = (
+        db.query(Competition)
+        .join(Nation)
+        .options(joinedload(Competition.seasons))
+        .all()
+    )
     
     leagues_data = []
     for competition in competitions:
-        seasons = db.query(Season).filter(Season.competition_id == competition.id).all()
-        available_seasons = format_season_range(seasons)
+        available_seasons = format_season_range(competition.seasons)
         
         leagues_data.append(
             LeagueSummary(
