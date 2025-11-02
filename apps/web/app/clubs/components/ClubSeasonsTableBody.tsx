@@ -29,7 +29,7 @@ export function ClubSeasonsTableBody({ seasons, teamId }: ClubSeasonsTableBodyPr
           <tr key={`${season.id}-${competition.id}`} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
             <td className={`${tableStyles.compact.cell} text-center pl-6 w-[120px]`}>
               <Link 
-                href={`/clubs/${teamId}/seasons?season=${season.id}&from=team`}
+                href={`/clubs/${teamId}/seasons?season=${season.id}`}
                 className={`${tableStyles.compact.text.primary} hover:text-orange-400 transition-colors`}
               >
                 {season.year_range}
