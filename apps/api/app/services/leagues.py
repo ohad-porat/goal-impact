@@ -128,7 +128,12 @@ def get_league_table_for_season(
     season_id: int
 ) -> Tuple[Optional[LeagueInfo], Optional[SeasonDisplay], List[LeagueTableEntry]]:
     """Get league table for a specific league and season."""
-    competition = db.query(Competition).filter(Competition.id == league_id).first()
+    competition = (
+        db.query(Competition)
+        .options(joinedload(Competition.nation))
+        .filter(Competition.id == league_id)
+        .first()
+    )
     if not competition:
         return None, None, []
     
@@ -142,7 +147,7 @@ def get_league_table_for_season(
     
     team_stats = (
         db.query(TeamStats)
-        .join(Team)
+        .options(joinedload(TeamStats.team))
         .filter(TeamStats.season_id == season_id)
         .order_by(TeamStats.ranking)
         .all()
