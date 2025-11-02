@@ -54,26 +54,12 @@ def get_player_seasons_stats(db: Session, player_id: int) -> tuple[Optional[Play
     if not player:
         return None, []
     
-    player_stats_query = (
-        db.query(PlayerStatsModel, Season, Team, Competition, TeamStats)
-        .select_from(PlayerStatsModel)
-        .join(Season, PlayerStatsModel.season_id == Season.id)
-        .join(Team, PlayerStatsModel.team_id == Team.id)
-        .join(Competition, Season.competition_id == Competition.id)
-        .outerjoin(
-            TeamStats,
-            (TeamStats.team_id == PlayerStatsModel.team_id) & (TeamStats.season_id == PlayerStatsModel.season_id)
-        )
-        .filter(PlayerStatsModel.player_id == player_id)
-        .order_by(Season.start_year.asc())
-        .all()
-    )
-    
     team_case = case(
         (Event.home_team_goals_post_event > Event.home_team_goals_pre_event, Match.home_team_id),
         else_=Match.away_team_id
     )
-    earliest_dates = (
+    
+    earliest_dates_subquery = (
         db.query(
             Match.season_id,
             team_case.label('team_id'),
@@ -86,10 +72,35 @@ def get_player_seasons_stats(db: Session, player_id: int) -> tuple[Optional[Play
             or_(Event.event_type == "goal", Event.event_type == "own goal")
         )
         .group_by(Match.season_id, team_case)
-        .all()
+        .subquery()
     )
     
-    date_map = {(season_id, team_id): earliest_date for season_id, team_id, earliest_date in earliest_dates}
+    player_stats_query = (
+        db.query(
+            PlayerStatsModel,
+            Season,
+            Team,
+            Competition,
+            TeamStats,
+            earliest_dates_subquery.c.earliest_date
+        )
+        .select_from(PlayerStatsModel)
+        .join(Season, PlayerStatsModel.season_id == Season.id)
+        .join(Team, PlayerStatsModel.team_id == Team.id)
+        .join(Competition, Season.competition_id == Competition.id)
+        .outerjoin(
+            TeamStats,
+            (TeamStats.team_id == PlayerStatsModel.team_id) & (TeamStats.season_id == PlayerStatsModel.season_id)
+        )
+        .outerjoin(
+            earliest_dates_subquery,
+            (earliest_dates_subquery.c.season_id == Season.id) &
+            (earliest_dates_subquery.c.team_id == PlayerStatsModel.team_id)
+        )
+        .filter(PlayerStatsModel.player_id == player_id)
+        .order_by(Season.start_year.asc())
+        .all()
+    )
     
     seasons_data = [
         (
@@ -111,9 +122,9 @@ def get_player_seasons_stats(db: Session, player_id: int) -> tuple[Optional[Play
                 league_rank=team_stats.ranking if team_stats else None,
                 stats=transform_player_stats(player_stats)
             ),
-            date_map.get((season.id, team.id))
+            earliest_date
         )
-        for player_stats, season, team, competition, team_stats in player_stats_query
+        for player_stats, season, team, competition, team_stats, earliest_date in player_stats_query
     ]
     
     seasons_data.sort(key=lambda x: (x[0].season.start_year, x[1] if x[1] else date.max))

@@ -2,6 +2,7 @@
 
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, case
 
 from app.models.competitions import Competition
 from app.models.nations import Nation
@@ -14,7 +15,7 @@ from app.schemas.leagues import (
     LeagueTableEntry,
 )
 from app.schemas.players import SeasonDisplay
-from app.services.common import format_season_display_name, normalize_season_years
+from app.services.common import format_season_display_name
 
 
 def format_season_range(seasons: List[Season]) -> str:
@@ -39,7 +40,10 @@ def get_all_leagues_with_season_ranges(db: Session) -> List[LeagueSummary]:
     competitions = (
         db.query(Competition)
         .join(Nation)
-        .options(joinedload(Competition.seasons))
+        .options(
+            joinedload(Competition.seasons),
+            joinedload(Competition.nation)
+        )
         .all()
     )
     
@@ -80,44 +84,62 @@ def get_league_seasons(db: Session, league_id: int) -> List[SeasonDisplay]:
 
 
 def get_all_unique_seasons(db: Session) -> List[SeasonDisplay]:
-    """Get all unique seasons grouped by logical period."""
-    all_seasons = db.query(Season).all()
-    season_groups = {}
+    """Get all unique seasons grouped by logical period using database GROUP BY."""
+    normalized_start = case(
+        (Season.start_year == Season.end_year, Season.start_year - 1),
+        else_=Season.start_year
+    ).label('normalized_start')
     
-    for season in all_seasons:
-        normalized_start, normalized_end = normalize_season_years(season.start_year, season.end_year)
-        key = (normalized_start, normalized_end)
-        if key not in season_groups:
-            season_groups[key] = []
-        season_groups[key].append(season)
+    normalized_end = Season.end_year.label('normalized_end')
     
-    seasons_data = []
+    preferred_priority = case(
+        (Season.start_year != Season.end_year, 1),
+        else_=2
+    ).label('preferred_priority')
+    
+    ranked_seasons = (
+        db.query(
+            Season.id,
+            normalized_start,
+            normalized_end,
+            func.row_number().over(
+                partition_by=[normalized_start, normalized_end],
+                order_by=[preferred_priority.asc(), Season.id.asc()]
+            ).label('rank')
+        )
+        .subquery()
+    )
+    
+    unique_seasons = (
+        db.query(
+            ranked_seasons.c.id,
+            ranked_seasons.c.normalized_start,
+            ranked_seasons.c.normalized_end
+        )
+        .filter(ranked_seasons.c.rank == 1)
+        .order_by(ranked_seasons.c.normalized_start.desc())
+        .all()
+    )
+    
     seen_display_names = set()
+    seasons_data = []
     
-    for (normalized_start, normalized_end), seasons in season_groups.items():
-        representative = None
-        for season in seasons:
-            if season.start_year != season.end_year:
-                representative = season
-                break
-        
-        if not representative:
-            representative = seasons[0]
-        
-        display_name = format_season_display_name(normalized_start, normalized_end)
+    for season_row in unique_seasons:
+        display_name = format_season_display_name(
+            season_row.normalized_start,
+            season_row.normalized_end
+        )
         
         if display_name not in seen_display_names:
             seen_display_names.add(display_name)
             seasons_data.append(
                 SeasonDisplay(
-                    id=representative.id,
-                    start_year=normalized_start,
-                    end_year=normalized_end,
+                    id=season_row.id,
+                    start_year=season_row.normalized_start,
+                    end_year=season_row.normalized_end,
                     display_name=display_name
                 )
             )
-    
-    seasons_data.sort(key=lambda x: x.start_year, reverse=True)
     
     return seasons_data
 
