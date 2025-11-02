@@ -37,13 +37,13 @@ export default async function PlayerGoalLogPage({ params }: PlayerGoalLogPagePro
     return (
       <div className="min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-4xl font-bold text-white">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <h1 className="text-4xl font-bold text-white flex-1">
               Goal Log: {player.name}
             </h1>
             <Link
               href={`/players/${playerId}`}
-              className="px-4 py-2 bg-slate-700 text-white font-semibold rounded-md border border-slate-600 hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+              className="px-4 py-2 bg-slate-700 text-white font-semibold rounded-md border border-slate-600 hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent whitespace-nowrap flex-shrink-0"
             >
               Back to Player
             </Link>
