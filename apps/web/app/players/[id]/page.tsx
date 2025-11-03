@@ -37,8 +37,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     return (
       <div className="min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
               <h1 className="text-4xl font-bold text-white">
                 {player.name}
               </h1>
@@ -52,7 +52,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
             <Link
               href={`/players/${playerId}/goals`}
-              className="px-4 py-2 bg-slate-700 text-white font-semibold rounded-md border border-slate-600 hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+              className="px-4 py-2 bg-slate-700 text-white font-semibold rounded-md border border-slate-600 hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent whitespace-nowrap flex-shrink-0"
             >
               View Goal Log
             </Link>
