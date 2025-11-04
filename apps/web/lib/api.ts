@@ -28,4 +28,11 @@ export const api = {
     return url.toString()
   },
   allSeasons: `${API_BASE_URL}/leagues/seasons`,
+  recentGoals: (leagueId?: number) => {
+    const url = new URL(`${API_BASE_URL}/home/recent-goals`)
+    if (leagueId !== undefined) {
+      url.searchParams.set('league_id', leagueId.toString())
+    }
+    return url.toString()
+  },
 }
