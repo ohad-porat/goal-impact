@@ -106,7 +106,7 @@ export function RecentImpactGoals({ initialLeagues }: RecentImpactGoalsProps) {
           {goalsData.goals.map((goal, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg shadow-lg p-4 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-4"
+              className="bg-gray-50 rounded-lg shadow-lg p-4 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-4"
             >
               <div className="flex flex-col justify-center">
                 <p className="text-gray-900 font-semibold text-base">
