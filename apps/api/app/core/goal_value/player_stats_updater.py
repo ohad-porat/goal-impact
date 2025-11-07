@@ -1,11 +1,11 @@
-"""Player Stats Goal Value Updater - aggregates goal values for player stats."""
+"""Player Stats Goal Value Updater."""
 
 from app.core.database import Session
 from app.models import Event, Match, PlayerStats
 
 
 class PlayerStatsGoalValueUpdater:
-    """Updates goal_value and gv_avg fields in player_stats table based on aggregated goal events."""
+    """Updates goal_value and gv_avg fields in player_stats table."""
     
     def __init__(self):
         self.session = Session()
@@ -16,7 +16,7 @@ class PlayerStatsGoalValueUpdater:
         self.all_player_stats = None
     
     def run(self):
-        """Main execution method to update player stats goal values."""
+        """Update player stats goal values."""
         print("Starting player stats goal value update process...")
         
         print("Aggregating goal values by player and season...")
@@ -30,16 +30,9 @@ class PlayerStatsGoalValueUpdater:
         print("Player stats goal value update completed successfully!")
     
     def _aggregate_player_goal_values(self):
-        """Calculate goal values for each player_stats record using optimized bulk query."""
+        """Calculate goal values for each player_stats record."""
         self.all_player_stats = self.session.query(PlayerStats).all()
         print(f"Found {len(self.all_player_stats)} player stats records to process")
-        
-        player_stats_lookup = {}
-        for player_stat in self.all_player_stats:
-            key = (player_stat.player_id, player_stat.season_id, player_stat.team_id)
-            player_stats_lookup[key] = player_stat
-        
-        print("Created player stats lookup dictionary")
         
         goal_events_query = self.session.query(
             Event.player_id,
@@ -100,9 +93,10 @@ class PlayerStatsGoalValueUpdater:
         print(f"Processed {len(self.aggregated_data)} player-season-team combinations")
     
     def _batch_update(self):
-        """Batch update player_stats records with calculated goal values."""
+        """Batch update player_stats records."""
         batch_size = 5000
         update_data = []
+        total_updated = 0
         
         for player_stat in self.all_player_stats:
             try:
@@ -123,29 +117,29 @@ class PlayerStatsGoalValueUpdater:
                 self.error_count += 1
             
             if len(update_data) >= batch_size:
-                try:
-                    self.session.bulk_update_mappings(PlayerStats, update_data)
-                    self.session.commit()
-                    print(f"  Updated {len(update_data)} player stats records...")
-                    update_data = []
-                except Exception as e:
-                    error_msg = f"Batch update error: {str(e)}"
-                    self.errors.append(error_msg)
-                    self.error_count += 1
-                    update_data = []
+                total_updated = self._commit_batch(update_data, total_updated, False)
+                update_data = []
         
         if update_data:
-            try:
-                self.session.bulk_update_mappings(PlayerStats, update_data)
-                self.session.commit()
-                print(f"  Updated final {len(update_data)} player stats records...")
-            except Exception as e:
-                error_msg = f"Final batch update error: {str(e)}"
-                self.errors.append(error_msg)
-                self.error_count += 1
+            self._commit_batch(update_data, total_updated, True)
+    
+    def _commit_batch(self, update_data: list, total_updated: int, is_final: bool) -> int:
+        """Commit a batch of updates."""
+        try:
+            self.session.bulk_update_mappings(PlayerStats, update_data)
+            self.session.commit()
+            total_updated += len(update_data)
+            prefix = "final " if is_final else ""
+            print(f"  Updated {prefix}{total_updated} player stats records...")
+            return total_updated
+        except Exception as e:
+            error_msg = f"{'Final ' if is_final else ''}Batch update error: {str(e)}"
+            self.errors.append(error_msg)
+            self.error_count += 1
+            return total_updated
     
     def _print_summary(self):
-        """Print summary of the update process."""
+        """Print update summary."""
         print("\n" + "="*60)
         print("PLAYER STATS GOAL VALUE UPDATE SUMMARY")
         print("="*60)

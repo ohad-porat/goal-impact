@@ -11,7 +11,9 @@ from typing import Dict, Iterator, List, Optional, Type, TypeVar, Union
 
 import pandas as pd
 import requests
+import cloudscraper
 from bs4 import BeautifulSoup
+from io import StringIO
 from sqlalchemy.orm import Session
 
 from app.core.database import Session as DBSession
@@ -30,6 +32,26 @@ class BaseScraper(ABC):
         self.config: ScraperConfig = get_config()
         self.session: Optional[Session] = None
         self.logger = get_logger(self.__class__.__name__)
+        self.http_session = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'platform': 'darwin',
+                'desktop': True
+            }
+        )
+        self.http_session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0',
+        })
     
     @contextmanager
     def database_session(self) -> Iterator[Session]:
@@ -55,7 +77,29 @@ class BaseScraper(ABC):
         
         for attempt in range(max_retries + 1):
             try:
-                response = requests.get(url, timeout=self.config.REQUEST_TIMEOUT)
+                if attempt > 0:
+                    self.http_session.headers['Referer'] = self.config.FBREF_BASE_URL
+                
+                response = self.http_session.get(url, timeout=self.config.REQUEST_TIMEOUT)
+                
+                if response.status_code == 403:
+                    wait_time = sleep_time * (2 ** attempt)
+                    self.logger.warning(f"Forbidden (403) on attempt {attempt + 1}/{max_retries + 1} for {url}")
+                    
+                    self.logger.info(f"Response status: {response.status_code}")
+                    self.logger.info(f"Response headers: {dict(response.headers)}")
+                    self.logger.info(f"Request headers sent: {dict(self.http_session.headers)}")
+                    if response.text:
+                        preview = response.text[:500].replace('\n', ' ')
+                        self.logger.info(f"Response body preview: {preview}")
+                    
+                    if attempt < max_retries:
+                        self.logger.warning(f"Waiting {wait_time}s before retry")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        self.logger.error(f"Failed after {max_retries + 1} attempts with 403 Forbidden")
+                        raise requests.HTTPError(f"403 Forbidden after {max_retries + 1} attempts")
                 
                 if response.status_code == 429:
                     wait_time = sleep_time * (2 ** attempt)
@@ -96,8 +140,25 @@ class BaseScraper(ABC):
         
         for attempt in range(max_retries + 1):
             try:
+                if attempt > 0:
+                    self.http_session.headers['Referer'] = self.config.FBREF_BASE_URL
+                
+                response = self.http_session.get(url, timeout=self.config.REQUEST_TIMEOUT)
+                
+                if response.status_code == 403:
+                    wait_time = sleep_time * (2 ** attempt)
+                    self.logger.warning(f"Forbidden (403) fetching HTML table on attempt {attempt + 1}/{max_retries + 1}")
+                    if attempt < max_retries:
+                        self.logger.warning(f"Waiting {wait_time}s before retry")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        raise requests.HTTPError(f"403 Forbidden after {max_retries + 1} attempts")
+                
+                response.raise_for_status()
                 time.sleep(sleep_time)
-                return pd.read_html(url)
+                
+                return pd.read_html(StringIO(response.text))
                 
             except Exception as e:
                 if attempt == max_retries:

@@ -61,7 +61,6 @@ def mock_config():
         SELECTED_NATIONS=['England', 'Italy'],
         YEAR_RANGE=(2020, 2024),
         DEBUG=True,
-        DATABASE_URL='sqlite:///:memory:',
         REQUEST_TIMEOUT=30,
         FBREF_BASE_URL='https://fbref.com',
         LOG_LEVEL='DEBUG'

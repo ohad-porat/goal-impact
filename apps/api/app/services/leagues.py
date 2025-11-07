@@ -16,10 +16,11 @@ from app.schemas.leagues import (
 )
 from app.schemas.players import SeasonDisplay
 from app.services.common import format_season_display_name
+from app.services.nations import tier_order
 
 
 def format_season_range(seasons: List[Season]) -> str:
-    """Format available season range string for leagues."""
+    """Format season range string."""
     if not seasons:
         return "No seasons available"
     
@@ -36,7 +37,7 @@ def format_season_range(seasons: List[Season]) -> str:
 
 
 def get_all_leagues_with_season_ranges(db: Session) -> List[LeagueSummary]:
-    """Get all available leagues with their season ranges formatted."""
+    """Get all leagues with season ranges."""
     competitions = (
         db.query(Competition)
         .join(Nation)
@@ -62,11 +63,13 @@ def get_all_leagues_with_season_ranges(db: Session) -> List[LeagueSummary]:
             )
         )
     
+    leagues_data.sort(key=lambda x: (x.country, tier_order(x.tier)))
+    
     return leagues_data
 
 
 def get_league_seasons(db: Session, league_id: int) -> List[SeasonDisplay]:
-    """Get all available seasons for a league, sorted by start_year descending."""
+    """Get seasons for a league, sorted by start_year descending."""
     seasons = db.query(Season).filter(Season.competition_id == league_id).all()
     
     seasons_data = [
@@ -84,7 +87,7 @@ def get_league_seasons(db: Session, league_id: int) -> List[SeasonDisplay]:
 
 
 def get_all_unique_seasons(db: Session) -> List[SeasonDisplay]:
-    """Get all unique seasons grouped by logical period using database GROUP BY."""
+    """Get all unique seasons grouped by logical period."""
     normalized_start = case(
         (Season.start_year == Season.end_year, Season.start_year - 1),
         else_=Season.start_year
@@ -149,7 +152,7 @@ def get_league_table_for_season(
     league_id: int,
     season_id: int
 ) -> Tuple[Optional[LeagueInfo], Optional[SeasonDisplay], List[LeagueTableEntry]]:
-    """Get league table for a specific league and season."""
+    """Get league table for a league and season."""
     competition = (
         db.query(Competition)
         .options(joinedload(Competition.nation))
