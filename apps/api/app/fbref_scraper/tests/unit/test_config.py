@@ -18,7 +18,6 @@ class TestScraperConfig:
         assert config.SELECTED_NATIONS == ['Belgium', 'England', 'France', 'Germany', 'Italy', 'Netherlands', 'Portugal', 'Spain', 'United States']
         assert config.YEAR_RANGE == (1992, 2024)
         assert config.DEBUG is True
-        assert config.DATABASE_URL == 'sqlite:///db/database.db'
         assert config.REQUEST_TIMEOUT == 60
         assert config.FBREF_BASE_URL == 'https://fbref.com'
         assert config.LOG_LEVEL == 'INFO'
@@ -35,7 +34,6 @@ class TestScraperConfig:
             SELECTED_NATIONS=['England', 'France'],
             YEAR_RANGE=(2020, 2024),
             DEBUG=False,
-            DATABASE_URL='sqlite:///test.db',
             REQUEST_TIMEOUT=30,
             FBREF_BASE_URL='https://test.fbref.com',
             LOG_LEVEL='DEBUG',
@@ -46,7 +44,6 @@ class TestScraperConfig:
         assert config.SELECTED_NATIONS == ['England', 'France']
         assert config.YEAR_RANGE == (2020, 2024)
         assert config.DEBUG is False
-        assert config.DATABASE_URL == 'sqlite:///test.db'
         assert config.REQUEST_TIMEOUT == 30
         assert config.FBREF_BASE_URL == 'https://test.fbref.com'
         assert config.LOG_LEVEL == 'DEBUG'

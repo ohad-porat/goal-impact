@@ -1,5 +1,6 @@
 """Matches scraper for FBRef data extraction."""
 
+import re
 from datetime import datetime, date
 from typing import Optional, List
 from app.models import Match, Season, TeamStats, Nation, Competition
@@ -55,8 +56,21 @@ class MatchesScraper(WebScraper):
                     match_fbref_id = self.extract_fbref_id(match_fbref_url)
                     
                     try:
-                        home_team_goals, away_team_goals = match.find('td', {'data-stat': 'score'}).text.split('–')
-                    except ValueError:
+                        score_text = match_url_element.text.strip()
+                        score_parts = score_text.split('–')
+                        if len(score_parts) != 2:
+                            self.log_skip("match", f"{match_fbref_id}", "Invalid score format")
+                            continue
+                        
+                        home_team_goals = self._extract_score(score_parts[0])
+                        away_team_goals = self._extract_score(score_parts[1])
+                        
+                        if home_team_goals is None or away_team_goals is None:
+                            self.log_skip("match", f"{match_fbref_id}", "Could not parse score")
+                            continue
+                            
+                    except (ValueError, AttributeError, IndexError) as e:
+                        self.log_skip("match", f"{match_fbref_id}", f"Error parsing score: {e}")
                         continue
                         
                     match_date = datetime.strptime(match.find('td', {'data-stat': 'date'}).text.strip(), '%Y-%m-%d').date()
@@ -103,3 +117,9 @@ class MatchesScraper(WebScraper):
         
         self.clear_progress()
         self.log_progress("Matches scraping completed successfully")
+    
+    def _extract_score(self, score_str: str) -> Optional[int]:
+        """Extract regular time score, ignoring penalty shootout info."""
+        cleaned = re.sub(r'\([^)]*\)', '', score_str).strip()
+        numbers = re.findall(r'\d+', cleaned)
+        return int(numbers[0]) if numbers else None

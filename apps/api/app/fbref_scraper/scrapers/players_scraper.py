@@ -69,7 +69,8 @@ class PlayersScraper(WebScraper):
                     else:
                         continue
                     
-                    if matches_played == 0:
+                    matches_played = self._clean_integer_value(matches_played)
+                    if matches_played is None or matches_played == 0:
                         self.log_skip("player", f"{player_name} {team_stats.season.start_year}-{team_stats.season.end_year}", "No matches played")
                         continue
 
@@ -100,34 +101,34 @@ class PlayersScraper(WebScraper):
 
                     player_stats_dict = {
                         'matches_played': matches_played,
-                        'matches_started': self._get_player_stat_value(player_series, ('Playing Time', 'Starts')),
-                        'total_minutes': self._get_player_stat_value(player_series, ('Playing Time', 'Min')),
-                        'minutes_divided_90': self._get_player_stat_value(player_series, ('Playing Time', '90s')),
-                        'goals_scored': self._get_player_stat_value(player_series, ('Performance', 'Gls')),
-                        'assists': self._get_player_stat_value(player_series, ('Performance', 'Ast')),
-                        'total_goal_assists': self._get_player_stat_value(player_series, ('Performance', 'G+A')),
-                        'non_pk_goals': self._get_player_stat_value(player_series, ('Performance', 'G-PK')),
-                        'pk_made': self._get_player_stat_value(player_series, ('Performance', 'PK')),
-                        'pk_attempted': self._get_player_stat_value(player_series, ('Performance', 'PKatt')),
-                        'yellow_cards': self._get_player_stat_value(player_series, ('Performance', 'CrdY')),
-                        'red_cards': self._get_player_stat_value(player_series, ('Performance', 'CrdR')),
-                        'xg': self._get_player_stat_value(player_series, ('Expected', 'xG')),
-                        'non_pk_xg': self._get_player_stat_value(player_series, ('Expected', 'npxG')),
-                        'xag': self._get_player_stat_value(player_series, ('Expected', 'xAG')),
-                        'npxg_and_xag': self._get_player_stat_value(player_series, ('Expected', 'npxG+xAG')),
-                        'progressive_carries': self._get_player_stat_value(player_series, ('Progression', 'PrgC')),
-                        'progressive_passes': self._get_player_stat_value(player_series, ('Progression', 'PrgP')),
-                        'progressive_passes_received': self._get_player_stat_value(player_series, ('Progression', 'PrgR')),
-                        'goal_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'Gls')),
-                        'assists_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'Ast')),
-                        'total_goals_assists_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'G+A')),
-                        'non_pk_goals_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'G-PK')),
-                        'non_pk_goal_and_assists_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'G+A-PK')),
-                        'xg_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'xG')),
-                        'xag_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'xAG')),
-                        'total_xg_xag_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'xG+xAG')),
-                        'non_pk_xg_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'npxG')),
-                        'npxg_and_xag_per_90': self._get_player_stat_value(player_series, ('Per 90 Minutes', 'npxG+xAG')),
+                        'matches_started': self._clean_integer_value(self._get_player_stat_value(player_series, ('Playing Time', 'Starts'))),
+                        'total_minutes': self._clean_integer_value(self._get_player_stat_value(player_series, ('Playing Time', 'Min'))),
+                        'minutes_divided_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Playing Time', '90s'))),
+                        'goals_scored': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'Gls'))),
+                        'assists': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'Ast'))),
+                        'total_goal_assists': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'G+A'))),
+                        'non_pk_goals': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'G-PK'))),
+                        'pk_made': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'PK'))),
+                        'pk_attempted': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'PKatt'))),
+                        'yellow_cards': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'CrdY'))),
+                        'red_cards': self._clean_integer_value(self._get_player_stat_value(player_series, ('Performance', 'CrdR'))),
+                        'xg': self._clean_float_value(self._get_player_stat_value(player_series, ('Expected', 'xG'))),
+                        'non_pk_xg': self._clean_float_value(self._get_player_stat_value(player_series, ('Expected', 'npxG'))),
+                        'xag': self._clean_float_value(self._get_player_stat_value(player_series, ('Expected', 'xAG'))),
+                        'npxg_and_xag': self._clean_float_value(self._get_player_stat_value(player_series, ('Expected', 'npxG+xAG'))),
+                        'progressive_carries': self._clean_integer_value(self._get_player_stat_value(player_series, ('Progression', 'PrgC'))),
+                        'progressive_passes': self._clean_integer_value(self._get_player_stat_value(player_series, ('Progression', 'PrgP'))),
+                        'progressive_passes_received': self._clean_integer_value(self._get_player_stat_value(player_series, ('Progression', 'PrgR'))),
+                        'goal_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'Gls'))),
+                        'assists_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'Ast'))),
+                        'total_goals_assists_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'G+A'))),
+                        'non_pk_goals_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'G-PK'))),
+                        'non_pk_goal_and_assists_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'G+A-PK'))),
+                        'xg_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'xG'))),
+                        'xag_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'xAG'))),
+                        'total_xg_xag_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'xG+xAG'))),
+                        'non_pk_xg_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'npxG'))),
+                        'npxg_and_xag_per_90': self._clean_float_value(self._get_player_stat_value(player_series, ('Per 90 Minutes', 'npxG+xAG'))),
                         'player_id': player.id,
                         'season_id': team_stats.season_id,
                         'team_id': team_stats.team_id,
@@ -145,8 +146,13 @@ class PlayersScraper(WebScraper):
                             for field in stats_fields:
                                 if field in player_stats_dict:
                                     setattr(existing_player_stats, field, player_stats_dict[field])
-                            self.session.commit()
-                            self.logger.info(f"Updated player stats: {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
+                            try:
+                                self.session.commit()
+                                self.logger.info(f"Updated player stats: {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
+                            except Exception as e:
+                                self.session.rollback()
+                                self.logger.error(f"Error updating player stats: {e}")
+                                raise
                         else:
                             self.logger.warning(f"No existing player stats found for {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
                     elif seasonal_mode:
@@ -198,4 +204,30 @@ class PlayersScraper(WebScraper):
         try:
             return series[keys].iloc[0]
         except (KeyError, IndexError):
+            return None
+
+    def _clean_integer_value(self, value):
+        """Clean value for integer fields: convert nan to None, float to int."""
+        if value is None:
+            return None
+        if pd.isna(value):
+            return None
+        try:
+            int_value = int(float(value))
+            if int_value > 2147483647:
+                self.logger.warning(f"Integer value {int_value} exceeds PostgreSQL integer max, setting to None")
+                return None
+            return int_value
+        except (ValueError, TypeError, OverflowError):
+            return None
+
+    def _clean_float_value(self, value):
+        """Clean value for float fields: convert nan to None."""
+        if value is None:
+            return None
+        if pd.isna(value):
+            return None
+        try:
+            return float(value)
+        except (ValueError, TypeError):
             return None

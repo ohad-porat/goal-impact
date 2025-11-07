@@ -10,7 +10,7 @@ from app.services.common import build_nation_info, normalize_season_years, calcu
 
 
 def _build_season_filter(ref_season: Season, league_id: Optional[int]):
-    """Build season filter for query, handling grouped seasons when league_id is None."""
+    """Build season filter for query."""
     if league_id is None:
         normalized_start, normalized_end = normalize_season_years(ref_season.start_year, ref_season.end_year)
         return build_season_filter_for_all_leagues(normalized_start, normalized_end)
@@ -19,7 +19,7 @@ def _build_season_filter(ref_season: Season, league_id: Optional[int]):
 
 
 def get_career_totals(db: Session, limit: int = 50, league_id: Optional[int] = None) -> List[CareerTotalsPlayer]:
-    """Get top players by career goal value totals, optionally filtered by league."""
+    """Get top players by career goal value totals."""
     query = (
         db.query(
             Player.id,
@@ -85,7 +85,7 @@ def get_by_season(
     limit: int = 50, 
     league_id: Optional[int] = None
 ) -> List[BySeasonPlayer]:
-    """Get top players by goal value for a specific season, optionally filtered by league."""
+    """Get top players by goal value for a specific season."""
     ref_season = db.query(Season).filter(Season.id == season_id).first()
     if not ref_season:
         return []
@@ -114,7 +114,7 @@ def get_by_season(
     team_names_subquery = (
         db.query(
             PlayerStats.player_id,
-            func.group_concat(Team.name, ',').label('team_names')
+            func.string_agg(Team.name, ',').label('team_names')
         )
         .join(Season, PlayerStats.season_id == Season.id)
         .join(Team, PlayerStats.team_id == Team.id)
