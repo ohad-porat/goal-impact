@@ -12,7 +12,7 @@ interface ClubShowPageProps {
 
 async function getClubDetails(clubId: number): Promise<ClubDetailsResponse> {
   const response = await fetch(api.clubDetails(clubId), {
-    cache: 'force-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {

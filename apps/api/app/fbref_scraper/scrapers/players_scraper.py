@@ -205,29 +205,3 @@ class PlayersScraper(WebScraper):
             return series[keys].iloc[0]
         except (KeyError, IndexError):
             return None
-
-    def _clean_integer_value(self, value):
-        """Clean value for integer fields: convert nan to None, float to int."""
-        if value is None:
-            return None
-        if pd.isna(value):
-            return None
-        try:
-            int_value = int(float(value))
-            if int_value > 2147483647:
-                self.logger.warning(f"Integer value {int_value} exceeds PostgreSQL integer max, setting to None")
-                return None
-            return int_value
-        except (ValueError, TypeError, OverflowError):
-            return None
-
-    def _clean_float_value(self, value):
-        """Clean value for float fields: convert nan to None."""
-        if value is None:
-            return None
-        if pd.isna(value):
-            return None
-        try:
-            return float(value)
-        except (ValueError, TypeError):
-            return None

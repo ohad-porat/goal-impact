@@ -13,7 +13,7 @@ interface PlayerPageProps {
 
 async function getPlayerDetails(playerId: number): Promise<PlayerDetailsResponse> {
   const response = await fetch(api.playerDetails(playerId), {
-    cache: 'no-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {

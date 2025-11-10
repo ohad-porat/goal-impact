@@ -20,7 +20,7 @@ export function useBySeasonData(seasonId?: number, leagueId?: number) {
       setLoading(true)
       setError(null)
       try {
-        const response = await fetch(api.leadersBySeason(seasonId, leagueId), { cache: 'no-cache' })
+        const response = await fetch(api.leadersBySeason(seasonId, leagueId), { cache: 'force-cache' })
         if (!response.ok) {
           throw new Error('Failed to fetch by-season data')
         }

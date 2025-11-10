@@ -25,7 +25,7 @@ class TeamStats(Base):
     xga = Column(Float)
     xgd = Column(Float)
     xgd_per_90 = Column(Float)
-    attendance = Column(Float)
+    attendance = Column(Integer)
     notes = Column(String)
 
     team_id = Column(Integer, ForeignKey('teams.id'))

@@ -16,7 +16,7 @@ interface TeamSeasonPageProps {
 
 async function getTeamSeasonSquad(teamId: number, seasonId: number): Promise<TeamSeasonSquadResponse> {
   const response = await fetch(api.teamSeasonSquad(teamId, seasonId), {
-    cache: 'no-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {
