@@ -32,7 +32,7 @@ export function ClubSeasonsTableBody({ seasons, teamId }: ClubSeasonsTableBodyPr
                 href={`/clubs/${teamId}/seasons?season=${season.id}`}
                 className={`${tableStyles.compact.text.primary} hover:text-orange-400 transition-colors`}
               >
-                {season.year_range}
+                {season.display_name}
               </Link>
             </td>
             <td className={`${tableStyles.compact.cell} text-center w-[250px]`}>
