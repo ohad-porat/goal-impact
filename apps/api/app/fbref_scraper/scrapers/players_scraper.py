@@ -19,9 +19,9 @@ class PlayersScraper(WebScraper):
         query = self.session.query(TeamStats).join(Season, TeamStats.season_id == Season.id) \
             .join(Competition, Season.competition_id == Competition.id) \
             .join(Nation, Competition.nation_id == Nation.id) \
-            .filter(Nation.name.in_(nations))
-        
-        query = query.filter(Season.start_year >= from_year, Season.start_year <= to_year)
+            .filter(Nation.name.in_(nations)) \
+            .filter(Season.start_year >= from_year, Season.start_year <= to_year) \
+            .order_by(TeamStats.id.asc())
 
         all_teams_stats = query.all()
         

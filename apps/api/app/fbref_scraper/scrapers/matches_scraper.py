@@ -14,9 +14,8 @@ class MatchesScraper(WebScraper):
         
         config = get_config()
         
-        query = self.session.query(Season).join(Competition).join(Nation)
-        
-        query = query.filter(Nation.name.in_(nations))
+        query = self.session.query(Season).join(Competition).join(Nation) \
+            .filter(Nation.name.in_(nations))
             
         all_seasons = query.all()
         

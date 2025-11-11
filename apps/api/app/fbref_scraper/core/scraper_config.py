@@ -24,9 +24,9 @@ class ScraperConfig:
         
         if self.RATE_LIMITS is None:
             self.RATE_LIMITS = {
-                'default': 4,
-                'heavy': 8,
-                'light': 2
+                'default': 5,
+                'heavy': 10,
+                'light': 3
             }
 
 

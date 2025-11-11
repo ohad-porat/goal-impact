@@ -68,7 +68,7 @@ class BaseScraper(ABC):
         finally:
             self.session.close()
     
-    def fetch_page(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 3) -> BeautifulSoup:
+    def fetch_page(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 5) -> BeautifulSoup:
         """Fetch and parse a web page with retry logic."""
         if sleep_time is None:
             sleep_time = get_rate_limit('default')
@@ -131,7 +131,7 @@ class BaseScraper(ABC):
         
         raise Exception(f"Failed to fetch {url} after {max_retries + 1} attempts")
     
-    def fetch_html_table(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 3) -> List[pd.DataFrame]:
+    def fetch_html_table(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 5) -> List[pd.DataFrame]:
         """Fetch and parse HTML tables from a URL with retry logic."""
         if sleep_time is None:
             sleep_time = get_rate_limit('default')

@@ -16,11 +16,9 @@ class TeamStatsScraper(WebScraper):
         
         config = get_config()
         
-        query = self.session.query(Season).join(Season.competition).join(Competition.nation)
-        
-        query = query.filter(Nation.name.in_(nations))
-        
-        query = query.filter(Season.start_year >= from_year, Season.start_year <= to_year)
+        query = self.session.query(Season).join(Season.competition).join(Competition.nation) \
+            .filter(Nation.name.in_(nations)) \
+            .filter(Season.start_year >= from_year, Season.start_year <= to_year)
 
         all_seasons = query.all()
         
