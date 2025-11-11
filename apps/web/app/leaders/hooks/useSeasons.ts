@@ -16,7 +16,7 @@ export function useSeasons(leagueId?: number) {
       setLoading(true)
       try {
         const url = leagueId ? api.leagueSeasons(leagueId) : api.allSeasons
-        const response = await fetch(url, { cache: 'force-cache' })
+        const response = await fetch(url, { cache: 'no-cache' })
         if (!response.ok) {
           throw new Error('Failed to fetch seasons')
         }

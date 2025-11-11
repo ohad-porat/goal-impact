@@ -21,7 +21,7 @@ export function CareerTotalsTab() {
       setCareerTotals(null)
       setError(null)
       try {
-        const response = await fetch(api.leadersCareerTotals(leagueId), { cache: 'force-cache' })
+        const response = await fetch(api.leadersCareerTotals(leagueId), { cache: 'no-cache' })
         if (!response.ok) {
           throw new Error('Failed to fetch career totals')
         }
