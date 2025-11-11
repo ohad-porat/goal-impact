@@ -14,8 +14,7 @@
     "clean": "turbo run clean",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:setup": "cd apps/api && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
-    "db:migrate": "cd apps/api && source venv/bin/activate && alembic upgrade head",
-    "ingest": "cd apps/api && source venv/bin/activate && python3 scripts/ingest_safe.py"
+    "db:migrate": "cd apps/api && source venv/bin/activate && alembic upgrade head"
   },
   "devDependencies": {
     "@turbo/gen": "^1.10.12",

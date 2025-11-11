@@ -15,8 +15,8 @@ class SeasonsScraper(WebScraper):
         
         config = get_config()
         
-        query = self.session.query(Competition).join(Nation)
-        query = query.filter(Nation.name.in_(nations))
+        query = self.session.query(Competition).join(Nation) \
+            .filter(Nation.name.in_(nations))
         all_competitions = query.all()
 
         for competition in all_competitions:

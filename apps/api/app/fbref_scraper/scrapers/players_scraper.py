@@ -19,9 +19,9 @@ class PlayersScraper(WebScraper):
         query = self.session.query(TeamStats).join(Season, TeamStats.season_id == Season.id) \
             .join(Competition, Season.competition_id == Competition.id) \
             .join(Nation, Competition.nation_id == Nation.id) \
-            .filter(Nation.name.in_(nations))
-        
-        query = query.filter(Season.start_year >= from_year, Season.start_year <= to_year)
+            .filter(Nation.name.in_(nations)) \
+            .filter(Season.start_year >= from_year, Season.start_year <= to_year) \
+            .order_by(TeamStats.id.asc())
 
         all_teams_stats = query.all()
         
@@ -204,30 +204,4 @@ class PlayersScraper(WebScraper):
         try:
             return series[keys].iloc[0]
         except (KeyError, IndexError):
-            return None
-
-    def _clean_integer_value(self, value):
-        """Clean value for integer fields: convert nan to None, float to int."""
-        if value is None:
-            return None
-        if pd.isna(value):
-            return None
-        try:
-            int_value = int(float(value))
-            if int_value > 2147483647:
-                self.logger.warning(f"Integer value {int_value} exceeds PostgreSQL integer max, setting to None")
-                return None
-            return int_value
-        except (ValueError, TypeError, OverflowError):
-            return None
-
-    def _clean_float_value(self, value):
-        """Clean value for float fields: convert nan to None."""
-        if value is None:
-            return None
-        if pd.isna(value):
-            return None
-        try:
-            return float(value)
-        except (ValueError, TypeError):
             return None

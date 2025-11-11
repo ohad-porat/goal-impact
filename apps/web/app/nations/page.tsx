@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 async function getNations(): Promise<Nation[]> {
   const response = await fetch(api.nations, {
-    cache: 'force-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {

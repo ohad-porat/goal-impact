@@ -12,7 +12,7 @@ export function useLeagues() {
     const fetchLeagues = async () => {
       setLoading(true)
       try {
-        const response = await fetch(api.leagues, { cache: 'force-cache' })
+        const response = await fetch(api.leagues, { cache: 'no-cache' })
         if (!response.ok) {
           throw new Error('Failed to fetch leagues')
         }

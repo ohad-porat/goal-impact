@@ -16,7 +16,7 @@ interface GoalLogPageProps {
 
 async function getTeamSeasonGoalLog(teamId: number, seasonId: number): Promise<TeamSeasonGoalLogResponse> {
   const response = await fetch(api.teamSeasonGoalLog(teamId, seasonId), {
-    cache: 'no-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {

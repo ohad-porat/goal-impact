@@ -12,6 +12,7 @@ from .core.progress_manager import (
     clear_scraping_progress,
     get_scrapers_to_run
 )
+from .core.revalidation import trigger_revalidation
 from app.core.database import Session as DBSession
 from app.models import Competition, Nation, Season
 from .scrapers import (
@@ -56,6 +57,9 @@ def run_initial_mode(args):
                 raise
     
     clear_scraping_progress()
+    
+    logger.info("Triggering Next.js cache revalidation...")
+    trigger_revalidation()
 
 
 def run_daily_mode(args):
@@ -101,6 +105,9 @@ def run_daily_mode(args):
     events_scraper.run(nations=nations, from_date=from_date, to_date=to_date)
     
     logger.info("Daily mode completed successfully")
+    
+    logger.info("Triggering Next.js cache revalidation...")
+    trigger_revalidation()
 
 
 def run_seasonal_mode(args):
@@ -123,6 +130,9 @@ def run_seasonal_mode(args):
         players_scraper.run(nations=[competition.nation.name], seasonal_mode=True)
     
     logger.info("Seasonal mode completed successfully")
+    
+    logger.info("Triggering Next.js cache revalidation...")
+    trigger_revalidation()
 
 
 def _get_competitions_for_nations(nations):

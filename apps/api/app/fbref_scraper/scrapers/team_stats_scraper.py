@@ -16,11 +16,9 @@ class TeamStatsScraper(WebScraper):
         
         config = get_config()
         
-        query = self.session.query(Season).join(Season.competition).join(Competition.nation)
-        
-        query = query.filter(Nation.name.in_(nations))
-        
-        query = query.filter(Season.start_year >= from_year, Season.start_year <= to_year)
+        query = self.session.query(Season).join(Season.competition).join(Competition.nation) \
+            .filter(Nation.name.in_(nations)) \
+            .filter(Season.start_year >= from_year, Season.start_year <= to_year)
 
         all_seasons = query.all()
         
@@ -88,22 +86,22 @@ class TeamStatsScraper(WebScraper):
                         'team_id': team.id,
                         'season_id': season.id,
                         'fbref_url': fbref_url,
-                        'ranking': team_stats_data.get('Rk', None),
-                        'matches_played': team_stats_data.get('MP', None),
-                        'wins': team_stats_data.get('W', None),
-                        'draws': team_stats_data.get('D', None),
-                        'losses': team_stats_data.get('L', None),
-                        'goals_for': team_stats_data.get('GF', None),
-                        'goals_against': team_stats_data.get('GA', None),
-                        'goal_difference': team_stats_data.get('GD', None),
-                        'points': team_stats_data.get('Pts', None),
-                        'points_per_match': team_stats_data.get('Pts/MP', None),
-                        'xg': team_stats_data.get('xG', None),
-                        'xga': team_stats_data.get('xGA', None),
-                        'xgd': team_stats_data.get('xGD', None),
-                        'xgd_per_90': team_stats_data.get('xGD/90', None),
-                        'attendance': team_stats_data.get('Attendance', None),
-                        'notes': team_stats_data.get('Notes', None)
+                        'ranking': self._clean_integer_value(team_stats_data.get('Rk', None)),
+                        'matches_played': self._clean_integer_value(team_stats_data.get('MP', None)),
+                        'wins': self._clean_integer_value(team_stats_data.get('W', None)),
+                        'draws': self._clean_integer_value(team_stats_data.get('D', None)),
+                        'losses': self._clean_integer_value(team_stats_data.get('L', None)),
+                        'goals_for': self._clean_integer_value(team_stats_data.get('GF', None)),
+                        'goals_against': self._clean_integer_value(team_stats_data.get('GA', None)),
+                        'goal_difference': self._clean_integer_value(team_stats_data.get('GD', None)),
+                        'points': self._clean_integer_value(team_stats_data.get('Pts', None)),
+                        'points_per_match': self._clean_float_value(team_stats_data.get('Pts/MP', None)),
+                        'xg': self._clean_float_value(team_stats_data.get('xG', None)),
+                        'xga': self._clean_float_value(team_stats_data.get('xGA', None)),
+                        'xgd': self._clean_float_value(team_stats_data.get('xGD', None)),
+                        'xgd_per_90': self._clean_float_value(team_stats_data.get('xGD/90', None)),
+                        'attendance': self._clean_integer_value(team_stats_data.get('Attendance', None)),
+                        'notes': self._clean_string_value(team_stats_data.get('Notes', None))
                     }
 
                     if update_mode:

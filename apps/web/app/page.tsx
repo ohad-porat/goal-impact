@@ -5,7 +5,7 @@ import { RecentImpactGoals } from './components/RecentImpactGoals'
 
 async function getLeagues(): Promise<League[]> {
   const response = await fetch(api.leagues, {
-    cache: 'force-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {

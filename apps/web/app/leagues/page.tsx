@@ -6,7 +6,7 @@ import { ErrorDisplay } from '../../components/ErrorDisplay'
 
 async function getLeagues(): Promise<League[]> {
   const response = await fetch(api.leagues, {
-    cache: 'force-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {

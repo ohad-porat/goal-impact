@@ -36,7 +36,7 @@ export interface ClubSeason {
     id: number
     start_year: number | null
     end_year: number | null
-    year_range: string
+    display_name: string
   }
   competition: {
     id: number

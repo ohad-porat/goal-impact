@@ -11,7 +11,7 @@ interface NationShowPageProps {
 
 async function getNationDetails(nationId: number): Promise<NationDetailsResponse> {
   const response = await fetch(api.nationDetails(nationId), {
-    cache: 'force-cache'
+    next: { revalidate: 86400 }
   })
   if (!response.ok) {
     throw new Error('Failed to fetch nation details')

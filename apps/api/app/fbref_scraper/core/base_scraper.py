@@ -68,7 +68,7 @@ class BaseScraper(ABC):
         finally:
             self.session.close()
     
-    def fetch_page(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 3) -> BeautifulSoup:
+    def fetch_page(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 5) -> BeautifulSoup:
         """Fetch and parse a web page with retry logic."""
         if sleep_time is None:
             sleep_time = get_rate_limit('default')
@@ -131,7 +131,7 @@ class BaseScraper(ABC):
         
         raise Exception(f"Failed to fetch {url} after {max_retries + 1} attempts")
     
-    def fetch_html_table(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 3) -> List[pd.DataFrame]:
+    def fetch_html_table(self, url: str, sleep_time: Optional[int] = None, max_retries: int = 5) -> List[pd.DataFrame]:
         """Fetch and parse HTML tables from a URL with retry logic."""
         if sleep_time is None:
             sleep_time = get_rate_limit('default')
@@ -249,6 +249,41 @@ class BaseScraper(ABC):
         except Exception as e:
             self.logger.warning(f"Could not read failed records: {e}")
         return []
+    
+    def _clean_integer_value(self, value):
+        """Clean value for integer fields: convert nan to None, float to int."""
+        if value is None:
+            return None
+        if pd.isna(value):
+            return None
+        try:
+            int_value = int(float(value))
+            if int_value > 2147483647:
+                self.logger.warning(f"Integer value {int_value} exceeds PostgreSQL integer max, setting to None")
+                return None
+            return int_value
+        except (ValueError, TypeError, OverflowError):
+            return None
+    
+    def _clean_float_value(self, value):
+        """Clean value for float fields: convert nan to None."""
+        if value is None:
+            return None
+        if pd.isna(value):
+            return None
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return None
+    
+    def _clean_string_value(self, value) -> Optional[str]:
+        """Clean value for string fields: convert nan to None, empty strings to None."""
+        if value is None:
+            return None
+        if pd.isna(value):
+            return None
+        value_str = str(value).strip()
+        return value_str if value_str else None
     
     @abstractmethod
     def scrape(self, **kwargs) -> None:

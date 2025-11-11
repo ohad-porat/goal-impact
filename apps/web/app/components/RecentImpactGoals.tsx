@@ -43,7 +43,7 @@ export function RecentImpactGoals({ initialLeagues }: RecentImpactGoalsProps) {
       setError(null)
       try {
         const response = await fetch(api.recentGoals(selectedLeagueId), {
-          cache: 'no-store'
+          cache: 'no-cache'
         })
         
         if (!response.ok) {

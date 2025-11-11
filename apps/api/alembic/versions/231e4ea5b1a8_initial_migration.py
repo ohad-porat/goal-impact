@@ -170,7 +170,7 @@ def upgrade() -> None:
     sa.Column('xga', sa.Float(), nullable=True),
     sa.Column('xgd', sa.Float(), nullable=True),
     sa.Column('xgd_per_90', sa.Float(), nullable=True),
-    sa.Column('attendance', sa.Float(), nullable=True),
+    sa.Column('attendance', sa.Integer(), nullable=True),
     sa.Column('notes', sa.String(), nullable=True),
     sa.Column('team_id', sa.Integer(), nullable=True),
     sa.Column('season_id', sa.Integer(), nullable=True),

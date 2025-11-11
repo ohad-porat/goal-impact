@@ -18,7 +18,7 @@ interface PlayerGoalLogPageProps {
 
 async function getPlayerGoalLog(playerId: number): Promise<PlayerGoalLogResponse> {
   const response = await fetch(api.playerGoalLog(playerId), {
-    cache: 'no-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {

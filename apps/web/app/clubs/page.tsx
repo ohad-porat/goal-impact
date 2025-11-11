@@ -5,7 +5,7 @@ import { ErrorDisplay } from '../../components/ErrorDisplay'
 
 async function getClubsByNation(): Promise<ClubsResponse> {
   const response = await fetch(api.clubs, {
-    cache: 'force-cache'
+    next: { revalidate: 86400 }
   })
   
   if (!response.ok) {
