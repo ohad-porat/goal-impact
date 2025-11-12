@@ -32,6 +32,7 @@ venv.bak/
 # Database
 *.db
 *.sqlite3
+*.dump
 
 # IDE
 .vscode/
