@@ -3,36 +3,52 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../../lib/api'
 import { CareerTotalsResponse } from '../../../lib/types/leaders'
+import { League } from '../../../lib/types'
 import { getShortLeagueName } from '../../../lib/utils'
 import { CareerTotalsTableHeader } from './CareerTotalsTableHeader'
 import { CareerTotalsTableBody } from './CareerTotalsTableBody'
 import { LeadersTable } from './LeadersTable'
-import { useLeagues } from '../hooks/useLeagues'
 import { useLeaderFilters } from '../hooks/useLeaderFilters'
 
 export function CareerTotalsTab() {
-  const { leagues, loading: loadingLeagues } = useLeagues()
   const { leagueId, selectedLeagueId, updateParams } = useLeaderFilters()
+  const [leagues, setLeagues] = useState<League[]>([])
+  const [loadingLeagues, setLoadingLeagues] = useState(false)
   const [careerTotals, setCareerTotals] = useState<CareerTotalsResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchCareerTotals = async () => {
+    const fetchData = async () => {
       setCareerTotals(null)
       setError(null)
+      setLoadingLeagues(true)
+      
       try {
-        const response = await fetch(api.leadersCareerTotals(leagueId), { cache: 'no-cache' })
-        if (!response.ok) {
+        const [leaguesResponse, careerResponse] = await Promise.all([
+          fetch(api.leagues, { cache: 'no-cache' }),
+          fetch(api.leadersCareerTotals(leagueId), { cache: 'no-cache' })
+        ])
+        
+        if (!leaguesResponse.ok) {
+          throw new Error('Failed to fetch leagues')
+        }
+        if (!careerResponse.ok) {
           throw new Error('Failed to fetch career totals')
         }
-        const data: CareerTotalsResponse = await response.json()
-        setCareerTotals(data)
+        
+        const leaguesData = await leaguesResponse.json()
+        const careerData = await careerResponse.json()
+        
+        setLeagues(leaguesData.leagues || [])
+        setCareerTotals(careerData)
       } catch (err) {
-        console.error('Error fetching career totals:', err)
+        console.error('Error fetching data:', err)
         setError('Failed to load career totals data.')
+      } finally {
+        setLoadingLeagues(false)
       }
     }
-    fetchCareerTotals()
+    fetchData()
   }, [leagueId])
 
   const handleLeagueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

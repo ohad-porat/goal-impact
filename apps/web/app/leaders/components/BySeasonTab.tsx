@@ -1,19 +1,92 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { getShortLeagueName } from '../../../lib/utils'
 import { BySeasonTableHeader } from './BySeasonTableHeader'
 import { BySeasonTableBody } from './BySeasonTableBody'
 import { LeadersTable } from './LeadersTable'
 import { useLeagues } from '../hooks/useLeagues'
-import { useSeasons } from '../hooks/useSeasons'
-import { useBySeasonData } from '../hooks/useBySeasonData'
 import { useLeaderFilters } from '../hooks/useLeaderFilters'
+import { api } from '../../../lib/api'
+import { Season } from '../../../lib/types'
+import { BySeasonResponse } from '../../../lib/types/leaders'
+
+function getSeasonsUrl(leagueId?: number): string {
+  return leagueId ? api.leagueSeasons(leagueId) : api.allSeasons
+}
+
+async function fetchSeasons(leagueId?: number): Promise<Season[]> {
+  const response = await fetch(getSeasonsUrl(leagueId), { cache: 'no-cache' })
+  if (!response.ok) {
+    throw new Error('Failed to fetch seasons')
+  }
+  const data = await response.json()
+  return data.seasons || []
+}
+
+async function fetchBySeasonData(seasonId: number, leagueId?: number): Promise<BySeasonResponse> {
+  const response = await fetch(api.leadersBySeason(seasonId, leagueId), { cache: 'no-cache' })
+  if (!response.ok) {
+    throw new Error('Failed to fetch by-season data')
+  }
+  return response.json()
+}
+
+function autoSelectMostRecentSeason(
+  seasons: Season[],
+  searchParams: URLSearchParams,
+  router: ReturnType<typeof useRouter>
+) {
+  if (seasons.length === 0) return
+  
+  const mostRecentSeason = seasons[0]
+  const params = new URLSearchParams(searchParams.toString())
+  params.set('season_id', mostRecentSeason.id.toString())
+  if (!params.get('view')) {
+    params.set('view', 'season')
+  }
+  router.push(`/leaders?${params.toString()}`, { scroll: false })
+}
 
 export function BySeasonTab() {
   const { leagues, loading: loadingLeagues } = useLeagues()
   const { leagueId, seasonId, selectedLeagueId, selectedSeasonId, updateParams } = useLeaderFilters()
-  const { seasons, loading: loadingSeasons } = useSeasons(leagueId)
-  const { data: bySeason, error } = useBySeasonData(seasonId, leagueId)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [seasons, setSeasons] = useState<Season[]>([])
+  const [loadingSeasons, setLoadingSeasons] = useState(false)
+  const [bySeason, setBySeason] = useState<BySeasonResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoadingSeasons(true)
+      setBySeason(null)
+      setError(null)
+      
+      try {
+        if (seasonId) {
+          const [seasonsList, bySeasonData] = await Promise.all([
+            fetchSeasons(leagueId),
+            fetchBySeasonData(seasonId, leagueId)
+          ])
+          setSeasons(seasonsList)
+          setBySeason(bySeasonData)
+        } else {
+          const seasonsList = await fetchSeasons(leagueId)
+          setSeasons(seasonsList)
+          autoSelectMostRecentSeason(seasonsList, searchParams, router)
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err)
+        setError('Failed to load by-season data.')
+      } finally {
+        setLoadingSeasons(false)
+      }
+    }
+    fetchData()
+  }, [leagueId, seasonId, searchParams, router])
 
   const handleLeagueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLeagueId = event.target.value === '' ? null : event.target.value
