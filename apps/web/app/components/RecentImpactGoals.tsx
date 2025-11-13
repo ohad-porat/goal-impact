@@ -8,6 +8,7 @@ import { getShortLeagueName } from '../../lib/utils'
 
 interface RecentImpactGoalsProps {
   initialLeagues: League[]
+  initialGoals: RecentImpactGoalsResponse | null
 }
 
 function formatGoalValue(value: number): string {
@@ -16,9 +17,9 @@ function formatGoalValue(value: number): string {
 
 const TOP_LEAGUE_ORDER = ['Premier League', 'Serie A', 'La Liga', 'Bundesliga']
 
-export function RecentImpactGoals({ initialLeagues }: RecentImpactGoalsProps) {
+export function RecentImpactGoals({ initialLeagues, initialGoals }: RecentImpactGoalsProps) {
   const [selectedLeagueId, setSelectedLeagueId] = useState<number | undefined>(undefined)
-  const [goalsData, setGoalsData] = useState<RecentImpactGoalsResponse | null>(null)
+  const [goalsData, setGoalsData] = useState<RecentImpactGoalsResponse | null>(initialGoals)
   const [error, setError] = useState<string | null>(null)
 
   const topLeagues = initialLeagues
@@ -39,6 +40,12 @@ export function RecentImpactGoals({ initialLeagues }: RecentImpactGoalsProps) {
     .slice(0, 4)
 
   useEffect(() => {
+    if (selectedLeagueId === undefined) {
+      setGoalsData(initialGoals)
+      setError(null)
+      return
+    }
+
     async function fetchGoals() {
       setError(null)
       try {
@@ -59,7 +66,7 @@ export function RecentImpactGoals({ initialLeagues }: RecentImpactGoalsProps) {
     }
 
     fetchGoals()
-  }, [selectedLeagueId])
+  }, [selectedLeagueId, initialGoals])
 
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
