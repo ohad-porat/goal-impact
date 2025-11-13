@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 import { api } from '../../../lib/api'
 import { CareerTotalsResponse } from '../../../lib/types/leaders'
 import { League } from '../../../lib/types'
@@ -57,6 +58,7 @@ export function CareerTotalsTab() {
   }
 
   const isEmpty = careerTotals !== null && careerTotals.top_goal_value.length === 0
+  const isLoading = loadingLeagues || careerTotals === null
 
   return (
     <div>
@@ -77,7 +79,11 @@ export function CareerTotalsTab() {
           ))}
         </select>
       </div>
-      {careerTotals !== null || error ? (
+      {isLoading && !error ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
+        </div>
+      ) : (
         <LeadersTable
           title=""
           header={<CareerTotalsTableHeader />}
@@ -85,7 +91,7 @@ export function CareerTotalsTab() {
           error={error}
           isEmpty={isEmpty}
         />
-      ) : null}
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 import { getShortLeagueName } from '../../../lib/utils'
 import { BySeasonTableHeader } from './BySeasonTableHeader'
 import { BySeasonTableBody } from './BySeasonTableBody'
@@ -99,7 +100,7 @@ export function BySeasonTab() {
   }
 
   const isEmpty = bySeason !== null && bySeason.top_goal_value.length === 0
-  const shouldRenderTable = bySeason !== null || error
+  const isLoading = loadingSeasons || bySeason === null
 
   return (
     <div>
@@ -136,7 +137,11 @@ export function BySeasonTab() {
           </select>
         </div>
       </div>
-      {shouldRenderTable ? (
+      {isLoading && !error ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-12 h-12 text-orange-400 animate-spin" />
+        </div>
+      ) : (
         <LeadersTable
           title=""
           header={<BySeasonTableHeader />}
@@ -144,7 +149,7 @@ export function BySeasonTab() {
           error={error}
           isEmpty={isEmpty}
         />
-      ) : null}
+      )}
     </div>
   )
 }
