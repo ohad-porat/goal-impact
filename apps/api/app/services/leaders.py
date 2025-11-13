@@ -36,31 +36,28 @@ def get_career_totals(db: Session, limit: int = 50, league_id: Optional[int] = N
     if league_id is not None:
         query = query.join(Season, PlayerStats.season_id == Season.id).filter(Season.competition_id == league_id)
     
-    career_stats = (
+    top_players_query = (
         query
         .group_by(Player.id, Player.name, Player.nation_id)
         .having(func.sum(PlayerStats.goal_value) > 0)
-        .subquery()
-    )
-    
-    top_goal_value_query = (
-        db.query(
-            career_stats.c.id,
-            career_stats.c.name,
-            career_stats.c.total_goal_value,
-            career_stats.c.total_goals,
-            career_stats.c.total_matches,
-            Nation
-        )
-        .outerjoin(Nation, career_stats.c.nation_id == Nation.id)
-        .order_by(career_stats.c.total_goal_value.desc())
+        .order_by(func.sum(PlayerStats.goal_value).desc())
         .limit(limit)
     )
     
-    top_goal_value_results = top_goal_value_query.all()
+    top_players_results = top_players_query.all()
+    
+    if not top_players_results:
+        return []
+    
+    nation_ids = [row.nation_id for row in top_players_results if row.nation_id]
+    
+    nations_query = db.query(Nation).filter(Nation.id.in_(nation_ids))
+    nations_results = nations_query.all()
+    
+    nations_dict = {nation.id: nation for nation in nations_results}
     
     def build_player(row) -> CareerTotalsPlayer:
-        nation = build_nation_info(row.Nation)
+        nation = build_nation_info(nations_dict.get(row.nation_id)) if row.nation_id else None
         
         goal_value_avg = calculate_goal_value_avg(row.total_goal_value, row.total_goals)
         
@@ -74,9 +71,7 @@ def get_career_totals(db: Session, limit: int = 50, league_id: Optional[int] = N
             total_matches=int(row.total_matches) if row.total_matches else 0
         )
     
-    top_goal_value = [build_player(row) for row in top_goal_value_results]
-    
-    return top_goal_value
+    return [build_player(row) for row in top_players_results]
 
 
 def get_by_season(
