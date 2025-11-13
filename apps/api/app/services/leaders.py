@@ -36,31 +36,28 @@ def get_career_totals(db: Session, limit: int = 50, league_id: Optional[int] = N
     if league_id is not None:
         query = query.join(Season, PlayerStats.season_id == Season.id).filter(Season.competition_id == league_id)
     
-    career_stats = (
+    top_players_query = (
         query
         .group_by(Player.id, Player.name, Player.nation_id)
         .having(func.sum(PlayerStats.goal_value) > 0)
-        .subquery()
-    )
-    
-    top_goal_value_query = (
-        db.query(
-            career_stats.c.id,
-            career_stats.c.name,
-            career_stats.c.total_goal_value,
-            career_stats.c.total_goals,
-            career_stats.c.total_matches,
-            Nation
-        )
-        .outerjoin(Nation, career_stats.c.nation_id == Nation.id)
-        .order_by(career_stats.c.total_goal_value.desc())
+        .order_by(func.sum(PlayerStats.goal_value).desc())
         .limit(limit)
     )
     
-    top_goal_value_results = top_goal_value_query.all()
+    top_players_results = top_players_query.all()
+    
+    if not top_players_results:
+        return []
+    
+    nation_ids = [row.nation_id for row in top_players_results if row.nation_id]
+    
+    nations_query = db.query(Nation).filter(Nation.id.in_(nation_ids))
+    nations_results = nations_query.all()
+    
+    nations_dict = {nation.id: nation for nation in nations_results}
     
     def build_player(row) -> CareerTotalsPlayer:
-        nation = build_nation_info(row.Nation)
+        nation = build_nation_info(nations_dict.get(row.nation_id)) if row.nation_id else None
         
         goal_value_avg = calculate_goal_value_avg(row.total_goal_value, row.total_goals)
         
@@ -74,9 +71,7 @@ def get_career_totals(db: Session, limit: int = 50, league_id: Optional[int] = N
             total_matches=int(row.total_matches) if row.total_matches else 0
         )
     
-    top_goal_value = [build_player(row) for row in top_goal_value_results]
-    
-    return top_goal_value
+    return [build_player(row) for row in top_players_results]
 
 
 def get_by_season(
@@ -111,7 +106,27 @@ def get_by_season(
     
     player_stats = player_stats.subquery()
     
-    team_names_subquery = (
+    top_players_query = (
+        db.query(
+            player_stats.c.player_id,
+            Player.name.label('player_name'),
+            player_stats.c.total_goal_value,
+            player_stats.c.total_goals,
+            player_stats.c.total_matches
+        )
+        .join(Player, player_stats.c.player_id == Player.id)
+        .order_by(player_stats.c.total_goal_value.desc())
+        .limit(limit)
+    )
+    
+    top_players_results = top_players_query.all()
+    
+    if not top_players_results:
+        return []
+    
+    top_player_ids = [row.player_id for row in top_players_results]
+    
+    team_names_query = (
         db.query(
             PlayerStats.player_id,
             func.string_agg(Team.name, ',').label('team_names')
@@ -119,38 +134,25 @@ def get_by_season(
         .join(Season, PlayerStats.season_id == Season.id)
         .join(Team, PlayerStats.team_id == Team.id)
         .filter(season_filter)
+        .filter(PlayerStats.player_id.in_(top_player_ids))
     )
     
     if league_id is not None:
-        team_names_subquery = team_names_subquery.filter(Season.competition_id == league_id)
+        team_names_query = team_names_query.filter(Season.competition_id == league_id)
     
-    team_names_subquery = (
-        team_names_subquery
+    team_names_results = (
+        team_names_query
         .group_by(PlayerStats.player_id)
-        .subquery()
+        .all()
     )
     
-    top_players_query = (
-        db.query(
-            player_stats.c.player_id,
-            Player.name.label('player_name'),
-            player_stats.c.total_goal_value,
-            player_stats.c.total_goals,
-            player_stats.c.total_matches,
-            team_names_subquery.c.team_names
-        )
-        .join(Player, player_stats.c.player_id == Player.id)
-        .outerjoin(team_names_subquery, player_stats.c.player_id == team_names_subquery.c.player_id)
-        .order_by(player_stats.c.total_goal_value.desc())
-        .limit(limit)
-    )
-    
-    top_players_results = top_players_query.all()
+    team_names_dict = {row.player_id: row.team_names for row in team_names_results}
     
     def build_by_season_player(row) -> BySeasonPlayer:
+        team_names = team_names_dict.get(row.player_id)
         club_names = []
-        if row.team_names:
-            club_names = sorted(set(row.team_names.split(',')))
+        if team_names:
+            club_names = sorted(set(team_names.split(',')))
         clubs_display = ', '.join(club_names) if club_names else '-'
         
         goal_value_avg = calculate_goal_value_avg(row.total_goal_value, row.total_goals)

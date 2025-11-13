@@ -2,6 +2,7 @@ import { League } from '../lib/types/league'
 import { api } from '../lib/api'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { RecentImpactGoals } from './components/RecentImpactGoals'
+import { RecentImpactGoalsResponse } from '../lib/types/home'
 
 async function getLeagues(): Promise<League[]> {
   const response = await fetch(api.leagues, {
@@ -16,13 +17,35 @@ async function getLeagues(): Promise<League[]> {
   return data.leagues
 }
 
+async function getRecentGoals(): Promise<RecentImpactGoalsResponse> {
+  const response = await fetch(api.recentGoals(), {
+    next: { revalidate: 300 }
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch recent goals')
+  }
+  
+  return response.json()
+}
+
 export default async function HomePage() {
   let leagues: League[] = []
+  let initialGoals: RecentImpactGoalsResponse | null = null
   
-  try {
-    leagues = await getLeagues()
-  } catch (error) {
+  const [leaguesResult, goalsResult] = await Promise.allSettled([
+    getLeagues(),
+    getRecentGoals()
+  ])
+  
+  if (leaguesResult.status === 'fulfilled') {
+    leagues = leaguesResult.value
+  } else {
     return <ErrorDisplay message="Failed to load leagues." />
+  }
+  
+  if (goalsResult.status === 'fulfilled') {
+    initialGoals = goalsResult.value
   }
 
   return (
@@ -38,7 +61,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <RecentImpactGoals initialLeagues={leagues} />
+      <RecentImpactGoals initialLeagues={leagues} initialGoals={initialGoals} />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <h2 className="text-4xl font-bold text-white mb-6">How it works</h2>
