@@ -1,16 +1,13 @@
 """Unit tests for progress management utilities."""
 
-import pytest
 import json
 import os
-import tempfile
-from datetime import datetime
-from core.progress_manager import (
-    save_scraping_progress,
-    load_scraping_progress,
+
+from app.fbref_scraper.core.progress_manager import (
     clear_scraping_progress,
     get_scrapers_to_run,
-    SCRAPING_PROGRESS_FILE
+    load_scraping_progress,
+    save_scraping_progress,
 )
 
 
@@ -19,7 +16,7 @@ class TestSaveScrapingProgress:
 
     def test_save_progress_new_file(self, tmp_path, mocker):
         """Test saving progress to a new file."""
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(tmp_path / 'progress.json'))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(tmp_path / 'progress.json'))
         save_scraping_progress('test_scraper', True)
         
         assert os.path.exists(str(tmp_path / 'progress.json'))
@@ -45,7 +42,7 @@ class TestSaveScrapingProgress:
         with open(progress_file, 'w') as f:
             json.dump(initial_progress, f)
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
         save_scraping_progress('new_scraper', True)
         
         with open(progress_file, 'r') as f:
@@ -70,7 +67,7 @@ class TestSaveScrapingProgress:
         with open(progress_file, 'w') as f:
             json.dump(initial_progress, f)
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
         save_scraping_progress('test_scraper', True)
         
         with open(progress_file, 'r') as f:
@@ -85,7 +82,7 @@ class TestSaveScrapingProgress:
         mock_file.side_effect = IOError("Permission denied")
         mocker.patch('builtins.open', mock_file)
         
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         save_scraping_progress('test_scraper', True)
         mock_logger.warning.assert_called_once()
 
@@ -93,9 +90,9 @@ class TestSaveScrapingProgress:
         """Test handling of JSON serialization errors."""
         progress_file = tmp_path / 'progress.json'
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
         mocker.patch('json.dump', side_effect=TypeError("Object not serializable"))
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         save_scraping_progress('test_scraper', True)
         mock_logger.warning.assert_called_once()
 
@@ -115,14 +112,14 @@ class TestLoadScrapingProgress:
         with open(progress_file, 'w') as f:
             json.dump(expected_progress, f)
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
         progress = load_scraping_progress()
         
         assert progress == expected_progress
 
     def test_load_progress_file_not_exists(self, mocker):
         """Test loading progress when file doesn't exist."""
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', '/nonexistent/path.json')
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', '/nonexistent/path.json')
         progress = load_scraping_progress()
         assert progress == {}
 
@@ -133,7 +130,7 @@ class TestLoadScrapingProgress:
         mock_file.side_effect = IOError("Permission denied")
         mocker.patch('builtins.open', mock_file)
         
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         progress = load_scraping_progress()
         assert progress == {}
         mock_logger.warning.assert_called_once()
@@ -145,8 +142,8 @@ class TestLoadScrapingProgress:
         with open(progress_file, 'w') as f:
             f.write('invalid json content')
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         progress = load_scraping_progress()
         assert progress == {}
         mock_logger.warning.assert_called_once()
@@ -164,21 +161,21 @@ class TestClearScrapingProgress:
         
         assert os.path.exists(str(progress_file))
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
         clear_scraping_progress()
         
         assert not os.path.exists(str(progress_file))
 
     def test_clear_progress_file_not_exists(self, mocker):
         """Test clearing progress when file doesn't exist."""
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', '/nonexistent/path.json')
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', '/nonexistent/path.json')
         clear_scraping_progress()
 
     def test_clear_progress_file_error(self, mocker):
         """Test handling of file deletion errors."""
         mocker.patch('os.path.exists', return_value=True)
         mocker.patch('os.remove', side_effect=OSError("Permission denied"))
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         clear_scraping_progress()
         mock_logger.warning.assert_called_once()
 
@@ -204,8 +201,8 @@ class TestGetScrapersToRun:
 
     def test_get_scrapers_resume_no_progress(self, mocker):
         """Test getting scrapers when resuming but no progress file exists."""
-        mocker.patch('core.progress_manager.load_scraping_progress', return_value={})
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mocker.patch('app.fbref_scraper.core.progress_manager.load_scraping_progress', return_value={})
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         scrapers = get_scrapers_to_run(resume=True)
         
         assert len(scrapers) == 8
@@ -219,8 +216,8 @@ class TestGetScrapersToRun:
             'teams': {'completed': False, 'timestamp': '2023-01-03T00:00:00'}
         }
         
-        mocker.patch('core.progress_manager.load_scraping_progress', return_value=progress)
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mocker.patch('app.fbref_scraper.core.progress_manager.load_scraping_progress', return_value=progress)
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         scrapers = get_scrapers_to_run(resume=True)
         
         assert len(scrapers) == 6
@@ -240,8 +237,8 @@ class TestGetScrapersToRun:
             'events': {'completed': True, 'timestamp': '2023-01-08T00:00:00'}
         }
         
-        mocker.patch('core.progress_manager.load_scraping_progress', return_value=progress)
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mocker.patch('app.fbref_scraper.core.progress_manager.load_scraping_progress', return_value=progress)
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         scrapers = get_scrapers_to_run(resume=True)
         
         assert len(scrapers) == 8
@@ -255,8 +252,8 @@ class TestGetScrapersToRun:
             'competitions': {'completed': True, 'timestamp': '2023-01-02T00:00:00'}
         }
         
-        mocker.patch('core.progress_manager.load_scraping_progress', return_value=progress)
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mocker.patch('app.fbref_scraper.core.progress_manager.load_scraping_progress', return_value=progress)
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         scrapers = get_scrapers_to_run(resume=True)
         
         assert len(scrapers) == 8
@@ -270,8 +267,8 @@ class TestGetScrapersToRun:
             'competitions': {'completed': True, 'timestamp': '2023-01-02T00:00:00'}
         }
         
-        mocker.patch('core.progress_manager.load_scraping_progress', return_value=progress)
-        mock_logger = mocker.patch('core.progress_manager.logger')
+        mocker.patch('app.fbref_scraper.core.progress_manager.load_scraping_progress', return_value=progress)
+        mock_logger = mocker.patch('app.fbref_scraper.core.progress_manager.logger')
         scrapers = get_scrapers_to_run(resume=True)
         
         assert len(scrapers) == 8
@@ -286,7 +283,7 @@ class TestProgressManagerIntegration:
         """Test complete progress save/load/clear cycle."""
         progress_file = tmp_path / 'progress.json'
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
         save_scraping_progress('test_scraper', True)
         
         progress = load_scraping_progress()
@@ -303,7 +300,7 @@ class TestProgressManagerIntegration:
         """Test managing progress for multiple scrapers."""
         progress_file = tmp_path / 'progress.json'
         
-        mocker.patch('core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
+        mocker.patch('app.fbref_scraper.core.progress_manager.SCRAPING_PROGRESS_FILE', str(progress_file))
         save_scraping_progress('scraper1', True)
         save_scraping_progress('scraper2', False)
         save_scraping_progress('scraper3', True)

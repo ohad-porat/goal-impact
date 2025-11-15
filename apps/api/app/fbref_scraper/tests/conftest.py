@@ -1,13 +1,20 @@
 """Shared pytest configuration and fixtures."""
 
-import pytest
-import tempfile
 import os
+import sys
+import tempfile
+
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from models import Base
+api_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+app_dir = os.path.join(api_dir, 'app')
+sys.path.insert(0, api_dir)
+sys.path.insert(0, app_dir)
+
+from app.models import Base
 
 
 @pytest.fixture(scope="session")
@@ -55,7 +62,7 @@ def temp_db_file():
 @pytest.fixture
 def mock_config():
     """Mock configuration for testing."""
-    from core.config import ScraperConfig
+    from app.fbref_scraper.core import ScraperConfig
     
     return ScraperConfig(
         SELECTED_NATIONS=['England', 'Italy'],

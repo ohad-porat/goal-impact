@@ -2,18 +2,21 @@
 
 import pandas as pd
 
-from scrapers.team_stats_scraper import TeamStatsScraper
-from models import TeamStats, Team
-from tests.utils.factories import SeasonFactory, CompetitionFactory, NationFactory
+from app.fbref_scraper.scrapers.team_stats_scraper import TeamStatsScraper
+from app.fbref_scraper.tests.utils.factories import (
+    CompetitionFactory,
+    NationFactory,
+    SeasonFactory,
+)
+from models import Team, TeamStats
 
 
 class TestTeamStatsScraper:
     """Test TeamStatsScraper functionality."""
 
-    def test_extract_fbref_id(self, db_session):
+    def test_extract_fbref_id(self):
         """Test FBRef ID extraction from URL."""
         scraper = TeamStatsScraper()
-        scraper.session = db_session
         
         test_cases = [
             ("/en/squads/18bb7c10/Arsenal-Stats", "18bb7c10"),
@@ -50,7 +53,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -76,7 +79,7 @@ class TestTeamStatsScraper:
         })
         scraper.fetch_html_table = mocker.Mock(return_value=[mock_df])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/schedule/')
@@ -138,7 +141,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -172,7 +175,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -243,7 +246,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -304,10 +307,10 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
 
         scraper.load_page = mocker.Mock()
         scraper.soup = mocker.Mock()
@@ -354,7 +357,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -383,7 +386,7 @@ class TestTeamStatsScraper:
         scraper.load_page = mocker.Mock()
         scraper.soup = mocker.Mock()
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/schedule/')
@@ -450,7 +453,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -488,20 +491,18 @@ class TestTeamStatsScraper:
         stats = db_session.query(TeamStats).first()
         assert stats.id == existing_stats.id
 
-    def test_log_progress_functionality(self, db_session):
+    def test_log_progress_functionality(self):
         """Test logging progress functionality."""
         scraper = TeamStatsScraper()
-        scraper.session = db_session
         
         scraper.log_progress("Processing team stats...")
         scraper.log_progress("Team stats processing complete")
 
-    def test_log_error_functionality(self, mocker, db_session):
+    def test_log_error_functionality(self, mocker):
         """Test logging error functionality."""
         scraper = TeamStatsScraper()
-        scraper.session = db_session
         
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mocker.patch('app.fbref_scraper.core.base_scraper.is_debug_mode', return_value=False)
         
         test_exception = Exception("Test scraping error")
         scraper.log_error("scraping", test_exception)
@@ -549,7 +550,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -575,7 +576,7 @@ class TestTeamStatsScraper:
         })
         scraper.fetch_html_table = mocker.Mock(return_value=[mock_df])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/schedule/')
@@ -643,7 +644,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -669,7 +670,7 @@ class TestTeamStatsScraper:
         })
         scraper.fetch_html_table = mocker.Mock(return_value=[mock_df])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/schedule/')
@@ -723,7 +724,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -749,7 +750,7 @@ class TestTeamStatsScraper:
         })
         scraper.fetch_html_table = mocker.Mock(return_value=[mock_df])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/schedule/')
@@ -806,7 +807,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -833,7 +834,7 @@ class TestTeamStatsScraper:
         })
         scraper.fetch_html_table = mocker.Mock(return_value=[mock_df])
 
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/schedule/')
@@ -881,7 +882,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -889,7 +890,7 @@ class TestTeamStatsScraper:
         scraper.soup = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(return_value=[])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/schedule/')
@@ -929,7 +930,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -970,7 +971,7 @@ class TestTeamStatsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -978,7 +979,7 @@ class TestTeamStatsScraper:
         scraper.soup = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(return_value=[])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == 'Scores & Fixtures':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/matches/')
@@ -1019,11 +1020,11 @@ class TestTeamStatsScraper:
         db_session.add_all([nation, competition, season1, season2])
         db_session.commit()
 
-        mocker.patch('requests.get').side_effect = Exception("Network error")
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch.object(scraper.http_session, 'get', side_effect=Exception("Network error"))
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
         
         scraper.log_error_and_continue = mocker.Mock()
         
@@ -1066,10 +1067,10 @@ class TestTeamStatsScraper:
         scraper.soup = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(return_value=[])
 
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
 
         scraper.scrape(nations=["England"])
 
@@ -1105,10 +1106,10 @@ class TestTeamStatsScraper:
         scraper.soup = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(return_value=[])
 
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
 
         scraper.scrape(nations=["England"])
 

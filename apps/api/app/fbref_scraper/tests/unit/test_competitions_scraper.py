@@ -2,9 +2,9 @@
 
 import pandas as pd
 
-from scrapers.competitions_scraper import CompetitionsScraper
+from app.fbref_scraper.scrapers.competitions_scraper import CompetitionsScraper
+from app.fbref_scraper.tests.utils.factories import NationFactory
 from models import Competition
-from tests.utils.factories import NationFactory
 
 
 class TestCompetitionsScraper:
@@ -49,8 +49,8 @@ class TestCompetitionsScraper:
         
         scraper.fetch_html_table = mocker.Mock(return_value=[competition_data])
         
-        mocker.patch('scrapers.competitions_scraper.get_selected_nations', return_value=['England', 'France'])
-        mocker.patch('scrapers.competitions_scraper.get_rate_limit', return_value=2)
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_selected_nations', return_value=['England', 'France'])
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_rate_limit', return_value=2)
         
         scraper.scrape()
         
@@ -77,7 +77,7 @@ class TestCompetitionsScraper:
         scraper.load_page = mocker.Mock()
         scraper.log_progress = mocker.Mock()
         
-        mocker.patch('scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
         
         scraper.scrape()
         
@@ -113,7 +113,7 @@ class TestCompetitionsScraper:
         
         scraper.fetch_html_table = mocker.Mock(return_value=[competition_data])
         
-        mocker.patch('scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
         
         scraper.scrape()
         
@@ -141,7 +141,7 @@ class TestCompetitionsScraper:
         
         scraper.fetch_html_table = mocker.Mock(return_value=[])
         
-        mocker.patch('scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
         
         scraper.scrape()
         
@@ -177,7 +177,7 @@ class TestCompetitionsScraper:
         
         scraper.fetch_html_table = mocker.Mock(return_value=[competition_data])
         
-        mocker.patch('scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
         
         scraper.scrape()
         
@@ -211,7 +211,7 @@ class TestCompetitionsScraper:
         
         scraper.fetch_html_table = mocker.Mock(return_value=[competition_data])
         
-        mocker.patch('scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
         
         scraper.scrape()
         
@@ -281,7 +281,7 @@ class TestCompetitionsScraper:
         scraper.log_progress = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(return_value=[])
         
-        mocker.patch('scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.scrapers.competitions_scraper.get_selected_nations', return_value=['England'])
         
         scraper.scrape()
         

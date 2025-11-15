@@ -3,18 +3,17 @@
 import pytest
 import pandas as pd
 
-from scrapers.nations_scraper import NationsScraper
+from app.fbref_scraper.scrapers.nations_scraper import NationsScraper
 from models import Nation
-from tests.utils.scraper_helpers import mock_fbref_countries_page
+from app.fbref_scraper.tests.utils.scraper_helpers import mock_fbref_countries_page
 
 
 class TestNationsScraper:
     """Test NationsScraper functionality."""
 
-    def test_extract_fbref_id(self, db_session):
+    def test_extract_fbref_id(self):
         """Test FBRef ID extraction from URL."""
         scraper = NationsScraper()
-        scraper.session = db_session
         
         test_cases = [
             ("/en/countries/ENG/", "ENG"),
@@ -26,39 +25,40 @@ class TestNationsScraper:
             result = scraper.extract_fbref_id(url)
             assert result == expected_id, f"Failed for URL: {url}"
 
-    def test_fetch_page_success(self, mocker, db_session):
+    def test_fetch_page_success(self, mocker):
         """Test successful page fetching."""
         scraper = NationsScraper()
-        scraper.session = db_session
         
-        mock_get = mocker.patch('requests.get')
         mock_response = mocker.Mock()
         mock_response.text = "<html><body>Test content</body></html>"
         mock_response.status_code = 200
-        mock_response.raise_for_status or mocker.Mock()
-        mock_get.return_value = mock_response
+        mock_response.raise_for_status = mocker.Mock()
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
         soup = scraper.fetch_page("https://fbref.com/test")
         
         assert soup is not None
         assert soup.find('body').text == "Test content"
-        mock_get.assert_called_once()
+        scraper.http_session.get.assert_called_once()
 
-    def test_fetch_page_http_error(self, mocker, db_session):
+    def test_fetch_page_http_error(self, mocker):
         """Test page fetching with HTTP error."""
         scraper = NationsScraper()
-        scraper.session = db_session
         
-        mock_get = mocker.patch('requests.get')
-        mock_get.side_effect = Exception("Connection timeout")
+        mocker.patch.object(scraper.http_session, 'get', side_effect=Exception("Connection timeout"))
         
         with pytest.raises(Exception, match="Connection timeout"):
             scraper.fetch_page("https://fbref.com/test")
 
-    def test_fetch_html_table_success(self, mocker, db_session):
+    def test_fetch_html_table_success(self, mocker):
         """Test successful HTML table fetching."""
         scraper = NationsScraper()
-        scraper.session = db_session
+        
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.text = "<html><body><table><tr><td>Test</td></tr></table></body></html>"
+        mock_response.raise_for_status = mocker.Mock()
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
         mock_read_html = mocker.patch('pandas.read_html')
         mock_df = pd.DataFrame({
@@ -74,12 +74,15 @@ class TestNationsScraper:
         assert 'England' in result[0]['Country'].values
         mock_read_html.assert_called_once()
 
-    def test_fetch_html_table_error(self, mocker, db_session):
+    def test_fetch_html_table_error(self, mocker):
         """Test HTML table fetching with error."""
         scraper = NationsScraper()
-        scraper.session = db_session
         
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.text = "<html><body><table></table></body></html>"
+        mock_response.raise_for_status = mocker.Mock()
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
         mock_read_html = mocker.patch('pandas.read_html')
         mock_read_html.side_effect = Exception("Table parsing failed")
@@ -92,12 +95,11 @@ class TestNationsScraper:
         scraper = NationsScraper()
         scraper.session = db_session
         
-        mock_get = mocker.patch('requests.get')
         mock_response = mocker.Mock()
         mock_response.text = mock_fbref_countries_page()
         mock_response.status_code = 200
         mock_response.raise_for_status = mocker.Mock()
-        mock_get.return_value = mock_response
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
         mock_read_html = mocker.patch('pandas.read_html')
         mock_df = pd.DataFrame({
@@ -137,12 +139,11 @@ class TestNationsScraper:
         db_session.add(existing_nation)
         db_session.commit()
         
-        mock_get = mocker.patch('requests.get')
         mock_response = mocker.Mock()
         mock_response.text = mock_fbref_countries_page()
         mock_response.status_code = 200
         mock_response.raise_for_status = mocker.Mock()
-        mock_get.return_value = mock_response
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
         mock_read_html = mocker.patch('pandas.read_html')
         mock_df = pd.DataFrame({
@@ -159,27 +160,24 @@ class TestNationsScraper:
         italy = db_session.query(Nation).filter_by(name='Italy').first()
         assert italy.id == existing_nation.id
 
-    def test_log_skip_functionality(self, db_session):
+    def test_log_skip_functionality(self):
         """Test logging skip functionality."""
         scraper = NationsScraper()
-        scraper.session = db_session
         
         scraper.log_skip("nation", "England", "Already exists")
         scraper.log_skip("nation", "France")
 
-    def test_log_error_functionality(self, mocker, db_session):
+    def test_log_error_functionality(self, mocker):
         """Test logging error functionality."""
         scraper = NationsScraper()
-        scraper.session = db_session
         
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mocker.patch('app.fbref_scraper.core.base_scraper.is_debug_mode', return_value=False)
         
         test_exception = Exception("Test error")
         scraper.log_error("scraping", test_exception)
 
-    def test_log_progress_functionality(self, db_session):
+    def test_log_progress_functionality(self):
         """Test logging progress functionality."""
         scraper = NationsScraper()
-        scraper.session = db_session
         
         scraper.log_progress("Processing nations...")
