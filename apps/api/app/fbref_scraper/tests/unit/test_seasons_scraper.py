@@ -3,18 +3,17 @@
 import pandas as pd
 import pytest
 
-from scrapers.seasons_scraper import SeasonsScraper
+from app.fbref_scraper.scrapers.seasons_scraper import SeasonsScraper
+from app.fbref_scraper.tests.utils.factories import CompetitionFactory, NationFactory
 from models import Season
-from tests.utils.factories import CompetitionFactory, NationFactory
 
 
 class TestSeasonsScraper:
     """Test SeasonsScraper functionality."""
 
-    def test_extract_fbref_id(self, db_session):
+    def test_extract_fbref_id(self):
         """Test FBRef ID extraction from URL."""
         scraper = SeasonsScraper()
-        scraper.session = db_session
         
         test_cases = [
             ("/en/comps/9/history/Premier-League-Seasons", "9"),
@@ -45,7 +44,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -54,9 +53,9 @@ class TestSeasonsScraper:
             'Champion': ['Chelsea', 'Arsenal']
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string in ['2023-2024', '2022-2023']:
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value=f'/en/comps/9/{string}/')
@@ -95,7 +94,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -104,9 +103,9 @@ class TestSeasonsScraper:
             'Champion': ['City', 'Arsenal', 'Chelsea']
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string in ['2022-2023', '2024-2025']:  
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value=f'/en/comps/9/{string}/')
@@ -143,7 +142,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -152,9 +151,9 @@ class TestSeasonsScraper:
             'Champion': ['Liverpool', 'City']
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
-        mocker.patch('core.get_year_range', return_value=(2015, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2015, 2030))
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string in ['2020', '2022-2023']:
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value=f'/en/comps/9/{string}/')
@@ -194,7 +193,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
@@ -212,9 +211,9 @@ class TestSeasonsScraper:
             'Champion': ['Arsenal', 'Chelsea']
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string in ['2022-2023', '2023-2024']:
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value=f'/en/comps/9/{string}/')
@@ -250,40 +249,37 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
         
         mocker.patch('pandas.read_html', return_value=[])
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
         
         scraper.scrape(nations=["England"])
         
         seasons_count = db_session.query(Season).count()
         assert seasons_count == 0
 
-    def test_log_progress_functionality(self, db_session):
+    def test_log_progress_functionality(self):
         """Test logging progress functionality."""
         scraper = SeasonsScraper()
-        scraper.session = db_session
         
         scraper.log_progress("Processing seasons...")
         scraper.log_progress("Season processing complete")
 
-    def test_log_skip_functionality(self, db_session):
+    def test_log_skip_functionality(self):
         """Test logging skip functionality."""
         scraper = SeasonsScraper()
-        scraper.session = db_session
         
         scraper.log_skip("season", "2022-2023", "Out of year range")
         scraper.log_skip("season", "Duplicate season")
 
-    def test_log_error_functionality(self, mocker, db_session):
+    def test_log_error_functionality(self, mocker):
         """Test logging error functionality."""
         scraper = SeasonsScraper()
-        scraper.session = db_session
         
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mocker.patch('app.fbref_scraper.core.base_scraper.is_debug_mode', return_value=False)
         
         test_exception = Exception("Test scraping error")
         scraper.log_error("scraping", test_exception)
@@ -353,7 +349,7 @@ class TestSeasonsScraper:
         })
         scraper.fetch_html_table = mocker.Mock(return_value=[mock_df])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == '2022-2023':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2022-2023/archived/')
@@ -388,7 +384,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -397,9 +393,9 @@ class TestSeasonsScraper:
             'Champion': ['Chelsea']
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string == '2023-2024':
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value='/en/comps/9/2023-2024/')
@@ -455,7 +451,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -465,7 +461,7 @@ class TestSeasonsScraper:
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string in ['2022-2023', '2024-2025']:
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value=f'/en/comps/9/{string}/')
@@ -504,7 +500,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -513,7 +509,7 @@ class TestSeasonsScraper:
             'Champion': ['Arsenal']
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
-        mocker.patch('core.get_year_range', return_value=(2020, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2020, 2030))
         
         scraper.find_element = mocker.Mock(return_value=None)
         
@@ -542,7 +538,7 @@ class TestSeasonsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
 
@@ -551,9 +547,9 @@ class TestSeasonsScraper:
             'Champion': ['Liverpool', 'City']
         })
         mocker.patch('pandas.read_html', return_value=[mock_df])
-        mocker.patch('core.get_year_range', return_value=(2015, 2030))
+        mocker.patch('app.fbref_scraper.core.get_year_range', return_value=(2015, 2030))
         
-        def mock_find_element(tag, string):
+        def mock_find_element(_tag, string):
             if string in ['2020', '2021-2022']:
                 mock_link = mocker.Mock()
                 mock_link.__getitem__ = mocker.Mock(return_value=f'/en/comps/9/{string}/')

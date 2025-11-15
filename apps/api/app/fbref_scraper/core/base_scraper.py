@@ -2,7 +2,6 @@
 
 import json
 import os
-import pdb
 import time
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
@@ -62,8 +61,6 @@ class BaseScraper(ABC):
         except Exception as e:
             self.logger.error(f"Database Error: {e}")
             self.session.rollback()
-            if is_debug_mode():
-                pdb.set_trace()
             raise
         finally:
             self.session.close()
@@ -121,8 +118,6 @@ class BaseScraper(ABC):
             except requests.RequestException as e:
                 if attempt == max_retries:
                     self.logger.error(f"HTTP Error fetching {url} after {max_retries + 1} attempts: {e}")
-                    if is_debug_mode():
-                        pdb.set_trace()
                     raise
                 
                 wait_time = sleep_time * (2 ** attempt)
@@ -163,8 +158,6 @@ class BaseScraper(ABC):
             except Exception as e:
                 if attempt == max_retries:
                     self.logger.error(f"Error fetching HTML table from {url} after {max_retries + 1} attempts: {e}")
-                    if is_debug_mode():
-                        pdb.set_trace()
                     raise
                 
                 wait_time = sleep_time * (2 ** attempt)
@@ -186,8 +179,6 @@ class BaseScraper(ABC):
     def log_error(self, operation: str, error: Exception) -> None:
         """Log an error that occurred during an operation."""
         self.logger.error(f"Error in {operation}: {error}")
-        if is_debug_mode():
-            pdb.set_trace()
     
     def log_error_and_continue(self, operation: str, error: Exception, entity_name: str = "") -> None:
         """Log an error but continue processing instead of stopping."""

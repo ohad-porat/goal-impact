@@ -1,11 +1,16 @@
 """Unit tests for PlayersScraper."""
 
 import pandas as pd
-from scrapers.players_scraper import PlayersScraper
-from models import Player, PlayerStats
-from tests.utils.factories import (
-    TeamStatsFactory, SeasonFactory, CompetitionFactory, NationFactory, TeamFactory
+
+from app.fbref_scraper.scrapers.players_scraper import PlayersScraper
+from app.fbref_scraper.tests.utils.factories import (
+    CompetitionFactory,
+    NationFactory,
+    SeasonFactory,
+    TeamFactory,
+    TeamStatsFactory,
 )
+from models import Player, PlayerStats
 
 
 class TestPlayersScraper:
@@ -127,7 +132,7 @@ class TestPlayersScraper:
         assert player_stats.goals_scored == 14
         assert player_stats.assists == 8
 
-    def test_get_player_stat_value_success(self, db_session, mocker):
+    def test_get_player_stat_value_success(self, mocker):
         """Test successful stat value retrieval."""
         scraper = PlayersScraper()
         
@@ -140,7 +145,7 @@ class TestPlayersScraper:
         result = scraper._get_player_stat_value(mock_series, ('Performance', 'Gls'))
         assert result == 15
 
-    def test_get_player_stat_value_missing_key(self, db_session, mocker):
+    def test_get_player_stat_value_missing_key(self):
         """Test stat value retrieval with missing key."""
         scraper = PlayersScraper()
         
@@ -151,7 +156,7 @@ class TestPlayersScraper:
         result = scraper._get_player_stat_value(mock_series, ('Performance', 'Gls'))
         assert result is None
 
-    def test_get_player_stat_value_index_error(self, db_session, mocker):
+    def test_get_player_stat_value_index_error(self):
         """Test stat value retrieval with index error."""
         scraper = PlayersScraper()
         
@@ -298,18 +303,30 @@ class TestPlayersScraper:
         scraper.load_page = mocker.Mock()
         scraper.log_progress = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(return_value=[])
+        scraper.get_fbref_competition_name = mocker.Mock(return_value='All Competitions')
 
+        def mock_find_elements(tag, class_=None):
+            if tag == 'li' and class_ == 'full hasmore':
+                mock_li_element = mocker.MagicMock()
+                mock_span_element = mocker.MagicMock()
+                mock_span_element.text = 'Goal Logs'
+                mock_all_competitions_element = mocker.MagicMock()
+                mock_all_competitions_element.text = 'All Competitions'
+                mock_all_competitions_element.__getitem__ = mocker.Mock(return_value='/en/players/player123/all-competitions-goal-logs/')
+                
+                def mock_li_find(tag, text=None):
+                    if tag == 'span' and text == 'Goal Logs':
+                        return mock_span_element
+                    elif tag == 'a' and text == 'All Competitions':
+                        return mock_all_competitions_element
+                    return None
+                
+                mock_li_element.find = mock_li_find
+                return [mock_li_element]
+            return []
+        
         scraper.find_element = mocker.Mock(return_value=None)
-        mock_li_element = mocker.MagicMock()
-        mock_span_element = mocker.MagicMock()
-        mock_span_element.text = 'Goal Logs'
-        mock_all_competitions_element = mocker.MagicMock()
-        mock_all_competitions_element.text = 'All Competitions'
-        mock_all_competitions_element.__getitem__ = mocker.Mock(return_value='/en/players/player123/all-competitions-goal-logs/')
-        
-        mock_li_element.find.side_effect = lambda tag, **kwargs: mock_span_element if kwargs.get('text') == 'Goal Logs' else mock_all_competitions_element if kwargs.get('text') == 'All Competitions' else None
-        
-        scraper.find_elements = mocker.Mock(return_value=[mock_li_element])
+        scraper.find_elements = mocker.Mock(side_effect=mock_find_elements)
 
         scraper.scrape(nations=['England'], from_year=2021, to_year=2021)
 
@@ -331,7 +348,7 @@ class TestPlayersScraper:
         scraper.load_page = mocker.Mock()
         scraper.log_progress = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(return_value=[])
-
+        scraper.get_fbref_competition_name = mocker.Mock(return_value='Premier League')
         scraper.find_element = mocker.Mock(return_value=None)
         scraper.find_elements = mocker.Mock(return_value=[])
 
@@ -339,7 +356,7 @@ class TestPlayersScraper:
 
         db_session.refresh(team_stats)
         assert team_stats.goal_logs_url is None
-        scraper.log_progress.assert_any_call(f"No goal logs URL found for {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}, continuing with None")
+        scraper.log_progress.assert_any_call(f"No domestic league goal logs found for {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
 
     def test_update_mode_no_existing_stats(self, db_session, mocker):
         """Test update mode when no existing player stats are found."""

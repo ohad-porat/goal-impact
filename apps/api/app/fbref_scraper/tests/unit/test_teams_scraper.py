@@ -2,19 +2,17 @@
 
 import pandas as pd
 
-from scrapers.teams_scraper import TeamsScraper
+from app.fbref_scraper.scrapers.teams_scraper import TeamsScraper
+from app.fbref_scraper.tests.utils.factories import NationFactory
 from models import Team
-from tests.utils.factories import NationFactory
 
 
 class TestTeamsScraper:
     """Test TeamsScraper functionality."""
 
-
-    def test_extract_fbref_id(self, db_session):
+    def test_extract_fbref_id(self):
         """Test FBRef ID extraction from URL."""
         scraper = TeamsScraper()
-        scraper.session = db_session
         
         test_cases = [
             ("/en/squads/18bb7c10/Arsenal-Stats", "18bb7c10"),
@@ -39,11 +37,11 @@ class TestTeamsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_selected_nations', return_value=['England'])
-        mocker.patch('core.get_rate_limit', return_value=2)
+        mocker.patch('app.fbref_scraper.core.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.core.get_rate_limit', return_value=2)
 
         mock_df = pd.DataFrame({
             'Squad': ['Arsenal', 'Chelsea'],
@@ -84,11 +82,11 @@ class TestTeamsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_selected_nations', return_value=['England'])
-        mocker.patch('core.get_rate_limit', return_value=2)
+        mocker.patch('app.fbref_scraper.core.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.core.get_rate_limit', return_value=2)
 
         mock_df = pd.DataFrame({
             'Squad': ['Arsenal'],
@@ -136,11 +134,11 @@ class TestTeamsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_selected_nations', return_value=['England'])
-        mocker.patch('core.get_rate_limit', return_value=2)
+        mocker.patch('app.fbref_scraper.core.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.core.get_rate_limit', return_value=2)
 
         mock_df = pd.DataFrame({
             'Squad': ['Unknown Team'],
@@ -170,11 +168,11 @@ class TestTeamsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_selected_nations', return_value=['England'])
-        mocker.patch('core.get_rate_limit', return_value=2)
+        mocker.patch('app.fbref_scraper.core.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.core.get_rate_limit', return_value=2)
 
         mocker.patch('pandas.read_html', return_value=[])
         scraper.log_progress = mocker.Mock()
@@ -195,24 +193,20 @@ class TestTeamsScraper:
         db_session.add_all([england, france])
         db_session.commit()
 
-        mocker.patch('requests.get').return_value = mocker.Mock(
-            text="<html><body><table></table></body></html>",
-            status_code=200,
-            raise_for_status=mocker.Mock()
-        )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_selected_nations', return_value=['England', 'France'])
-        mocker.patch('core.get_rate_limit', return_value=2)
+        mocker.patch('app.fbref_scraper.core.get_selected_nations', return_value=['England', 'France'])
+        mocker.patch('app.fbref_scraper.core.get_rate_limit', return_value=2)
 
-        def mock_read_html(url):
+        def mock_fetch_html_table(url, sleep_time=None):
             if "/en/countries/ENG/" in url:
                 return [pd.DataFrame({'Squad': ['Arsenal'], 'Gender': ['M']})]
-            else:
+            elif "/en/countries/FRA/" in url:
                 return [pd.DataFrame({'Squad': ['PSG'], 'Gender': ['M']})]
+            return []
         
-        mocker.patch('pandas.read_html', side_effect=mock_read_html)
+        scraper.fetch_html_table = mocker.Mock(side_effect=mock_fetch_html_table)
         
         def mock_find_elements(_, string):
             if string in ['Arsenal', 'PSG']:
@@ -259,11 +253,11 @@ class TestTeamsScraper:
             status_code=200,
             raise_for_status=mocker.Mock()
         )
-        mocker.patch('core.get_config').return_value = mocker.Mock(
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
-        mocker.patch('core.get_selected_nations', return_value=['England'])
-        mocker.patch('core.get_rate_limit', return_value=2)
+        mocker.patch('app.fbref_scraper.core.get_selected_nations', return_value=['England'])
+        mocker.patch('app.fbref_scraper.core.get_rate_limit', return_value=2)
 
         mock_df = pd.DataFrame({
             'Squad': ['Arsenal'],
@@ -288,20 +282,18 @@ class TestTeamsScraper:
         arsenal = db_session.query(Team).filter_by(name='Arsenal').first()
         assert arsenal.id == existing_team.id
 
-    def test_log_progress_functionality(self, db_session):
+    def test_log_progress_functionality(self):
         """Test logging progress functionality."""
         scraper = TeamsScraper()
-        scraper.session = db_session
         
         scraper.log_progress("Processing teams...")
         scraper.log_progress("Team processing complete")
 
-    def test_log_error_functionality(self, mocker, db_session):
+    def test_log_error_functionality(self, mocker):
         """Test logging error functionality."""
         scraper = TeamsScraper()
-        scraper.session = db_session
         
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mocker.patch('app.fbref_scraper.core.base_scraper.is_debug_mode', return_value=False)
         
         test_exception = Exception("Test scraping error")
         scraper.log_error("scraping", test_exception)

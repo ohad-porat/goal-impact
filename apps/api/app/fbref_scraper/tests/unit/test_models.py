@@ -2,10 +2,16 @@
 
 import pytest
 
-from tests.utils.factories import (
-    NationFactory, CompetitionFactory, SeasonFactory, TeamFactory,
-    PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
-    TeamStatsFactory
+from app.fbref_scraper.tests.utils.factories import (
+    CompetitionFactory,
+    EventFactory,
+    MatchFactory,
+    NationFactory,
+    PlayerFactory,
+    PlayerStatsFactory,
+    SeasonFactory,
+    TeamFactory,
+    TeamStatsFactory,
 )
 
 

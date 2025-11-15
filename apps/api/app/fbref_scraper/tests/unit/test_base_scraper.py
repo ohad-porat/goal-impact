@@ -1,8 +1,9 @@
 """Unit tests for BaseScraper utility methods."""
 
 import pytest
+import requests
 
-from core.base_scraper import BaseScraper, WebScraper
+from app.fbref_scraper.core.base_scraper import BaseScraper, WebScraper
 from models import Nation
 
 
@@ -60,7 +61,7 @@ class TestBaseScraper:
         """Test log_error functionality."""
         scraper = ConcreteBaseScraper()
         test_exception = Exception("Test error")
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mocker.patch('app.fbref_scraper.core.base_scraper.is_debug_mode', return_value=False)
         scraper.log_error("scraping", test_exception)
 
     def test_log_progress(self):
@@ -239,7 +240,13 @@ class TestWebScraper:
         """Test successful HTML table fetching."""
         scraper = ConcreteWebScraper()
         
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.text = "<html><body><table><tr><td>Test</td></tr></table></body></html>"
+        mock_response.raise_for_status = mocker.Mock()
+        
         mock_df = mocker.Mock()
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         mocker.patch('pandas.read_html', return_value=[mock_df])
         
         result = scraper.fetch_html_table("https://fbref.com/test")
@@ -251,18 +258,26 @@ class TestWebScraper:
         """Test HTML table fetching with HTTP error."""
         scraper = ConcreteWebScraper()
         
-        mocker.patch('pandas.read_html', side_effect=Exception("HTTP Error 404: Not Found"))
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mock_response = mocker.Mock()
+        mock_response.status_code = 404
+        mock_response.raise_for_status.side_effect = requests.HTTPError("404 Client Error: Not Found")
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
-        with pytest.raises(Exception, match="HTTP Error 404: Not Found"):
+        with pytest.raises(requests.HTTPError):
             scraper.fetch_html_table("https://fbref.com/test")
 
     def test_fetch_html_table_with_sleep_time(self, mocker):
         """Test HTML table fetching with custom sleep time."""
         scraper = ConcreteWebScraper()
         
+        mock_response = mocker.Mock()
+        mock_response.status_code = 200
+        mock_response.text = "<html><body><table><tr><td>Test</td></tr></table></body></html>"
+        mock_response.raise_for_status = mocker.Mock()
+        
         mock_sleep = mocker.patch('time.sleep')
         mock_df = mocker.Mock()
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         mocker.patch('pandas.read_html', return_value=[mock_df])
         
         result = scraper.fetch_html_table("https://fbref.com/test", sleep_time=5)
@@ -274,29 +289,27 @@ class TestWebScraper:
         """Test successful page fetching."""
         scraper = ConcreteBaseScraper()
         
-        mock_get = mocker.patch('requests.get')
         mock_response = mocker.Mock()
         mock_response.text = "<html><body>Test content</body></html>"
         mock_response.status_code = 200
         mock_response.raise_for_status = mocker.Mock()
-        mock_get.return_value = mock_response
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
         result = scraper.fetch_page("https://fbref.com/test")
         
         assert result is not None
         assert result.find('body').text == "Test content"
-        mock_get.assert_called_once()
+        scraper.http_session.get.assert_called_once()
 
     def test_fetch_page_with_sleep_time(self, mocker):
         """Test page fetching with custom sleep time."""
         scraper = ConcreteBaseScraper()
         
-        mock_get = mocker.patch('requests.get')
         mock_response = mocker.Mock()
         mock_response.text = "<html><body>Test content</body></html>"
         mock_response.status_code = 200
         mock_response.raise_for_status = mocker.Mock()
-        mock_get.return_value = mock_response
+        mocker.patch.object(scraper.http_session, 'get', return_value=mock_response)
         
         mock_sleep = mocker.patch('time.sleep')
         
@@ -311,7 +324,7 @@ class TestWebScraper:
         test_exception = Exception("Test error")
         
         mock_logger = mocker.patch.object(scraper, 'logger')
-        mocker.patch('core.base_scraper.is_debug_mode', return_value=False)
+        mocker.patch('app.fbref_scraper.core.base_scraper.is_debug_mode', return_value=False)
         
         scraper.log_error_and_continue("scraping", test_exception, "test_entity")
         

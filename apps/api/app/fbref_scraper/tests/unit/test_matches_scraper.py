@@ -1,15 +1,42 @@
-
 """Unit tests for MatchesScraper."""
 
 from datetime import date
 
-from scrapers.matches_scraper import MatchesScraper
-from models import Match, Season, Competition, Nation, TeamStats
-from tests.utils.factories import NationFactory, CompetitionFactory, SeasonFactory, TeamFactory, TeamStatsFactory
+from app.fbref_scraper.scrapers.matches_scraper import MatchesScraper
+from app.fbref_scraper.tests.utils.factories import (
+    CompetitionFactory,
+    NationFactory,
+    SeasonFactory,
+    TeamFactory,
+    TeamStatsFactory,
+)
+from models import Competition, Match, Nation, Season
 
 
 class TestMatchesScraper:
     """Test MatchesScraper functionality."""
+
+    @staticmethod
+    def _create_mock_find_with_tag(mock_find_data_stat):
+        """Helper to create mock_find_with_tag function."""
+        def mock_find_with_tag(**kwargs):
+            data_stat = kwargs.get('data-stat')
+            return mock_find_data_stat(data_stat)
+        return mock_find_with_tag
+
+    @staticmethod
+    def _setup_mock_config(mocker):
+        """Helper to setup mock config with FBREF_BASE_URL."""
+        mock_config = mocker.Mock()
+        mock_config.FBREF_BASE_URL = "https://fbref.com"
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
+        return mock_config
+
+    @staticmethod
+    def _setup_scraper_mocks(scraper, mocker):
+        """Helper to setup common scraper method mocks."""
+        scraper.load_page = mocker.Mock()
+        scraper.log_progress = mocker.Mock()
 
     def test_scrape_success(self, db_session, mocker):
         """Test successful match scraping."""
@@ -63,7 +90,7 @@ class TestMatchesScraper:
                 return mock_away_td
             return None
 
-        def mock_find_with_tag(self, *args, **kwargs):
+        def mock_find_with_tag(*args, **kwargs):
             data_stat = None
 
             if len(args) >= 2 and isinstance(args[0], str) and isinstance(args[1], dict):
@@ -83,13 +110,10 @@ class TestMatchesScraper:
             return [mocker.MagicMock(), mock_tr]
         
         scraper.soup.select = mock_select
-        scraper.load_page = mocker.Mock()
-        scraper.log_progress = mocker.Mock()
+        self._setup_scraper_mocks(scraper, mocker)
         scraper.extract_fbref_id = mocker.Mock(return_value="c0fb79cf")
 
-        mock_config = mocker.Mock()
-        mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        self._setup_mock_config(mocker)
 
         scraper.scrape()
 
@@ -127,14 +151,11 @@ class TestMatchesScraper:
         db_session.add_all([england_nation, france_nation, england_comp, france_comp, england_season, france_season])
         db_session.commit()
 
-        scraper.load_page = mocker.Mock()
-        scraper.log_progress = mocker.Mock()
+        self._setup_scraper_mocks(scraper, mocker)
         scraper.soup = mocker.MagicMock()
         scraper.soup.select.return_value = []
 
-        mock_config = mocker.Mock()
-        mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        self._setup_mock_config(mocker)
 
         scraper.scrape(nations=['England'])
 
@@ -163,12 +184,8 @@ class TestMatchesScraper:
         
         scraper.soup = mocker.MagicMock()
         scraper.soup.select.return_value = [mocker.MagicMock(), mock_tr]
-        scraper.load_page = mocker.Mock()
-        scraper.log_progress = mocker.Mock()
-
-        mock_config = mocker.Mock()
-        mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        self._setup_scraper_mocks(scraper, mocker)
+        self._setup_mock_config(mocker)
 
         scraper.scrape()
 
@@ -191,12 +208,8 @@ class TestMatchesScraper:
         
         scraper.soup = mocker.MagicMock()
         scraper.soup.select.return_value = [mocker.MagicMock(), mock_tr]
-        scraper.load_page = mocker.Mock()
-        scraper.log_progress = mocker.Mock()
-
-        mock_config = mocker.Mock()
-        mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        self._setup_scraper_mocks(scraper, mocker)
+        self._setup_mock_config(mocker)
 
         scraper.scrape()
 
@@ -222,12 +235,8 @@ class TestMatchesScraper:
         
         scraper.soup = mocker.MagicMock()
         scraper.soup.select.return_value = [mocker.MagicMock(), mock_tr]
-        scraper.load_page = mocker.Mock()
-        scraper.log_progress = mocker.Mock()
-
-        mock_config = mocker.Mock()
-        mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        self._setup_scraper_mocks(scraper, mocker)
+        self._setup_mock_config(mocker)
 
         scraper.scrape()
 
@@ -273,12 +282,8 @@ class TestMatchesScraper:
                 return mock_away_td
             return None
 
-        def mock_find_with_tag(self, *args, **kwargs):
-            data_stat = kwargs.get('data-stat')
-            return mock_find_data_stat(data_stat)
-        
-        mock_tr.find.side_effect = mock_find_with_tag
-        
+        mock_tr.find.side_effect = self._create_mock_find_with_tag(mock_find_data_stat)
+
         scraper.soup = mocker.MagicMock()
         scraper.soup.select.return_value = [mocker.MagicMock(), mock_tr]
         scraper.load_page = mocker.Mock()
@@ -287,7 +292,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape()
 
@@ -313,7 +318,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape()
 
@@ -348,12 +353,8 @@ class TestMatchesScraper:
                 return mock_date_td
             return None
 
-        def mock_find_with_tag(self, *args, **kwargs):
-            data_stat = kwargs.get('data-stat')
-            return mock_find_data_stat(data_stat)
-        
-        mock_tr.find.side_effect = mock_find_with_tag
-        
+        mock_tr.find.side_effect = self._create_mock_find_with_tag(mock_find_data_stat)
+
         scraper.soup = mocker.MagicMock()
         scraper.soup.select.return_value = [mocker.MagicMock(), mock_tr]
         scraper.load_page = mocker.Mock()
@@ -362,7 +363,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape()
 
@@ -445,7 +446,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape(nations=["England"], from_date=date(2021, 8, 1), to_date=date(2021, 8, 31))
         
@@ -480,7 +481,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape(nations=["England"])
 
@@ -505,7 +506,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape(nations=["England"])
 
@@ -533,7 +534,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape(nations=["England"])
 
@@ -562,7 +563,7 @@ class TestMatchesScraper:
 
         mock_config = mocker.Mock()
         mock_config.FBREF_BASE_URL = "https://fbref.com"
-        mocker.patch('scrapers.matches_scraper.get_config', return_value=mock_config)
+        mocker.patch('app.fbref_scraper.scrapers.matches_scraper.get_config', return_value=mock_config)
 
         scraper.scrape()
 
