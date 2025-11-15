@@ -67,17 +67,19 @@ class TestMatchesScraper:
 
         mock_tr = mocker.MagicMock()
         mock_score_td = mocker.MagicMock()
-        mock_score_td.a.__getitem__ = mocker.Mock(return_value="/en/matches/c0fb79cf/")
+        mock_match_link = mocker.MagicMock()
+        mock_match_link.__getitem__ = mocker.Mock(side_effect=lambda key: "/en/matches/c0fb79cf/" if key == 'href' else None)
+        mock_score_td.find.return_value = mock_match_link
         mock_score_td.text = "2–1"
         
         mock_date_td = mocker.MagicMock()
         mock_date_td.text.strip.return_value = "2021-08-14"
         
         mock_home_td = mocker.MagicMock()
-        mock_home_td.a.__getitem__ = mocker.Mock(return_value="/en/squads/18bb7c10/")
+        mock_home_td.a.__getitem__ = mocker.Mock(side_effect=lambda key: "/en/squads/18bb7c10/" if key == 'href' else None)
         
         mock_away_td = mocker.MagicMock()
-        mock_away_td.a.__getitem__ = mocker.Mock(return_value="/en/squads/cfd3cf68/")
+        mock_away_td.a.__getitem__ = mocker.Mock(side_effect=lambda key: "/en/squads/cfd3cf68/" if key == 'href' else None)
 
         def mock_find_data_stat(value):
             if value == 'score':
@@ -398,7 +400,9 @@ class TestMatchesScraper:
         def mock_find_element_in_range(tag, attrs):
             if attrs == {'data-stat': 'score'}:
                 element = mocker.Mock()
-                element.a = {'href': '/en/matches/match1/'}
+                mock_match_link = mocker.Mock()
+                mock_match_link.__getitem__ = mocker.Mock(side_effect=lambda key: '/en/matches/match1/' if key == 'href' else None)
+                element.find.return_value = mock_match_link
                 element.text = "2–1"
                 return element
             elif attrs == {'data-stat': 'date'}:
@@ -407,18 +411,20 @@ class TestMatchesScraper:
                 return element
             elif attrs == {'data-stat': 'home_team'}:
                 element = mocker.Mock()
-                element.a = {'href': '/en/squads/18bb7c10/stats/'}
+                element.a.__getitem__ = mocker.Mock(side_effect=lambda key: '/en/squads/18bb7c10/stats/' if key == 'href' else None)
                 return element
             elif attrs == {'data-stat': 'away_team'}:
                 element = mocker.Mock()
-                element.a = {'href': '/en/squads/cfd3cf68/stats/'}
+                element.a.__getitem__ = mocker.Mock(side_effect=lambda key: '/en/squads/cfd3cf68/stats/' if key == 'href' else None)
                 return element
             return None
 
         def mock_find_element_out_of_range(tag, attrs):
             if attrs == {'data-stat': 'score'}:
                 element = mocker.Mock()
-                element.a = {'href': '/en/matches/match2/'}
+                mock_match_link = mocker.Mock()
+                mock_match_link.__getitem__ = mocker.Mock(side_effect=lambda key: '/en/matches/match2/' if key == 'href' else None)
+                element.find.return_value = mock_match_link
                 element.text = "1–0"
                 return element
             elif attrs == {'data-stat': 'date'}:
@@ -427,11 +433,11 @@ class TestMatchesScraper:
                 return element
             elif attrs == {'data-stat': 'home_team'}:
                 element = mocker.Mock()
-                element.a = {'href': '/en/squads/822bd0ba/stats/'}
+                element.a.__getitem__ = mocker.Mock(side_effect=lambda key: '/en/squads/822bd0ba/stats/' if key == 'href' else None)
                 return element
             elif attrs == {'data-stat': 'away_team'}:
                 element = mocker.Mock()
-                element.a = {'href': '/en/squads/b8fd03ef/stats/'}
+                element.a.__getitem__ = mocker.Mock(side_effect=lambda key: '/en/squads/b8fd03ef/stats/' if key == 'href' else None)
                 return element
             return None
 
