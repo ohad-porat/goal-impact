@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import time
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
@@ -21,6 +22,11 @@ from .scraper_config import ScraperConfig, get_config, get_rate_limit, is_debug_
 
 T = TypeVar('T')
 FAILED_RECORDS_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "failed_records.txt")
+
+
+def _is_testing() -> bool:
+    """Check if code is running in a test environment (pytest)."""
+    return 'pytest' in sys.modules
 
 
 class BaseScraper(ABC):
@@ -223,6 +229,10 @@ class BaseScraper(ABC):
     
     def log_failed_record(self, record_type: str, record_identifier: str, error: str) -> None:
         """Log a failed record to the failed records file."""
+        # Skip file logging during tests
+        if _is_testing():
+            return
+            
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             scraper_name = self.__class__.__name__
