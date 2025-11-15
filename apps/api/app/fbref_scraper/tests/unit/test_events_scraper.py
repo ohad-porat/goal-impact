@@ -1,14 +1,39 @@
 """Tests for EventsScraper."""
 
 from datetime import date
-from scrapers.events_scraper import EventsScraper
-from tests.utils.factories import (
-    NationFactory, CompetitionFactory, SeasonFactory, TeamFactory, 
-    PlayerFactory, MatchFactory, TeamStatsFactory
+
+from app.fbref_scraper.scrapers.events_scraper import EventsScraper
+from app.fbref_scraper.tests.utils.factories import (
+    CompetitionFactory,
+    MatchFactory,
+    NationFactory,
+    PlayerFactory,
+    SeasonFactory,
+    TeamFactory,
+    TeamStatsFactory,
 )
 
 class TestEventsScraper:
     """Test cases for EventsScraper."""
+
+    @staticmethod
+    def _create_event_data_mock_find(mocker, venue, minute, score_before_event):
+        """Helper to create mock_find for event data parsing tests."""
+        def mock_find(_tag, attrs):
+            if attrs == {'data-stat': 'venue'}:
+                element = mocker.Mock()
+                element.text.strip.return_value = venue
+                return element
+            elif attrs == {'data-stat': 'minute'}:
+                element = mocker.Mock()
+                element.text.strip.return_value = minute
+                return element
+            elif attrs == {'data-stat': 'score_before_event'}:
+                element = mocker.Mock()
+                element.text.strip.return_value = score_before_event
+                return element
+            return None
+        return mock_find
 
     def test_scrape_success(self, mocker, db_session):
         """Test successful events scraping."""
@@ -24,13 +49,13 @@ class TestEventsScraper:
         db_session.add_all([nation, competition, season, team, team_stats])
         db_session.commit()
 
-        mocker.patch('core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
 
         scraper.load_page = mocker.Mock()
         scraper.soup = mocker.Mock()
 
         mock_event = mocker.Mock()
-        mock_event.find.side_effect = lambda tag, attrs: self._create_mock_element(tag, attrs, mocker)
+        mock_event.find.side_effect = lambda _tag, attrs: self._create_mock_element(_tag, attrs, mocker)
 
         scraper.soup.select.return_value = [mocker.Mock(), mock_event]
 
@@ -67,7 +92,7 @@ class TestEventsScraper:
         db_session.add_all([nation, competition, season_2022, season_2023, team, team_stats_2022, team_stats_2023])
         db_session.commit()
 
-        mocker.patch('core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
         scraper.load_page = mocker.Mock()
         scraper.soup = mocker.Mock()
         scraper.soup.select.return_value = []
@@ -77,29 +102,11 @@ class TestEventsScraper:
 
         assert scraper.load_page.call_count >= 1
 
-    def test_parse_event_data_home_venue(self, mocker, db_session):
+    def test_parse_event_data_home_venue(self, mocker):
         """Test event data parsing for home venue."""
         scraper = EventsScraper()
-        scraper.session = db_session
-
         mock_event = mocker.Mock()
-        
-        def mock_find(tag, attrs):
-            if attrs == {'data-stat': 'venue'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "Home"
-                return element
-            elif attrs == {'data-stat': 'minute'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "45"
-                return element
-            elif attrs == {'data-stat': 'score_before_event'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "2-1"
-                return element
-            return None
-
-        mock_event.find.side_effect = mock_find
+        mock_event.find.side_effect = self._create_event_data_mock_find(mocker, "Home", "45", "2-1")
 
         result = scraper._parse_event_data(mock_event)
 
@@ -109,29 +116,11 @@ class TestEventsScraper:
         assert result['home_goals_post_event'] == 3
         assert result['away_goals_post_event'] == 1
 
-    def test_parse_event_data_away_venue(self, mocker, db_session):
+    def test_parse_event_data_away_venue(self, mocker):
         """Test event data parsing for away venue."""
         scraper = EventsScraper()
-        scraper.session = db_session
-
         mock_event = mocker.Mock()
-        
-        def mock_find(tag, attrs):
-            if attrs == {'data-stat': 'venue'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "Away"
-                return element
-            elif attrs == {'data-stat': 'minute'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "67"
-                return element
-            elif attrs == {'data-stat': 'score_before_event'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "1-2"
-                return element
-            return None
-
-        mock_event.find.side_effect = mock_find
+        mock_event.find.side_effect = self._create_event_data_mock_find(mocker, "Away", "67", "1-2")
 
         result = scraper._parse_event_data(mock_event)
 
@@ -141,57 +130,21 @@ class TestEventsScraper:
         assert result['home_goals_post_event'] == 2
         assert result['away_goals_post_event'] == 2
 
-    def test_parse_event_data_extra_time(self, mocker, db_session):
+    def test_parse_event_data_extra_time(self, mocker):
         """Test event data parsing with extra time."""
         scraper = EventsScraper()
-        scraper.session = db_session
-
         mock_event = mocker.Mock()
-        
-        def mock_find(tag, attrs):
-            if attrs == {'data-stat': 'venue'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "Home"
-                return element
-            elif attrs == {'data-stat': 'minute'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "90+3"
-                return element
-            elif attrs == {'data-stat': 'score_before_event'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "1-1"
-                return element
-            return None
-
-        mock_event.find.side_effect = mock_find
+        mock_event.find.side_effect = self._create_event_data_mock_find(mocker, "Home", "90+3", "1-1")
 
         result = scraper._parse_event_data(mock_event)
 
         assert result['minute'] == 93
 
-    def test_parse_event_data_empty_score(self, mocker, db_session):
+    def test_parse_event_data_empty_score(self, mocker):
         """Test event data parsing with empty score."""
         scraper = EventsScraper()
-        scraper.session = db_session
-
         mock_event = mocker.Mock()
-        
-        def mock_find(tag, attrs):
-            if attrs == {'data-stat': 'venue'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "Home"
-                return element
-            elif attrs == {'data-stat': 'minute'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = "1"
-                return element
-            elif attrs == {'data-stat': 'score_before_event'}:
-                element = mocker.Mock()
-                element.text.strip.return_value = ""
-                return element
-            return None
-
-        mock_event.find.side_effect = mock_find
+        mock_event.find.side_effect = self._create_event_data_mock_find(mocker, "Home", "1", "")
 
         result = scraper._parse_event_data(mock_event)
 
@@ -213,7 +166,7 @@ class TestEventsScraper:
         mock_match = MatchFactory()
         scoring_player_id = 123
 
-        def mock_find(tag, attrs):
+        def mock_find(_tag, attrs):
             if attrs == {'data-stat': 'xg_shot'}:
                 element = mocker.Mock()
                 element.text.strip.return_value = "0.8"
@@ -259,7 +212,7 @@ class TestEventsScraper:
         mock_match = MatchFactory()
         scoring_player_id = 123
 
-        mock_event.find.side_effect = lambda tag, attrs: None
+        mock_event.find = mocker.Mock(return_value=None)
 
         scraper._parse_event_data = mocker.Mock(return_value={
             'minute': 30,
@@ -319,7 +272,7 @@ class TestEventsScraper:
 
         mock_event = mocker.Mock()
         
-        def mock_find(tag, attrs):
+        def mock_find(_tag, attrs):
             if attrs == {'data-stat': 'date'}:
                 element = mocker.Mock()
                 element.find.return_value = mocker.Mock()
@@ -337,8 +290,8 @@ class TestEventsScraper:
 
         result_match, result_scorer_element, result_player = scraper._extract_match_and_player(mock_event)
 
-        assert result_match == match
-        assert result_player == player
+        assert result_match.id == match.id
+        assert result_player.id == player.id
         assert result_scorer_element.text == "Test Player"
 
     def test_extract_match_and_player_create_player(self, mocker, db_session):
@@ -352,7 +305,7 @@ class TestEventsScraper:
 
         mock_event = mocker.Mock()
         
-        def mock_find(tag, attrs):
+        def mock_find(_tag, attrs):
             if attrs == {'data-stat': 'date'}:
                 element = mocker.Mock()
                 element.find.return_value = mocker.Mock()
@@ -373,8 +326,8 @@ class TestEventsScraper:
 
         result_match, result_scorer_element, result_player = scraper._extract_match_and_player(mock_event)
 
-        assert result_match == match
-        assert result_player == new_player
+        assert result_match.id == match.id
+        assert result_player.id == new_player.id
         assert result_scorer_element.text == "New Player"
         
         scraper.find_or_create_record.assert_called_once()
@@ -393,7 +346,7 @@ class TestEventsScraper:
         db_session.add_all([nation, competition, season, team, team_stats])
         db_session.commit()
 
-        mocker.patch('core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
         scraper.load_page = mocker.Mock()
         scraper.soup = mocker.Mock()
         scraper.soup.select.return_value = []
@@ -417,13 +370,13 @@ class TestEventsScraper:
         db_session.add_all([nation, competition, season, team, team_stats])
         db_session.commit()
 
-        mocker.patch('core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
         scraper.load_page = mocker.Mock()
         scraper.soup = mocker.Mock()
 
         mock_event = mocker.Mock()
         
-        def mock_find(tag, attrs):
+        def mock_find(_tag, attrs):
             if attrs == {'data-stat': 'comp'}:
                 element = mocker.Mock()
                 element.text = "Premier League"
@@ -496,13 +449,13 @@ class TestEventsScraper:
         db_session.add_all([nation, competition, season, team, team_stats])
         db_session.commit()
 
-        mocker.patch('core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
+        mocker.patch('app.fbref_scraper.core.get_config').return_value = mocker.Mock(FBREF_BASE_URL="https://fbref.com")
         scraper.load_page = mocker.Mock()
         scraper.soup = mocker.Mock()
 
         mock_event = mocker.Mock()
         
-        def mock_find(tag, attrs):
+        def mock_find(_tag, attrs):
             if attrs == {'data-stat': 'comp'}:
                 element = mocker.Mock()
                 element.text.strip.return_value = "Championship"
@@ -519,7 +472,7 @@ class TestEventsScraper:
 
         scraper.find_or_create_record.assert_not_called()
 
-    def _create_mock_element(self, tag, attrs, mocker):
+    def _create_mock_element(self, _tag, attrs, mocker):
         """Helper method to create mock elements for testing."""
         element = mocker.Mock()
         element.text = "Test Text"

@@ -2,9 +2,16 @@
 
 import pytest
 
-from core.config import (
-    ScraperConfig, get_config, update_config, get_selected_nations,
-    get_year_range, get_rate_limit, is_debug_mode, get_log_level, get_log_format
+from app.fbref_scraper.core import (
+    ScraperConfig,
+    get_config,
+    get_log_format,
+    get_log_level,
+    get_rate_limit,
+    get_selected_nations,
+    get_year_range,
+    is_debug_mode,
+    update_config,
 )
 
 
@@ -15,7 +22,7 @@ class TestScraperConfig:
         """Test default configuration values."""
         config = ScraperConfig()
         
-        assert config.SELECTED_NATIONS == ['Belgium', 'England', 'France', 'Germany', 'Italy', 'Netherlands', 'Portugal', 'Spain', 'United States']
+        assert config.SELECTED_NATIONS == ['Brazil', 'England', 'France', 'Germany', 'Italy', 'Netherlands', 'Portugal', 'Spain']
         assert config.YEAR_RANGE == (1992, 2024)
         assert config.DEBUG is True
         assert config.REQUEST_TIMEOUT == 60
@@ -23,9 +30,9 @@ class TestScraperConfig:
         assert config.LOG_LEVEL == 'INFO'
         assert config.LOG_FORMAT == '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         assert config.RATE_LIMITS == {
-            'default': 4,
-            'heavy': 8,
-            'light': 2
+            'default': 5,
+            'heavy': 10,
+            'light': 3
         }
 
     def test_custom_config(self):
@@ -81,8 +88,8 @@ class TestConfigFunctions:
         assert isinstance(nations, list)
         assert 'England' in nations
         assert 'France' in nations
-        assert 'Belgium' in nations
-        assert 'United States' in nations
+        assert 'Brazil' in nations
+        assert 'Germany' in nations
 
     def test_get_year_range(self):
         """Test get_year_range function."""
@@ -95,18 +102,18 @@ class TestConfigFunctions:
     def test_get_rate_limit_default(self):
         """Test get_rate_limit with default operation."""
         rate_limit = get_rate_limit()
-        assert rate_limit == 4
+        assert rate_limit == 5
 
     def test_get_rate_limit_specific_operation(self):
         """Test get_rate_limit with specific operation."""
-        assert get_rate_limit('heavy') == 8
-        assert get_rate_limit('light') == 2
-        assert get_rate_limit('default') == 4
+        assert get_rate_limit('heavy') == 10
+        assert get_rate_limit('light') == 3
+        assert get_rate_limit('default') == 5
 
     def test_get_rate_limit_unknown_operation(self):
         """Test get_rate_limit with unknown operation."""
         rate_limit = get_rate_limit('unknown')
-        assert rate_limit == 4
+        assert rate_limit == 5
 
     def test_is_debug_mode(self):
         """Test is_debug_mode function."""

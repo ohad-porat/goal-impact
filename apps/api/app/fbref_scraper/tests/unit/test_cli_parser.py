@@ -1,8 +1,10 @@
 """Unit tests for CLI parser utilities."""
 
-import pytest
 from datetime import date
-from core.cli_parser import parse_arguments, parse_date, parse_nations
+
+import pytest
+
+from app.fbref_scraper.core.cli_parser import parse_arguments, parse_date, parse_nations
 
 
 class TestParseArguments:
