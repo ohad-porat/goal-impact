@@ -7,7 +7,7 @@ from ..core import WebScraper, get_config, get_selected_nations
 
 
 class EventsScraper(WebScraper):
-    def scrape(self, nations: Optional[List[str]] = None, from_date: Optional[date] = None, to_date: Optional[date] = None):
+    def scrape(self, nations: Optional[List[str]] = None, from_date: Optional[date] = None, to_date: Optional[date] = None, from_year: Optional[int] = None, to_year: Optional[int] = None):
         """Scrape goals and assists for each match."""
         nations = nations or get_selected_nations()
         
@@ -17,6 +17,11 @@ class EventsScraper(WebScraper):
             .join(Competition, Season.competition_id == Competition.id) \
             .join(Nation, Competition.nation_id == Nation.id) \
             .filter(Nation.name.in_(nations))
+        
+        if from_year is not None:
+            query = query.filter(Season.start_year >= from_year)
+        if to_year is not None:
+            query = query.filter(Season.start_year <= to_year)
 
         all_team_stats = query.all()
         

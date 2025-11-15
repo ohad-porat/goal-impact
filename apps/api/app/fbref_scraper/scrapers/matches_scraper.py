@@ -8,7 +8,7 @@ from ..core import WebScraper, get_config, get_selected_nations
 
 
 class MatchesScraper(WebScraper):
-    def scrape(self, nations: Optional[List[str]] = None, from_date: Optional[date] = None, to_date: Optional[date] = None) -> None:
+    def scrape(self, nations: Optional[List[str]] = None, from_date: Optional[date] = None, to_date: Optional[date] = None, from_year: Optional[int] = None, to_year: Optional[int] = None) -> None:
         """Scrape match data."""
         nations = nations or get_selected_nations()
         
@@ -16,6 +16,11 @@ class MatchesScraper(WebScraper):
         
         query = self.session.query(Season).join(Competition).join(Nation) \
             .filter(Nation.name.in_(nations))
+        
+        if from_year is not None:
+            query = query.filter(Season.start_year >= from_year)
+        if to_year is not None:
+            query = query.filter(Season.start_year <= to_year)
             
         all_seasons = query.all()
         
@@ -47,8 +52,12 @@ class MatchesScraper(WebScraper):
                     match_url_element = match.find('td', {'data-stat': 'score'})
                     if match_url_element is None:
                         continue
+                    
+                    match_link = match_url_element.find('a')
+                    if match_link is None:
+                        continue
                         
-                    match_fbref_url = match_url_element.a['href']
+                    match_fbref_url = match_link['href']
                     if 'play-off' in match_fbref_url.lower() or 'playoff' in match_fbref_url.lower():
                         continue
                         
