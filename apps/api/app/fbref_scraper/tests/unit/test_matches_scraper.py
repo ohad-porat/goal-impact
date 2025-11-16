@@ -3,14 +3,14 @@
 from datetime import date
 
 from app.fbref_scraper.scrapers.matches_scraper import MatchesScraper
-from app.fbref_scraper.tests.utils.factories import (
+from app.tests.utils.factories import (
     CompetitionFactory,
     NationFactory,
     SeasonFactory,
     TeamFactory,
     TeamStatsFactory,
 )
-from models import Competition, Match, Nation, Season
+from app.models import Competition, Match, Nation, Season
 
 
 class TestMatchesScraper:
@@ -135,9 +135,21 @@ class TestMatchesScraper:
 
         england_nation = NationFactory(name="England", country_code='ENG')
         france_nation = NationFactory(name="France", country_code='FRA')
+        db_session.commit()
 
-        england_comp = Competition(name="Premier League", fbref_id="9", fbref_url="/en/comps/9/Premier-League/", nation=england_nation)
-        france_comp = Competition(name="Ligue 1", fbref_id="13", fbref_url="/en/comps/13/Ligue-1/", nation=france_nation)
+        england_comp = CompetitionFactory(
+            name="Premier League",
+            fbref_id="9",
+            fbref_url="/en/comps/9/Premier-League/",
+            nation=england_nation
+        )
+        france_comp = CompetitionFactory(
+            name="Ligue 1",
+            fbref_id="13",
+            fbref_url="/en/comps/13/Ligue-1/",
+            nation=france_nation
+        )
+        db_session.commit()
         
         england_season = SeasonFactory(
             competition=england_comp,
@@ -147,8 +159,6 @@ class TestMatchesScraper:
             competition=france_comp,
             matches_url="/en/comps/13/2021-2022/schedule/"
         )
-        
-        db_session.add_all([england_nation, france_nation, england_comp, france_comp, england_season, france_season])
         db_session.commit()
 
         self._setup_scraper_mocks(scraper, mocker)

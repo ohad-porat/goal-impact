@@ -4,7 +4,7 @@ import pytest
 import requests
 
 from app.fbref_scraper.core.base_scraper import BaseScraper, WebScraper
-from models import Nation
+from app.models import Nation
 
 
 class ConcreteBaseScraper(BaseScraper):

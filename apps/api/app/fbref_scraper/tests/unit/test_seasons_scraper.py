@@ -4,8 +4,8 @@ import pandas as pd
 import pytest
 
 from app.fbref_scraper.scrapers.seasons_scraper import SeasonsScraper
-from app.fbref_scraper.tests.utils.factories import CompetitionFactory, NationFactory
-from models import Season
+from app.tests.utils.factories import CompetitionFactory, NationFactory
+from app.models import Season
 
 
 class TestSeasonsScraper:

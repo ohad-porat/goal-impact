@@ -3,14 +3,14 @@
 import pandas as pd
 
 from app.fbref_scraper.scrapers.players_scraper import PlayersScraper
-from app.fbref_scraper.tests.utils.factories import (
+from app.tests.utils.factories import (
     CompetitionFactory,
     NationFactory,
     SeasonFactory,
     TeamFactory,
     TeamStatsFactory,
 )
-from models import Player, PlayerStats
+from app.models import Player, PlayerStats
 
 
 class TestPlayersScraper:

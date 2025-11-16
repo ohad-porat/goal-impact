@@ -4,7 +4,7 @@ import pytest
 import pandas as pd
 
 from app.fbref_scraper.scrapers.nations_scraper import NationsScraper
-from models import Nation
+from app.models import Nation
 from app.fbref_scraper.tests.utils.scraper_helpers import mock_fbref_countries_page
 
 
