@@ -3,7 +3,7 @@
 from datetime import date
 
 from app.fbref_scraper.scrapers.events_scraper import EventsScraper
-from app.fbref_scraper.tests.utils.factories import (
+from app.tests.utils.factories import (
     CompetitionFactory,
     MatchFactory,
     NationFactory,
@@ -300,7 +300,6 @@ class TestEventsScraper:
         scraper.session = db_session
 
         match = MatchFactory(fbref_id="match_456")
-        db_session.add(match)
         db_session.commit()
 
         mock_event = mocker.Mock()
@@ -323,6 +322,16 @@ class TestEventsScraper:
 
         new_player = PlayerFactory(fbref_id="player_789")
         scraper.find_or_create_record = mocker.Mock(return_value=new_player)
+        
+        def mock_query(model_class):
+            mock_query_obj = mocker.Mock()
+            if model_class.__name__ == 'Match':
+                mock_query_obj.filter.return_value.first.return_value = match
+            elif model_class.__name__ == 'Player':
+                mock_query_obj.filter.return_value.first.return_value = None
+            return mock_query_obj
+        
+        scraper.session.query = mock_query
 
         result_match, result_scorer_element, result_player = scraper._extract_match_and_player(mock_event)
 
