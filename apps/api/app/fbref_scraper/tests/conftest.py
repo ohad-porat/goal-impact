@@ -15,6 +15,11 @@ sys.path.insert(0, api_dir)
 sys.path.insert(0, app_dir)
 
 from app.models import Base
+from app.tests.utils.factories import (
+    NationFactory, CompetitionFactory, SeasonFactory, TeamFactory,
+    PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
+    TeamStatsFactory, GoalValueLookupFactory, StatsCalculationMetadataFactory
+)
 
 
 @pytest.fixture(scope="session")
@@ -35,7 +40,23 @@ def db_session(test_engine):
     """Create a database session for testing."""
     Session = sessionmaker(bind=test_engine)
     session = Session()
+    
+    for factory_class in [
+        NationFactory, CompetitionFactory, SeasonFactory, TeamFactory,
+        PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
+        TeamStatsFactory, GoalValueLookupFactory, StatsCalculationMetadataFactory
+    ]:
+        factory_class._meta.sqlalchemy_session = session
+    
     yield session
+    
+    for factory_class in [
+        NationFactory, CompetitionFactory, SeasonFactory, TeamFactory,
+        PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
+        TeamStatsFactory, GoalValueLookupFactory, StatsCalculationMetadataFactory
+    ]:
+        factory_class._meta.sqlalchemy_session = None
+    
     session.rollback()
     session.close()
     
