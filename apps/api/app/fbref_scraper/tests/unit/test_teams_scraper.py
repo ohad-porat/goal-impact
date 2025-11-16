@@ -3,8 +3,8 @@
 import pandas as pd
 
 from app.fbref_scraper.scrapers.teams_scraper import TeamsScraper
-from app.fbref_scraper.tests.utils.factories import NationFactory
-from models import Team
+from app.tests.utils.factories import NationFactory
+from app.models import Team
 
 
 class TestTeamsScraper:
