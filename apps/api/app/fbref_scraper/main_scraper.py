@@ -43,7 +43,7 @@ def run_initial_mode(args):
             elif scraper_name in ['seasons', 'team_stats', 'players']:
                 scraper.run(nations=nations, from_year=args.from_year, to_year=args.to_year)
             elif scraper_name in ['matches', 'events']:
-                scraper.run(nations=nations, from_date=None, to_date=None)
+                scraper.run(nations=nations, from_date=None, to_date=None, from_year=args.from_year, to_year=args.to_year)
             else:
                 scraper.run(nations=nations)
             
