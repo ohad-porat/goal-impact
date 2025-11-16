@@ -29,6 +29,13 @@ env.bak/
 venv.bak/
 .pytest_cache/
 
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
 # Database
 *.db
 *.sqlite3

@@ -1,18 +1,19 @@
-"""Factory Boy factories for creating test data."""
+"""Factory Boy factories for creating test model instances."""
 
 import factory
 from factory import fuzzy
-from datetime import date
-from models import (
+from datetime import date, datetime
+from app.models import (
     Nation, Competition, Season, Team, Player, Match, Event,
-    PlayerStats, TeamStats
+    PlayerStats, TeamStats, GoalValueLookup, StatsCalculationMetadata
 )
 
 
-class NationFactory(factory.Factory):
+class NationFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating Nation test data."""
     class Meta:
         model = Nation
+        sqlalchemy_session_persistence = 'commit'
     
     name = factory.Sequence(lambda n: f"Test Nation {n}")
     country_code = factory.Sequence(lambda n: f"T{n:02d}")
@@ -21,10 +22,11 @@ class NationFactory(factory.Factory):
     clubs_url = factory.LazyAttribute(lambda obj: f"/en/countries/{obj.country_code}/clubs/")
 
 
-class CompetitionFactory(factory.Factory):
+class CompetitionFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating Competition test data."""
     class Meta:
         model = Competition
+        sqlalchemy_session_persistence = 'commit'
     
     name = factory.Sequence(lambda n: f"Test League {n}")
     gender = "M"
@@ -35,22 +37,24 @@ class CompetitionFactory(factory.Factory):
     nation = factory.SubFactory(NationFactory)
 
 
-class SeasonFactory(factory.Factory):
+class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating Season test data."""
     class Meta:
         model = Season
+        sqlalchemy_session_persistence = 'commit'
     
-    start_year = factory.Sequence(lambda n: 2020 + n)
+    start_year = factory.Sequence(lambda n: 2020 + (n % 5))
     end_year = factory.LazyAttribute(lambda obj: obj.start_year + 1)
     fbref_url = factory.LazyAttribute(lambda obj: f"/en/seasons/{obj.start_year}-{obj.end_year}/")
     matches_url = factory.LazyAttribute(lambda obj: f"/en/seasons/{obj.start_year}-{obj.end_year}/matches/")
     competition = factory.SubFactory(CompetitionFactory)
 
 
-class TeamFactory(factory.Factory):
+class TeamFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating Team test data."""
     class Meta:
         model = Team
+        sqlalchemy_session_persistence = 'commit'
     
     name = factory.Sequence(lambda n: f"Test Team {n}")
     gender = "M"
@@ -59,10 +63,11 @@ class TeamFactory(factory.Factory):
     nation = factory.SubFactory(NationFactory)
 
 
-class PlayerFactory(factory.Factory):
+class PlayerFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating Player test data."""
     class Meta:
         model = Player
+        sqlalchemy_session_persistence = 'commit'
     
     name = factory.Sequence(lambda n: f"Test Player {n}")
     fbref_id = factory.Sequence(lambda n: f"player_{n:08d}")
@@ -70,10 +75,11 @@ class PlayerFactory(factory.Factory):
     nation = factory.SubFactory(NationFactory)
 
 
-class MatchFactory(factory.Factory):
+class MatchFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating Match test data."""
     class Meta:
         model = Match
+        sqlalchemy_session_persistence = 'commit'
     
     home_team_goals = fuzzy.FuzzyInteger(0, 5)
     away_team_goals = fuzzy.FuzzyInteger(0, 5)
@@ -85,34 +91,42 @@ class MatchFactory(factory.Factory):
     away_team = factory.SubFactory(TeamFactory)
 
 
-class EventFactory(factory.Factory):
+class EventFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating Event test data."""
     class Meta:
         model = Event
+        sqlalchemy_session_persistence = 'commit'
     
-    event_type = fuzzy.FuzzyChoice(['goal', 'assist', 'own goal'])
+    event_type = fuzzy.FuzzyChoice(['goal', 'assist', 'own goal', 'yellow card', 'red card'])
     minute = fuzzy.FuzzyInteger(1, 90)
     home_team_goals_pre_event = fuzzy.FuzzyInteger(0, 3)
     away_team_goals_pre_event = fuzzy.FuzzyInteger(0, 3)
-    home_team_goals_post_event = factory.LazyAttribute(lambda obj: obj.home_team_goals_pre_event + (1 if obj.event_type in ['goal', 'own goal'] else 0))
-    away_team_goals_post_event = factory.LazyAttribute(lambda obj: obj.away_team_goals_pre_event + (1 if obj.event_type in ['goal', 'own goal'] else 0))
+    home_team_goals_post_event = factory.LazyAttribute(
+        lambda obj: obj.home_team_goals_pre_event + (1 if obj.event_type in ['goal', 'own goal'] else 0)
+    )
+    away_team_goals_post_event = factory.LazyAttribute(
+        lambda obj: obj.away_team_goals_pre_event + (1 if obj.event_type in ['goal', 'own goal'] else 0)
+    )
     xg = fuzzy.FuzzyFloat(0.0, 1.0)
     post_shot_xg = fuzzy.FuzzyFloat(0.0, 1.0)
-    xg_difference = factory.LazyAttribute(lambda obj: obj.post_shot_xg - obj.xg if obj.post_shot_xg and obj.xg else None)
+    xg_difference = factory.LazyAttribute(
+        lambda obj: obj.post_shot_xg - obj.xg if obj.post_shot_xg and obj.xg else None
+    )
     goal_value = fuzzy.FuzzyFloat(0.0, 1.0)
     match = factory.SubFactory(MatchFactory)
     player = factory.SubFactory(PlayerFactory)
 
 
-class PlayerStatsFactory(factory.Factory):
+class PlayerStatsFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating PlayerStats test data."""
     class Meta:
         model = PlayerStats
+        sqlalchemy_session_persistence = 'commit'
     
     matches_played = fuzzy.FuzzyInteger(1, 38)
     matches_started = factory.LazyAttribute(lambda obj: fuzzy.FuzzyInteger(0, obj.matches_played).fuzz())
     total_minutes = factory.LazyAttribute(lambda obj: obj.matches_played * fuzzy.FuzzyInteger(60, 90).fuzz())
-    minutes_divided_90 = factory.LazyAttribute(lambda obj: obj.total_minutes / 90 if obj.total_minutes else 0)
+    minutes_divided_90 = factory.LazyAttribute(lambda obj: round(obj.total_minutes / 90, 2) if obj.total_minutes else 0)
     goals_scored = fuzzy.FuzzyInteger(0, 30)
     assists = fuzzy.FuzzyInteger(0, 20)
     total_goal_assists = factory.LazyAttribute(lambda obj: obj.goals_scored + obj.assists)
@@ -122,22 +136,40 @@ class PlayerStatsFactory(factory.Factory):
     yellow_cards = fuzzy.FuzzyInteger(0, 15)
     red_cards = fuzzy.FuzzyInteger(0, 3)
     xg = fuzzy.FuzzyFloat(0.0, 25.0)
-    non_pk_xg = factory.LazyAttribute(lambda obj: max(0, obj.xg - fuzzy.FuzzyFloat(0.0, 5.0).fuzz()))
+    non_pk_xg = factory.LazyAttribute(
+        lambda obj: max(0.0, (obj.xg or 0.0) - fuzzy.FuzzyFloat(0.0, 5.0).fuzz()) if obj.xg is not None else None
+    )
     xag = fuzzy.FuzzyFloat(0.0, 20.0)
-    npxg_and_xag = factory.LazyAttribute(lambda obj: obj.non_pk_xg + obj.xag)
+    npxg_and_xag = factory.LazyAttribute(
+        lambda obj: (obj.non_pk_xg or 0.0) + (obj.xag or 0.0) if obj.non_pk_xg is not None and obj.xag is not None else None
+    )
     progressive_carries = fuzzy.FuzzyInteger(0, 200)
     progressive_passes = fuzzy.FuzzyInteger(0, 300)
     progressive_passes_received = fuzzy.FuzzyInteger(0, 150)
-    goal_per_90 = factory.LazyAttribute(lambda obj: (obj.goals_scored / obj.minutes_divided_90) if obj.minutes_divided_90 > 0 else 0)
-    assists_per_90 = factory.LazyAttribute(lambda obj: (obj.assists / obj.minutes_divided_90) if obj.minutes_divided_90 > 0 else 0)
-    total_goals_assists_per_90 = factory.LazyAttribute(lambda obj: obj.goal_per_90 + obj.assists_per_90)
-    non_pk_goals_per_90 = factory.LazyAttribute(lambda obj: (obj.non_pk_goals / obj.minutes_divided_90) if obj.minutes_divided_90 > 0 else 0)
-    non_pk_goal_and_assists_per_90 = factory.LazyAttribute(lambda obj: obj.non_pk_goals_per_90 + obj.assists_per_90)
-    xg_per_90 = factory.LazyAttribute(lambda obj: (obj.xg / obj.minutes_divided_90) if obj.minutes_divided_90 > 0 else 0)
-    xag_per_90 = factory.LazyAttribute(lambda obj: (obj.xag / obj.minutes_divided_90) if obj.minutes_divided_90 > 0 else 0)
-    total_xg_xag_per_90 = factory.LazyAttribute(lambda obj: obj.xg_per_90 + obj.xag_per_90)
-    non_pk_xg_per_90 = factory.LazyAttribute(lambda obj: (obj.non_pk_xg / obj.minutes_divided_90) if obj.minutes_divided_90 > 0 else 0)
-    npxg_and_xag_per_90 = factory.LazyAttribute(lambda obj: obj.non_pk_xg_per_90 + obj.xag_per_90)
+    goal_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.goals_scored / obj.minutes_divided_90, 2) if obj.minutes_divided_90 > 0 else 0
+    )
+    assists_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.assists / obj.minutes_divided_90, 2) if obj.minutes_divided_90 > 0 else 0
+    )
+    total_goals_assists_per_90 = factory.LazyAttribute(lambda obj: round(obj.goal_per_90 + obj.assists_per_90, 2))
+    non_pk_goals_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.non_pk_goals / obj.minutes_divided_90, 2) if obj.minutes_divided_90 > 0 else 0
+    )
+    non_pk_goal_and_assists_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.non_pk_goals_per_90 + obj.assists_per_90, 2)
+    )
+    xg_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.xg / obj.minutes_divided_90, 2) if obj.minutes_divided_90 > 0 else 0
+    )
+    xag_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.xag / obj.minutes_divided_90, 2) if obj.minutes_divided_90 > 0 else 0
+    )
+    total_xg_xag_per_90 = factory.LazyAttribute(lambda obj: round(obj.xg_per_90 + obj.xag_per_90, 2))
+    non_pk_xg_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.non_pk_xg / obj.minutes_divided_90, 2) if obj.minutes_divided_90 > 0 else 0
+    )
+    npxg_and_xag_per_90 = factory.LazyAttribute(lambda obj: round(obj.non_pk_xg_per_90 + obj.xag_per_90, 2))
     goal_value = fuzzy.FuzzyFloat(0.0, 5.0)
     gv_avg = fuzzy.FuzzyFloat(0.0, 0.2)
     player = factory.SubFactory(PlayerFactory)
@@ -145,10 +177,11 @@ class PlayerStatsFactory(factory.Factory):
     team = factory.SubFactory(TeamFactory)
 
 
-class TeamStatsFactory(factory.Factory):
+class TeamStatsFactory(factory.alchemy.SQLAlchemyModelFactory):
     """Factory for creating TeamStats test data."""
     class Meta:
         model = TeamStats
+        sqlalchemy_session_persistence = 'commit'
     
     fbref_url = factory.Sequence(lambda n: f"/en/squads/team_{n:08d}/stats/")
     goal_logs_url = factory.Sequence(lambda n: f"/en/squads/team_{n:08d}/goal-logs/")
@@ -161,10 +194,37 @@ class TeamStatsFactory(factory.Factory):
     goals_against = fuzzy.FuzzyInteger(20, 100)
     goal_difference = factory.LazyAttribute(lambda obj: obj.goals_for - obj.goals_against)
     points = factory.LazyAttribute(lambda obj: (obj.wins * 3) + (obj.draws * 1))
-    points_per_match = factory.LazyAttribute(lambda obj: obj.points / obj.matches_played if obj.matches_played > 0 else 0)
+    points_per_match = factory.LazyAttribute(
+        lambda obj: round(obj.points / obj.matches_played, 2) if obj.matches_played > 0 else 0
+    )
     xg = fuzzy.FuzzyFloat(20.0, 100.0)
     xga = fuzzy.FuzzyFloat(20.0, 100.0)
     xgd = factory.LazyAttribute(lambda obj: obj.xg - obj.xga)
-    xgd_per_90 = factory.LazyAttribute(lambda obj: obj.xgd / (obj.matches_played * 90) * 90 if obj.matches_played > 0 else 0)
+    xgd_per_90 = factory.LazyAttribute(
+        lambda obj: round(obj.xgd / (obj.matches_played * 90) * 90, 2) if obj.matches_played > 0 else 0
+    )
     team = factory.SubFactory(TeamFactory)
     season = factory.SubFactory(SeasonFactory)
+
+
+class GoalValueLookupFactory(factory.alchemy.SQLAlchemyModelFactory):
+    """Factory for creating GoalValueLookup test data."""
+    class Meta:
+        model = GoalValueLookup
+        sqlalchemy_session_persistence = 'commit'
+    
+    minute = fuzzy.FuzzyInteger(1, 95)
+    score_diff = fuzzy.FuzzyInteger(-5, 5)
+    goal_value = fuzzy.FuzzyFloat(0.0, 1.0)
+
+
+class StatsCalculationMetadataFactory(factory.alchemy.SQLAlchemyModelFactory):
+    """Factory for creating StatsCalculationMetadata test data."""
+    class Meta:
+        model = StatsCalculationMetadata
+        sqlalchemy_session_persistence = 'commit'
+    
+    calculation_date = factory.LazyFunction(lambda: datetime.now())
+    total_goals_processed = fuzzy.FuzzyInteger(1000, 10000)
+    version = factory.Sequence(lambda n: f"1.{n}.0")
+
