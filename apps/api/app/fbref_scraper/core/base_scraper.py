@@ -196,8 +196,9 @@ class BaseScraper(ABC):
         self.logger.info(message)
     
     def _get_progress_file(self) -> str:
-        """Get the progress file path for this scraper."""
-        return os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", f"progress_{self.__class__.__name__.lower()}.json")
+        """Get the progress file path for this scraper with timestamp."""
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        return os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", f"progress_{self.__class__.__name__.lower()}_{timestamp}.json")
     
     def save_progress(self, progress_data: Dict) -> None:
         """Save progress data to a file for resume capability."""
