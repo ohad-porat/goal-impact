@@ -12,6 +12,9 @@ echo "Python path after venv: $(which python)"
 export LD_LIBRARY_PATH=$(dirname $(find /nix/store -name libstdc++.so.6 2>/dev/null | head -1)):$LD_LIBRARY_PATH
 echo "Set LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
 
+> /app/app/fbref_scraper/logs/failed_records.txt
+echo "Cleared failed_records.txt for new run"
+
 echo "Running scraper..."
 python -m app.fbref_scraper.main_scraper --mode daily --days 2
 
