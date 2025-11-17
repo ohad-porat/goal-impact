@@ -1,6 +1,6 @@
 """Utility functions and constants for goal value calculations."""
 
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 MIN_SCORE_DIFF = -3
@@ -50,3 +50,23 @@ def get_score_diff_range():
 def get_minute_range():
     """Get the range of minutes."""
     return range(MIN_MINUTE, MAX_MINUTE + 1)
+
+
+def get_scoring_team_id(
+    home_goals_post: int,
+    home_goals_pre: int,
+    away_goals_post: int,
+    away_goals_pre: int,
+    home_team_id: int,
+    away_team_id: int
+) -> Optional[int]:
+    """Determine which team scored based on goal count changes. Returns team_id or None if unclear."""
+    home_scored = home_goals_post > home_goals_pre
+    away_scored = away_goals_post > away_goals_pre
+    
+    if home_scored and not away_scored:
+        return home_team_id
+    elif away_scored and not home_scored:
+        return away_team_id
+    
+    return None

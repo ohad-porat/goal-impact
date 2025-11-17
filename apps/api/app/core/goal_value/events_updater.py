@@ -1,6 +1,5 @@
 """Event Goal Value Updater - updates goal_value field in events table."""
 
-from sqlalchemy import or_
 from app.core.database import Session
 from app.models import Event
 from .repository import GoalValueRepository
@@ -45,7 +44,7 @@ class EventGoalValueUpdater:
     def _query_goal_events(self):
         """Query all goal events from the database."""
         return self.session.query(Event).filter(
-            or_(Event.event_type == "goal", Event.event_type == "own goal")
+            Event.event_type.in_(['goal', 'own goal'])
         ).all()
     
     def _calculate_goal_values(self, goals):
@@ -162,4 +161,28 @@ class EventGoalValueUpdater:
                 print(f"  - {error}")
         
         print("="*60)
-
+    
+    def update_goal_values_for_events(self, event_ids: list):
+        """Update goal values for specific event IDs."""
+        if not event_ids:
+            return
+        
+        try:
+            if not self.goal_value_lookup:
+                self.goal_value_lookup = self.repository.load_goal_values()
+            
+            goals = self.session.query(Event).filter(
+                Event.id.in_(event_ids),
+                Event.event_type.in_(['goal', 'own goal'])
+            ).all()
+            
+            if not goals:
+                return
+            
+            update_data = self._calculate_goal_values(goals)
+            
+            if update_data:
+                self._batch_update(update_data)
+        except Exception as e:
+            self.calculation_errors.append(f"Error updating goal values for events: {e}")
+            raise

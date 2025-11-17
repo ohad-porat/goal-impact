@@ -118,7 +118,13 @@ class TeamStatsScraper(WebScraper):
                             self.session.commit()
                             self.logger.info(f"Updated team stats: {team_stats_data['Squad']} {season.start_year}-{season.end_year}")
                         else:
-                            self.logger.warning(f"No existing team stats found for {team_stats_data['Squad']} {season.start_year}-{season.end_year}")
+                            self.find_or_create_record(
+                                TeamStats,
+                                {'team_id': team.id, 'season_id': season.id},
+                                team_stats_dict,
+                                f"team stats: {team_stats_data['Squad']} {season.start_year}-{season.end_year}"
+                            )
+                            self.logger.info(f"Created new team stats: {team_stats_data['Squad']} {season.start_year}-{season.end_year}")
                     elif seasonal_mode:
                         existing_team_stats = self.session.query(TeamStats).filter_by(
                             team_id=team.id, 
