@@ -7,7 +7,7 @@ from ..core import WebScraper, get_config, get_selected_nations, get_year_range
 
 
 class PlayersScraper(WebScraper):
-    def scrape(self, nations: Optional[List[str]] = None, from_year: Optional[int] = None, to_year: Optional[int] = None, update_mode: bool = False, seasonal_mode: bool = False) -> None:
+    def scrape(self, nations: Optional[List[str]] = None, from_year: Optional[int] = None, to_year: Optional[int] = None, update_mode: bool = False, seasonal_mode: bool = False, team_ids: Optional[set] = None) -> None:
         """Scrape player data and stats."""
         nations = nations or get_selected_nations()
         year_range = get_year_range()
@@ -22,6 +22,9 @@ class PlayersScraper(WebScraper):
             .filter(Nation.name.in_(nations)) \
             .filter(Season.start_year >= from_year, Season.start_year <= to_year) \
             .order_by(TeamStats.id.asc())
+        
+        if team_ids is not None:
+            query = query.filter(TeamStats.team_id.in_(list(team_ids)))
 
         all_teams_stats = query.all()
         
@@ -154,7 +157,13 @@ class PlayersScraper(WebScraper):
                                 self.logger.error(f"Error updating player stats: {e}")
                                 raise
                         else:
-                            self.logger.warning(f"No existing player stats found for {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
+                            self.find_or_create_record(
+                                PlayerStats,
+                                {'player_id': player.id, 'season_id': team_stats.season_id, 'team_id': team_stats.team_id},
+                                player_stats_dict,
+                                f"player stats: {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}"
+                            )
+                            self.logger.info(f"Created new player stats: {player_name} {team_stats.team.name} {team_stats.season.start_year}-{team_stats.season.end_year}")
                     elif seasonal_mode:
                         self.find_or_create_record(
                             PlayerStats,

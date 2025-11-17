@@ -1,7 +1,11 @@
 """Player Stats Goal Value Updater."""
 
+import logging
 from app.core.database import Session
 from app.models import Event, Match, PlayerStats
+from .utils import get_scoring_team_id
+
+logger = logging.getLogger(__name__)
 
 
 class PlayerStatsGoalValueUpdater:
@@ -67,14 +71,12 @@ class PlayerStatsGoalValueUpdater:
         for event in goal_events_query:
             player_id, season_id, home_post, home_pre, away_post, away_pre, goal_value, home_team_id, away_team_id = event
             
-            home_scored = home_post > home_pre
-            away_scored = away_post > away_pre
+            scoring_team_id = get_scoring_team_id(
+                home_post, home_pre, away_post, away_pre,
+                home_team_id, away_team_id
+            )
             
-            if home_scored and not away_scored:
-                scoring_team_id = home_team_id
-            elif away_scored and not home_scored:
-                scoring_team_id = away_team_id
-            else:
+            if scoring_team_id is None:
                 continue
             
             key = (player_id, season_id, scoring_team_id)
@@ -158,3 +160,83 @@ class PlayerStatsGoalValueUpdater:
                 print(f"  - {error}")
         
         print("="*60)
+    
+    def update_player_stats_for_combinations(self, combinations: list):
+        """Update player stats goal values for specific (player_id, season_id, team_id) combinations. Recalculates from all goals (excluding own goals)."""
+        if not combinations:
+            return
+        
+        logger.info(f"Updating player stats for {len(combinations)} player-season-team combinations...")
+        
+        update_data = []
+        
+        for player_id, season_id, team_id in combinations:
+            try:
+                goal_events_query = self.session.query(
+                    Event.goal_value,
+                    Event.home_team_goals_post_event,
+                    Event.home_team_goals_pre_event,
+                    Event.away_team_goals_post_event,
+                    Event.away_team_goals_pre_event,
+                    Match.home_team_id,
+                    Match.away_team_id
+                ).join(
+                    Match, Event.match_id == Match.id
+                ).filter(
+                    Event.player_id == player_id,
+                    Event.event_type == 'goal',
+                    Event.goal_value.isnot(None),
+                    Match.season_id == season_id
+                ).all()
+                
+                goal_events = []
+                for event in goal_events_query:
+                    goal_value, home_post, home_pre, away_post, away_pre, home_team_id, away_team_id = event
+                    
+                    scoring_team_id = get_scoring_team_id(
+                        home_post, home_pre, away_post, away_pre,
+                        home_team_id, away_team_id
+                    )
+                    
+                    if scoring_team_id == team_id:
+                        goal_events.append(goal_value)
+                
+                total_goal_value = sum(goal_events)
+                goal_count = len(goal_events)
+                
+                if goal_count > 0:
+                    gv_avg = total_goal_value / goal_count
+                else:
+                    gv_avg = 0.0
+                
+                player_stat = self.session.query(PlayerStats).filter_by(
+                    player_id=player_id,
+                    season_id=season_id,
+                    team_id=team_id
+                ).first()
+                
+                if player_stat:
+                    update_data.append({
+                        'id': player_stat.id,
+                        'goal_value': round(total_goal_value, 3),
+                        'gv_avg': round(gv_avg, 3)
+                    })
+            except Exception as e:
+                logger.error(f"Error processing player_id={player_id}, season_id={season_id}, team_id={team_id}: {e}")
+                self.error_count += 1
+                continue
+        
+        if update_data:
+            try:
+                batch_size = 5000
+                for i in range(0, len(update_data), batch_size):
+                    batch = update_data[i:i + batch_size]
+                    self.session.bulk_update_mappings(PlayerStats, batch)
+                    self.session.commit()
+                    logger.info(f"  Updated {min(i + batch_size, len(update_data))}/{len(update_data)} player stats records...")
+            except Exception as e:
+                logger.error(f"Error updating player stats batch: {e}")
+                self.session.rollback()
+                raise
+        
+        logger.info(f"Updated {len(update_data)} player stats records")
