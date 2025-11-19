@@ -16,6 +16,11 @@ sys.path.insert(0, api_dir)
 sys.path.insert(0, app_dir)
 
 from app.models import Base
+from app.tests.utils.factories import (
+    NationFactory, CompetitionFactory, SeasonFactory, TeamFactory,
+    PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
+    TeamStatsFactory, GoalValueLookupFactory, StatsCalculationMetadataFactory
+)
 
 
 @pytest.fixture(scope="session")
@@ -64,3 +69,23 @@ def temp_db_file():
     
     if os.path.exists(db_path):
         os.unlink(db_path)
+
+
+@pytest.fixture(autouse=True)
+def setup_factories(db_session):
+    """Set up factory-boy to use the test database session."""
+    for factory_class in [
+        NationFactory, CompetitionFactory, SeasonFactory, TeamFactory,
+        PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
+        TeamStatsFactory, GoalValueLookupFactory, StatsCalculationMetadataFactory
+    ]:
+        factory_class._meta.sqlalchemy_session = db_session
+    
+    yield
+    
+    for factory_class in [
+        NationFactory, CompetitionFactory, SeasonFactory, TeamFactory,
+        PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
+        TeamStatsFactory, GoalValueLookupFactory, StatsCalculationMetadataFactory
+    ]:
+        factory_class._meta.sqlalchemy_session = None
