@@ -1,5 +1,6 @@
 """Unit tests for common service utilities."""
 
+import pytest
 from sqlalchemy.sql.elements import BooleanClauseList
 from app.services.common import (
     format_season_display_name,
@@ -12,6 +13,17 @@ from app.services.common import (
 from app.schemas.common import NationInfo
 from app.schemas.clubs import ClubInfo, NationDetailed
 from app.tests.utils.factories import NationFactory, TeamFactory
+
+
+def create_england_nation(db_session):
+    """Helper to create an England nation for testing."""
+    nation = NationFactory(
+        id=1,
+        name="England",
+        country_code="ENG"
+    )
+    db_session.commit()
+    return nation
 
 
 class TestFormatSeasonDisplayName:
@@ -38,12 +50,7 @@ class TestBuildNationInfo:
 
     def test_build_nation_info_with_nation(self, db_session):
         """Test building NationInfo from a Nation model."""
-        nation = NationFactory(
-            id=1,
-            name="England",
-            country_code="ENG"
-        )
-        db_session.commit()
+        nation = create_england_nation(db_session)
 
         result = build_nation_info(nation)
 
@@ -76,40 +83,19 @@ class TestNormalizeSeasonYears:
 class TestCalculateGoalValueAvg:
     """Test calculate_goal_value_avg function."""
 
-    def test_calculate_avg_with_valid_data(self):
-        """Test calculating average with valid data."""
-        result = calculate_goal_value_avg(10.0, 5)
-        assert result == 2.0
-
-    def test_calculate_avg_with_float_result(self):
-        """Test calculating average that results in float."""
-        result = calculate_goal_value_avg(7.5, 3)
-        assert result == 2.5
-
-    def test_calculate_avg_returns_none_with_zero_goals(self):
-        """Test that average returns None when total_goals is 0."""
-        result = calculate_goal_value_avg(10.0, 0)
-        assert result is None
-
-    def test_calculate_avg_returns_none_with_none_total_goals(self):
-        """Test that average returns None when total_goals is None."""
-        result = calculate_goal_value_avg(10.0, None)
-        assert result is None
-
-    def test_calculate_avg_returns_none_with_none_total_goal_value(self):
-        """Test that average returns None when total_goal_value is None."""
-        result = calculate_goal_value_avg(None, 5)
-        assert result is None
-
-    def test_calculate_avg_returns_none_with_zero_goal_value(self):
-        """Test that average returns None when total_goal_value is 0."""
-        result = calculate_goal_value_avg(0.0, 5)
-        assert result is None
-
-    def test_calculate_avg_with_both_none(self):
-        """Test that average returns None when both values are None."""
-        result = calculate_goal_value_avg(None, None)
-        assert result is None
+    @pytest.mark.parametrize("total_value,total_goals,expected", [
+        (10.0, 5, 2.0),  # Valid data
+        (7.5, 3, 2.5),  # Float result
+        (10.0, 0, None),  # Zero goals
+        (10.0, None, None),  # None total_goals
+        (None, 5, None),  # None total_goal_value
+        (0.0, 5, None),  # Zero goal value
+        (None, None, None),  # Both None
+    ])
+    def test_calculate_goal_value_avg(self, total_value, total_goals, expected):
+        """Test calculating goal value average with various inputs."""
+        result = calculate_goal_value_avg(total_value, total_goals)
+        assert result == expected
 
     def test_calculate_avg_precision(self):
         """Test that average maintains precision."""
@@ -134,11 +120,7 @@ class TestBuildClubInfo:
 
     def test_build_club_info_with_team_and_nation(self, db_session):
         """Test building ClubInfo from Team with nation."""
-        nation = NationFactory(
-            id=1,
-            name="England",
-            country_code="ENG"
-        )
+        nation = create_england_nation(db_session)
         team = TeamFactory(
             id=1,
             name="Arsenal",
