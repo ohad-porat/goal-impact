@@ -25,30 +25,7 @@ from app.tests.utils.factories import (
     PlayerFactory,
     TeamFactory,
 )
-
-
-def create_match_with_teams(db_session, home_team_name=None, away_team_name=None, **match_kwargs):
-    """Helper to create a match with home and away teams."""
-    home_team = TeamFactory(name=home_team_name) if home_team_name else TeamFactory()
-    away_team = TeamFactory(name=away_team_name) if away_team_name else TeamFactory()
-    match = MatchFactory(home_team=home_team, away_team=away_team, **match_kwargs)
-    db_session.commit()
-    return home_team, away_team, match
-
-
-def create_goal_event(match, scorer=None, event_type="goal", 
-                     pre_home=0, pre_away=0, post_home=1, post_away=0, **kwargs):
-    """Helper to create a goal event with standardized goal tracking fields."""
-    return EventFactory(
-        match=match,
-        event_type=event_type,
-        player=scorer,
-        home_team_goals_pre_event=pre_home,
-        away_team_goals_pre_event=pre_away,
-        home_team_goals_post_event=post_home,
-        away_team_goals_post_event=post_away,
-        **kwargs
-    )
+from app.tests.utils.service_helpers import create_match_with_teams
 
 
 def create_club_info(id, name, nation_id=1, nation_name="Nation", country_code="XX"):
@@ -66,7 +43,14 @@ class TestIsGoalForTeam:
     def test_goal_for_home_team(self, db_session):
         """Test identifying goal scored by home team."""
         home_team, _, match = create_match_with_teams(db_session)
-        goal_event = create_goal_event(match, pre_home=0, pre_away=0, post_home=1, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=1,
+            away_team_goals_post_event=0
+        )
         db_session.commit()
 
         result = is_goal_for_team(goal_event, match, home_team.id)
@@ -76,7 +60,14 @@ class TestIsGoalForTeam:
     def test_goal_for_away_team(self, db_session):
         """Test identifying goal scored by away team."""
         _, away_team, match = create_match_with_teams(db_session)
-        goal_event = create_goal_event(match, pre_home=0, pre_away=0, post_home=0, post_away=1)
+        goal_event = EventFactory(
+            match=match,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=0,
+            away_team_goals_post_event=1
+        )
         db_session.commit()
 
         result = is_goal_for_team(goal_event, match, away_team.id)
@@ -87,7 +78,14 @@ class TestIsGoalForTeam:
         """Test that goal returns False when checking a team that wasn't playing in the match."""
         _, _, match = create_match_with_teams(db_session)
         other_team = TeamFactory()
-        goal_event = create_goal_event(match, pre_home=0, pre_away=0, post_home=1, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=1,
+            away_team_goals_post_event=0
+        )
         db_session.commit()
 
         result = is_goal_for_team(goal_event, match, other_team.id)
@@ -97,7 +95,14 @@ class TestIsGoalForTeam:
     def test_returns_false_when_goals_pre_event_none(self, db_session):
         """Test returns False when home_team_goals_pre_event is None."""
         home_team, _, match = create_match_with_teams(db_session)
-        goal_event = create_goal_event(match, pre_home=None, pre_away=0, post_home=1, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            event_type="goal",
+            home_team_goals_pre_event=None,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=1,
+            away_team_goals_post_event=0
+        )
         db_session.commit()
 
         result = is_goal_for_team(goal_event, match, home_team.id)
@@ -107,7 +112,14 @@ class TestIsGoalForTeam:
     def test_returns_false_when_goals_post_event_none(self, db_session):
         """Test returns False when home_team_goals_post_event is None."""
         home_team, _, match = create_match_with_teams(db_session)
-        goal_event = create_goal_event(match, pre_home=0, pre_away=0, post_home=None, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=None,
+            away_team_goals_post_event=0
+        )
         db_session.commit()
 
         result = is_goal_for_team(goal_event, match, home_team.id)
@@ -121,7 +133,14 @@ class TestFormatScore:
     def test_format_score_with_valid_data(self, db_session):
         """Test formatting score with all valid data."""
         match = MatchFactory()
-        goal_event = create_goal_event(match, pre_home=1, pre_away=0, post_home=2, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            event_type="goal",
+            home_team_goals_pre_event=1,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=2,
+            away_team_goals_post_event=0
+        )
         db_session.commit()
 
         score_before, score_after = format_score(goal_event)
@@ -132,8 +151,13 @@ class TestFormatScore:
     def test_format_score_returns_empty_strings_when_none(self, db_session):
         """Test formatting score returns empty strings when data is None."""
         match = MatchFactory()
-        goal_event = create_goal_event(
-            match, pre_home=None, pre_away=None, post_home=None, post_away=None
+        goal_event = EventFactory(
+            match=match,
+            event_type="goal",
+            home_team_goals_pre_event=None,
+            away_team_goals_pre_event=None,
+            home_team_goals_post_event=None,
+            away_team_goals_post_event=None
         )
         db_session.commit()
 
@@ -234,10 +258,18 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
             db_session, home_team_name="Arsenal", away_team_name="Chelsea"
         )
         scorer = PlayerFactory(name="Goal Scorer")
-        goal_event = create_goal_event(
-            match, scorer=scorer, minute=45,
-            pre_home=1, pre_away=0, post_home=2, post_away=0,
-            goal_value=0.5, xg=0.3, post_shot_xg=0.4
+        goal_event = EventFactory(
+            match=match,
+            player=scorer,
+            event_type="goal",
+            minute=45,
+            home_team_goals_pre_event=1,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=2,
+            away_team_goals_post_event=0,
+            goal_value=0.5,
+            xg=0.3,
+            post_shot_xg=0.4
         )
         db_session.commit()
 
@@ -263,7 +295,15 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
         _, away_team, match = create_match_with_teams(db_session)
         other_team = TeamFactory()
         scorer = PlayerFactory()
-        goal_event = create_goal_event(match, scorer=scorer, pre_home=0, pre_away=0, post_home=1, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            player=scorer,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=1,
+            away_team_goals_post_event=0
+        )
         db_session.commit()
 
         result = build_team_season_goal_log_entry_from_data(
@@ -276,7 +316,15 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
         """Test returns None when opponent_team is None."""
         home_team, _, match = create_match_with_teams(db_session)
         scorer = PlayerFactory()
-        goal_event = create_goal_event(match, scorer=scorer, pre_home=0, pre_away=0, post_home=1, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            player=scorer,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=1,
+            away_team_goals_post_event=0
+        )
         db_session.commit()
 
         result = build_team_season_goal_log_entry_from_data(
@@ -289,9 +337,14 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
         """Test building entry for own goal."""
         home_team, away_team, match = create_match_with_teams(db_session)
         scorer = PlayerFactory(name="Unlucky Player")
-        goal_event = create_goal_event(
-            match, scorer=scorer, event_type="own goal",
-            pre_home=0, pre_away=0, post_home=0, post_away=1,
+        goal_event = EventFactory(
+            match=match,
+            player=scorer,
+            event_type="own goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=0,
+            away_team_goals_post_event=1,
             goal_value=0.2
         )
         db_session.commit()
@@ -308,7 +361,15 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
         home_team, away_team, match = create_match_with_teams(db_session)
         scorer = PlayerFactory(name="Scorer")
         assist_player = PlayerFactory(name="Assister")
-        goal_event = create_goal_event(match, scorer=scorer, pre_home=0, pre_away=0, post_home=1, post_away=0)
+        goal_event = EventFactory(
+            match=match,
+            player=scorer,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=1,
+            away_team_goals_post_event=0
+        )
         assist_event = EventFactory(match=match, event_type="assist", player=assist_player)
         db_session.commit()
 
@@ -397,10 +458,18 @@ class TestBuildPlayerCareerGoalLogEntryFromData:
             db_session, home_team_name="Arsenal", away_team_name="Chelsea", season_id=1
         )
         scorer = PlayerFactory(name="Goal Scorer")
-        goal_event = create_goal_event(
-            match, scorer=scorer, minute=45,
-            pre_home=1, pre_away=0, post_home=2, post_away=0,
-            goal_value=0.5, xg=0.3, post_shot_xg=0.4
+        goal_event = EventFactory(
+            match=match,
+            player=scorer,
+            event_type="goal",
+            minute=45,
+            home_team_goals_pre_event=1,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=2,
+            away_team_goals_post_event=0,
+            goal_value=0.5,
+            xg=0.3,
+            post_shot_xg=0.4
         )
         db_session.commit()
 
@@ -453,9 +522,14 @@ class TestBuildPlayerCareerGoalLogEntryFromData:
         player_team, opponent_team, match = create_match_with_teams(db_session, season_id=1)
         scorer = PlayerFactory(name="Scorer")
         assist_player = PlayerFactory(name="Assister")
-        goal_event = create_goal_event(
-            match, scorer=scorer,
-            pre_home=0, pre_away=0, post_home=1, post_away=0
+        goal_event = EventFactory(
+            match=match,
+            player=scorer,
+            event_type="goal",
+            home_team_goals_pre_event=0,
+            away_team_goals_pre_event=0,
+            home_team_goals_post_event=1,
+            away_team_goals_post_event=0
         )
         assist_event = EventFactory(
             match=match,

@@ -15,17 +15,6 @@ from app.schemas.clubs import ClubInfo, NationDetailed
 from app.tests.utils.factories import NationFactory, TeamFactory
 
 
-def create_england_nation(db_session):
-    """Helper to create an England nation for testing."""
-    nation = NationFactory(
-        id=1,
-        name="England",
-        country_code="ENG"
-    )
-    db_session.commit()
-    return nation
-
-
 class TestFormatSeasonDisplayName:
     """Test format_season_display_name function."""
 
@@ -50,7 +39,7 @@ class TestBuildNationInfo:
 
     def test_build_nation_info_with_nation(self, db_session):
         """Test building NationInfo from a Nation model."""
-        nation = create_england_nation(db_session)
+        nation = NationFactory(id=1, name="England", country_code="ENG")
 
         result = build_nation_info(nation)
 
@@ -120,7 +109,7 @@ class TestBuildClubInfo:
 
     def test_build_club_info_with_team_and_nation(self, db_session):
         """Test building ClubInfo from Team with nation."""
-        nation = create_england_nation(db_session)
+        nation = NationFactory(id=1, name="England", country_code="ENG")
         team = TeamFactory(
             id=1,
             name="Arsenal",
