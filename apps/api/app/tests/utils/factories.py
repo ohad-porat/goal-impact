@@ -31,7 +31,9 @@ class NationFactory(factory.alchemy.SQLAlchemyModelFactory):
     country_code = factory.Sequence(lambda n: f"T{n:02d}")
     fbref_url = factory.LazyAttribute(lambda obj: f"/en/country/{obj.country_code}/{_slugify_name(obj.name)}-Football")
     governing_body = "Test FA"
-    clubs_url = factory.LazyAttribute(lambda obj: f"/en/country/clubs/{obj.country_code}/{_slugify_name(obj.name)}-Football-Clubs")
+    clubs_url = factory.LazyAttribute(
+        lambda obj: f"/en/countries/{obj.country_code}/{_slugify_name(obj.name)}-Football-Clubs"
+    )
 
 
 class CompetitionFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -57,11 +59,23 @@ class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
     
     start_year = factory.Sequence(lambda n: 2020 + (n % 5))
     end_year = factory.LazyAttribute(lambda obj: obj.start_year + 1)
-    fbref_url = factory.LazyAttribute(
-        lambda obj: f"/en/comps/{obj.competition.fbref_id}/{obj.start_year}-{obj.end_year}/{obj.start_year}-{obj.end_year}-{_slugify_name(obj.competition.name)}-Stats"
-    )
+    @factory.lazy_attribute_sequence
+    def fbref_url(obj, n):
+        if obj.competition and obj.start_year is not None and obj.end_year is not None:
+            slug = _slugify_name(obj.competition.name)
+            return (
+                f"/en/comps/{obj.competition.fbref_id}/{obj.start_year}-{obj.end_year}/"
+                f"{obj.start_year}-{obj.end_year}-{slug}-Stats"
+            )
+        return f"/en/seasons/generated-{n}/"
+
     matches_url = factory.LazyAttribute(
-        lambda obj: f"/en/comps/{obj.competition.fbref_id}/{obj.start_year}-{obj.end_year}/schedule/{obj.start_year}-{obj.end_year}-{_slugify_name(obj.competition.name)}-Scores-and-Fixtures"
+        lambda obj: (
+            f"/en/comps/{obj.competition.fbref_id}/{obj.start_year}-{obj.end_year}/schedule/"
+            f"{obj.start_year}-{obj.end_year}-{_slugify_name(obj.competition.name)}-Scores-and-Fixtures"
+        )
+        if obj.competition and obj.start_year is not None and obj.end_year is not None
+        else None
     )
     competition = factory.SubFactory(CompetitionFactory)
 
