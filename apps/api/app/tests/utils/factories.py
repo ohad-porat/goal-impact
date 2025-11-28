@@ -60,12 +60,12 @@ class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
     start_year = factory.Sequence(lambda n: 2020 + (n % 5))
     end_year = factory.LazyAttribute(lambda obj: obj.start_year + 1)
     @factory.lazy_attribute_sequence
-    def fbref_url(obj, n):
-        if obj.competition and obj.start_year is not None and obj.end_year is not None:
-            slug = _slugify_name(obj.competition.name)
+    def fbref_url(self, n):
+        if self.competition and self.start_year is not None and self.end_year is not None:
+            slug = _slugify_name(self.competition.name)
             return (
-                f"/en/comps/{obj.competition.fbref_id}/{obj.start_year}-{obj.end_year}/"
-                f"{obj.start_year}-{obj.end_year}-{slug}-Stats"
+                f"/en/comps/{self.competition.fbref_id}/{self.start_year}-{self.end_year}/"
+                f"{self.start_year}-{self.end_year}-{slug}-Stats"
             )
         return f"/en/seasons/generated-{n}/"
 

@@ -20,7 +20,7 @@ from app.tests.utils.factories import (
     MatchFactory,
     EventFactory,
 )
-from app.tests.utils.service_helpers import create_basic_season_setup
+from app.tests.utils.service_helpers import create_basic_season_setup, create_goal_event, create_assist_event
 
 
 class TestGetTopClubsForNationCore:
@@ -490,18 +490,10 @@ class TestGetTeamSeasonGoalLog:
             away_team_goals=1
         )
         
-        _ = EventFactory(
-            match=match,
-            player=player,
-            event_type="goal",
-            minute=10,
-            home_team_goals_pre_event=0,
-            away_team_goals_pre_event=0,
-            home_team_goals_post_event=1,
-            away_team_goals_post_event=0,
-            goal_value=0.5,
-            xg=0.3,
-            post_shot_xg=0.4
+        _ = create_goal_event(
+            match, player, minute=10,
+            home_pre=0, home_post=1, away_pre=0, away_post=0,
+            goal_value=0.5, xg=0.3, post_shot_xg=0.4
         )
         
         db_session.commit()
@@ -540,15 +532,10 @@ class TestGetTeamSeasonGoalLog:
             date=date(2023, 9, 1)
         )
         
-        _ = EventFactory(
-            match=match,
-            player=player,
-            event_type="own goal",
-            minute=10,
-            home_team_goals_pre_event=0,
-            away_team_goals_pre_event=0,
-            home_team_goals_post_event=1,
-            away_team_goals_post_event=0
+        _ = create_goal_event(
+            match, player, minute=10,
+            home_pre=0, home_post=1, away_pre=0, away_post=0,
+            event_type="own goal"
         )
         
         db_session.commit()
@@ -575,26 +562,14 @@ class TestGetTeamSeasonGoalLog:
             date=date(2023, 9, 1)
         )
         
-        _ = EventFactory(
-            match=match,
-            player=scorer,
-            event_type="goal",
-            minute=10,
-            home_team_goals_pre_event=0,
-            away_team_goals_pre_event=0,
-            home_team_goals_post_event=1,
-            away_team_goals_post_event=0
+        _ = create_goal_event(
+            match, scorer, minute=10,
+            home_pre=0, home_post=1, away_pre=0, away_post=0
         )
         
-        _ = EventFactory(
-            match=match,
-            player=assister,
-            event_type="assist",
-            minute=10,
-            home_team_goals_pre_event=0,
-            away_team_goals_pre_event=0,
-            home_team_goals_post_event=1,
-            away_team_goals_post_event=0
+        _ = create_assist_event(
+            match, assister, minute=10,
+            home_pre=0, home_post=1, away_pre=0, away_post=0
         )
         
         db_session.commit()
@@ -681,26 +656,14 @@ class TestGetTeamSeasonGoalLog:
             date=date(2023, 9, 1)
         )
         
-        EventFactory(
-            match=match,
-            player=player1,
-            event_type="goal",
-            minute=10,
-            home_team_goals_pre_event=0,
-            away_team_goals_pre_event=0,
-            home_team_goals_post_event=1,
-            away_team_goals_post_event=0
+        create_goal_event(
+            match, player1, minute=10,
+            home_pre=0, home_post=1, away_pre=0, away_post=0
         )
         
-        EventFactory(
-            match=match,
-            player=player2,
-            event_type="goal",
-            minute=20,
-            home_team_goals_pre_event=1,
-            away_team_goals_pre_event=0,
-            home_team_goals_post_event=1,
-            away_team_goals_post_event=1
+        create_goal_event(
+            match, player2, minute=20,
+            home_pre=1, home_post=1, away_pre=0, away_post=1
         )
         
         db_session.commit()
@@ -727,15 +690,9 @@ class TestGetTeamSeasonGoalLog:
             date=date(2023, 9, 1)
         )
         
-        _ = EventFactory(
-            match=match,
-            player=player,
-            event_type="goal",
-            minute=10,
-            home_team_goals_pre_event=0,
-            away_team_goals_pre_event=0,
-            home_team_goals_post_event=0,
-            away_team_goals_post_event=1
+        _ = create_goal_event(
+            match, player, minute=10,
+            home_pre=0, home_post=0, away_pre=0, away_post=1
         )
         
         db_session.commit()
