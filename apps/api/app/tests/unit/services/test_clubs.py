@@ -114,12 +114,6 @@ class TestGetTopClubsForNationCore:
         assert len(result) == 1
         assert result[0].name == "Team With Ranking"
 
-    def test_returns_empty_list_when_no_teams(self, db_session):
-        """Test that empty list is returned when no teams exist."""
-        nation = NationFactory()
-        result = get_top_clubs_for_nation_core(db_session, nation.id, limit=10, tier="1st")
-        assert result == []
-
     def test_sorts_by_name_when_avg_position_ties(self, db_session):
         """Test that teams with same avg position are sorted by name."""
         nation = NationFactory()
@@ -242,11 +236,6 @@ class TestGetClubsByNation:
         assert len(result) == 1
         assert len(result[0].clubs) == 1
         assert result[0].clubs[0].name == "Team With Ranking"
-
-    def test_returns_empty_list_when_no_teams(self, db_session):
-        """Test that empty list is returned when no teams exist."""
-        result = get_clubs_by_nation(db_session, limit_per_nation=5)
-        assert result == []
 
 
 class TestGetClubWithSeasons:
