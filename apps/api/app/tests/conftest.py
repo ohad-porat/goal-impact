@@ -8,6 +8,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql.functions import Function
 
 # Add app directory to path for imports
 api_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,6 +23,22 @@ from app.tests.utils.factories import (
     PlayerFactory, MatchFactory, EventFactory, PlayerStatsFactory,
     TeamStatsFactory, GoalValueLookupFactory, StatsCalculationMetadataFactory
 )
+
+
+@compiles(Function, 'sqlite')
+def compile_function_sqlite(element, compiler, **kw):
+    """Override function compilation for SQLite, specifically string_agg."""
+    if hasattr(element, 'name') and element.name == 'string_agg':
+        clauses = list(element.clauses)
+        if len(clauses) >= 2:
+            column = clauses[0]
+            delimiter = clauses[1]
+            return f"group_concat({compiler.process(column, **kw)}, {compiler.process(delimiter, **kw)})"
+        else:
+            column = clauses[0]
+            return f"group_concat({compiler.process(column, **kw)})"
+    
+    return compiler.visit_function(element, **kw)
 
 
 @pytest.fixture(scope="session")
@@ -49,7 +67,6 @@ def db_session(test_engine):
     session.rollback()
     session.close()
     
-    # Clean up all tables after test
     cleanup_session = Session()
     try:
         for table in reversed(Base.metadata.sorted_tables):
