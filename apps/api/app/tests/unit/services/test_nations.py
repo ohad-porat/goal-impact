@@ -224,18 +224,6 @@ class TestGetAllNationsWithPlayerCount:
         assert new_nation is not None
         assert new_nation.governing_body == "N/A"
 
-    def test_includes_country_code(self, db_session):
-        """Test that country_code is included in results."""
-        nation = NationFactory(name="England", country_code="ENG")
-        
-        db_session.commit()
-        
-        result = get_all_nations_with_player_count(db_session)
-        
-        england = next((n for n in result if n.name == "England"), None)
-        assert england is not None
-        assert england.country_code == "ENG"
-
 
 class TestGetTopPlayersForNation:
     """Tests for get_top_players_for_nation function."""

@@ -8,7 +8,6 @@ from app.services.players import (
     transform_player_stats,
 )
 from app.tests.utils.factories import (
-    EventFactory,
     MatchFactory,
     PlayerFactory,
     PlayerStatsFactory,

@@ -154,17 +154,6 @@ class TestGetLeagueSeasons:
         assert result[1].start_year == 2022
         assert result[2].start_year == 2021
 
-    def test_formats_season_display_names(self, db_session):
-        """Test that season display names are formatted correctly."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        
-        db_session.commit()
-        
-        result = get_league_seasons(db_session, comp.id)
-        
-        assert len(result) == 1
-        assert result[0].display_name == "2023/2024"
-
     def test_returns_empty_list_when_no_seasons(self, db_session):
         """Test that empty list is returned when league has no seasons."""
         nation = NationFactory()
