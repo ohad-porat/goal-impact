@@ -30,9 +30,9 @@ class TestScraperConfig:
         assert config.LOG_LEVEL == 'INFO'
         assert config.LOG_FORMAT == '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         assert config.RATE_LIMITS == {
-            'default': 5,
+            'default': 7,
             'heavy': 10,
-            'light': 3
+            'light': 6
         }
 
     def test_custom_config(self):
@@ -102,18 +102,18 @@ class TestConfigFunctions:
     def test_get_rate_limit_default(self):
         """Test get_rate_limit with default operation."""
         rate_limit = get_rate_limit()
-        assert rate_limit == 5
+        assert rate_limit == 7
 
     def test_get_rate_limit_specific_operation(self):
         """Test get_rate_limit with specific operation."""
         assert get_rate_limit('heavy') == 10
-        assert get_rate_limit('light') == 3
-        assert get_rate_limit('default') == 5
+        assert get_rate_limit('light') == 6
+        assert get_rate_limit('default') == 7
 
     def test_get_rate_limit_unknown_operation(self):
         """Test get_rate_limit with unknown operation."""
         rate_limit = get_rate_limit('unknown')
-        assert rate_limit == 5
+        assert rate_limit == 7
 
     def test_is_debug_mode(self):
         """Test is_debug_mode function."""

@@ -3,10 +3,22 @@
 import factory
 from factory import fuzzy
 from datetime import date, datetime
+import re
 from app.models import (
     Nation, Competition, Season, Team, Player, Match, Event,
     PlayerStats, TeamStats, GoalValueLookup, StatsCalculationMetadata
 )
+
+
+def _slugify_name(name):
+    """Convert a name to a URL-friendly slug matching FBRef patterns."""
+    if not name:
+        return ""
+    slug = name.title()
+    slug = re.sub(r'[^\w\s-]', '', slug)
+    slug = re.sub(r'[-\s]+', '-', slug)
+    slug = slug.strip('-')
+    return slug
 
 
 class NationFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -17,9 +29,11 @@ class NationFactory(factory.alchemy.SQLAlchemyModelFactory):
     
     name = factory.Sequence(lambda n: f"Test Nation {n}")
     country_code = factory.Sequence(lambda n: f"T{n:02d}")
-    fbref_url = factory.LazyAttribute(lambda obj: f"/en/countries/{obj.country_code}/")
+    fbref_url = factory.LazyAttribute(lambda obj: f"/en/country/{obj.country_code}/{_slugify_name(obj.name)}-Football")
     governing_body = "Test FA"
-    clubs_url = factory.LazyAttribute(lambda obj: f"/en/countries/{obj.country_code}/clubs/")
+    clubs_url = factory.LazyAttribute(
+        lambda obj: f"/en/countries/{obj.country_code}/{_slugify_name(obj.name)}-Football-Clubs"
+    )
 
 
 class CompetitionFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -33,7 +47,7 @@ class CompetitionFactory(factory.alchemy.SQLAlchemyModelFactory):
     competition_type = "League"
     tier = "1"
     fbref_id = factory.Sequence(lambda n: f"comp_{n:08d}")
-    fbref_url = factory.LazyAttribute(lambda obj: f"/en/competitions/{obj.fbref_id}/")
+    fbref_url = factory.LazyAttribute(lambda obj: f"/en/comps/{obj.fbref_id}/history/{_slugify_name(obj.name)}-Seasons")
     nation = factory.SubFactory(NationFactory)
 
 
@@ -45,8 +59,24 @@ class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
     
     start_year = factory.Sequence(lambda n: 2020 + (n % 5))
     end_year = factory.LazyAttribute(lambda obj: obj.start_year + 1)
-    fbref_url = factory.LazyAttribute(lambda obj: f"/en/seasons/{obj.start_year}-{obj.end_year}/")
-    matches_url = factory.LazyAttribute(lambda obj: f"/en/seasons/{obj.start_year}-{obj.end_year}/matches/")
+    @factory.lazy_attribute_sequence
+    def fbref_url(self, n):
+        if self.competition and self.start_year is not None and self.end_year is not None:
+            slug = _slugify_name(self.competition.name)
+            return (
+                f"/en/comps/{self.competition.fbref_id}/{self.start_year}-{self.end_year}/"
+                f"{self.start_year}-{self.end_year}-{slug}-Stats"
+            )
+        return f"/en/seasons/generated-{n}/"
+
+    matches_url = factory.LazyAttribute(
+        lambda obj: (
+            f"/en/comps/{obj.competition.fbref_id}/{obj.start_year}-{obj.end_year}/schedule/"
+            f"{obj.start_year}-{obj.end_year}-{_slugify_name(obj.competition.name)}-Scores-and-Fixtures"
+        )
+        if obj.competition and obj.start_year is not None and obj.end_year is not None
+        else None
+    )
     competition = factory.SubFactory(CompetitionFactory)
 
 
@@ -59,7 +89,7 @@ class TeamFactory(factory.alchemy.SQLAlchemyModelFactory):
     name = factory.Sequence(lambda n: f"Test Team {n}")
     gender = "M"
     fbref_id = factory.Sequence(lambda n: f"team_{n:08d}")
-    fbref_url = factory.LazyAttribute(lambda obj: f"/en/squads/{obj.fbref_id}/")
+    fbref_url = factory.LazyAttribute(lambda obj: f"/en/squads/{obj.fbref_id}/history/{_slugify_name(obj.name)}-Stats-and-History")
     nation = factory.SubFactory(NationFactory)
 
 
@@ -71,7 +101,7 @@ class PlayerFactory(factory.alchemy.SQLAlchemyModelFactory):
     
     name = factory.Sequence(lambda n: f"Test Player {n}")
     fbref_id = factory.Sequence(lambda n: f"player_{n:08d}")
-    fbref_url = factory.LazyAttribute(lambda obj: f"/en/players/{obj.fbref_id}/")
+    fbref_url = factory.LazyAttribute(lambda obj: f"/en/players/{obj.fbref_id}/{_slugify_name(obj.name)}")
     nation = factory.SubFactory(NationFactory)
 
 
@@ -85,7 +115,9 @@ class MatchFactory(factory.alchemy.SQLAlchemyModelFactory):
     away_team_goals = fuzzy.FuzzyInteger(0, 5)
     date = fuzzy.FuzzyDate(start_date=date(2020, 1, 1), end_date=date(2024, 12, 31))
     fbref_id = factory.Sequence(lambda n: f"match_{n:08d}")
-    fbref_url = factory.LazyAttribute(lambda obj: f"/en/matches/{obj.fbref_id}/")
+    fbref_url = factory.LazyAttribute(
+        lambda obj: f"/en/matches/{obj.fbref_id}/{_slugify_name(obj.home_team.name)}-{_slugify_name(obj.away_team.name)}-{obj.date.strftime('%B-%d-%Y') if obj.date else 'date'}-{_slugify_name(obj.season.competition.name)}"
+    )
     season = factory.SubFactory(SeasonFactory)
     home_team = factory.SubFactory(TeamFactory)
     away_team = factory.SubFactory(TeamFactory)
@@ -183,8 +215,12 @@ class TeamStatsFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = TeamStats
         sqlalchemy_session_persistence = 'commit'
     
-    fbref_url = factory.Sequence(lambda n: f"/en/squads/team_{n:08d}/stats/")
-    goal_logs_url = factory.Sequence(lambda n: f"/en/squads/team_{n:08d}/goal-logs/")
+    fbref_url = factory.LazyAttribute(
+        lambda obj: f"/en/squads/{obj.team.fbref_id}/{obj.season.start_year}/{_slugify_name(obj.team.name)}-Stats"
+    )
+    goal_logs_url = factory.LazyAttribute(
+        lambda obj: f"/en/squads/{obj.team.fbref_id}/{obj.season.start_year}/goallogs/c{obj.season.competition.fbref_id}/{_slugify_name(obj.team.name)}-Goal-Logs-{_slugify_name(obj.season.competition.name)}"
+    )
     ranking = fuzzy.FuzzyInteger(1, 20)
     matches_played = fuzzy.FuzzyInteger(30, 38)
     wins = factory.LazyAttribute(lambda obj: fuzzy.FuzzyInteger(0, obj.matches_played).fuzz())

@@ -395,7 +395,7 @@ class TestPlayersScraper:
         
         scraper.scrape(nations=['England'], from_year=2021, to_year=2021, update_mode=True)
         
-        scraper.logger.warning.assert_called()
+        scraper.logger.info.assert_called()
 
     def test_seasonal_mode_existing_stats_url_update(self, db_session, mocker):
         """Test seasonal mode with existing stats and URL update."""
