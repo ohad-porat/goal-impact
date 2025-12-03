@@ -53,7 +53,7 @@ export default async function HomePage() {
       <section className="flex items-center justify-center px-4">
         <div className="text-center max-w-4xl">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Evaluate soccer's most valuable goals
+            Evaluate soccer&apos;s most valuable goals
           </h1>
           <p className="text-xl md:text-2xl text-white mb-10 font-normal max-w-3xl mx-auto">
             Goal Value measures the significance of every goal
@@ -67,7 +67,7 @@ export default async function HomePage() {
         <h2 className="text-4xl font-bold text-white mb-6">How it works</h2>
         <div className="text-white text-lg max-w-4xl space-y-4">
           <p>
-            <strong>Goal Value</strong> measures how much a goal changes a team's win probability based on the context in which it was scored. Not all goals are created equal—a last-minute equalizer is worth more than a goal that makes it 4-0.
+            <strong>Goal Value</strong> measures how much a goal changes a team&apos;s win probability based on the context in which it was scored. Not all goals are created equal—a last-minute equalizer is worth more than a goal that makes it 4-0.
           </p>
           <p>
             The metric is calculated by analyzing historical match data across thousands of games. For each goal, we look at:
@@ -78,7 +78,7 @@ export default async function HomePage() {
             <li><strong>Match outcome:</strong> Whether the team that scored the goal went on to win, draw, or lose</li>
           </ul>
           <p>
-            By aggregating historical outcomes for similar situations (same minute, same score difference), we calculate the expected change in win probability for each goal. A Goal Value of +0.64 means that goal increased the team's win probability by 64 percentage points on average.
+            By aggregating historical outcomes for similar situations (same minute, same score difference), we calculate the expected change in win probability for each goal. A Goal Value of +0.64 means that goal increased the team&apos;s win probability by 64 percentage points on average.
           </p>
           <p>
             This allows us to identify which goals truly mattered—those that turned defeats into draws, draws into wins, or secured crucial victories when it mattered most.
