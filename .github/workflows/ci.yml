@@ -1,7 +1,6 @@
 name: CI
 
 on:
-  push:
   pull_request:
 
 jobs:
@@ -56,6 +55,9 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
       
+      - name: Set DATABASE_URL for tests
+        run: echo "DATABASE_URL=sqlite:///:memory:" >> $GITHUB_ENV
+      
       - name: Run scraper tests
         run: |
           source venv/bin/activate
@@ -74,7 +76,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'yarn'
       
       - name: Install dependencies
