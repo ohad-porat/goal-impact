@@ -1,11 +1,11 @@
 """Main FastAPI application entry point."""
 
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
-from app.routers import leagues, clubs, players, nations, leaders, home, search
+from app.routers import clubs, home, leaders, leagues, nations, players, search
 
 app = FastAPI(
     title="Goal Impact API",
@@ -35,9 +35,11 @@ api_v1.include_router(search.router, prefix="/search", tags=["search"])
 
 app.include_router(api_v1)
 
+
 @app.get("/")
 async def root():
     return {"message": "Goal Impact API", "version": "1.0.0"}
+
 
 @app.get("/health")
 async def health_check():

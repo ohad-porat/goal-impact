@@ -1,22 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.models.nations import Nation
+from app.schemas.nations import (
+    CompetitionSummary,
+    NationDetails,
+    NationDetailsResponse,
+    NationsListResponse,
+    PlayerSummary,
+)
+from app.services.clubs import get_top_clubs_for_nation_core
 from app.services.nations import (
     get_all_nations_with_player_count,
     get_competitions_for_nation,
     get_top_players_for_nation,
 )
-from app.services.clubs import get_top_clubs_for_nation_core
-from app.core.database import get_db
-from app.models.nations import Nation
-from app.schemas.nations import (
-    NationsListResponse,
-    NationDetailsResponse,
-    NationDetails,
-    CompetitionSummary,
-    PlayerSummary,
-)
 
 router = APIRouter()
+
 
 @router.get("/", response_model=NationsListResponse)
 async def get_nations(db: Session = Depends(get_db)):

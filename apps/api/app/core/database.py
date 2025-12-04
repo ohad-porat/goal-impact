@@ -1,12 +1,13 @@
 """Database setup and initialization for FBRef API."""
 
 import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
-from dotenv import load_dotenv
 
-load_dotenv('.env.local')
+load_dotenv(".env.local")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -28,6 +29,7 @@ engine = create_engine(
 
 # Create a sessionmaker
 Session = sessionmaker(bind=engine)
+
 
 def get_db():
     """Get database session."""

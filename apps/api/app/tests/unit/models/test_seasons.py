@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.models import Season
-from app.tests.utils.factories import SeasonFactory, CompetitionFactory
+from app.tests.utils.factories import CompetitionFactory, SeasonFactory
 
 
 class TestSeasonModel:
@@ -17,10 +17,10 @@ class TestSeasonModel:
             start_year=2023,
             end_year=2024,
             fbref_url="/en/seasons/2023-2024/",
-            competition=competition
+            competition=competition,
         )
         db_session.commit()
-        
+
         assert season.id is not None
         assert season.start_year == 2023
         assert season.end_year == 2024
@@ -30,7 +30,7 @@ class TestSeasonModel:
         """Test that fbref_url must be unique."""
         SeasonFactory(fbref_url="/en/seasons/2023-2024/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             SeasonFactory(fbref_url="/en/seasons/2023-2024/")
             db_session.commit()
@@ -38,10 +38,7 @@ class TestSeasonModel:
     def test_season_required_fields(self, db_session):
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
-            season = Season(
-                start_year=2023,
-                end_year=2024
-            )
+            season = Season(start_year=2023, end_year=2024)
             db_session.add(season)
             db_session.commit()
 
@@ -50,19 +47,14 @@ class TestSeasonModel:
         competition = CompetitionFactory()
         season = SeasonFactory(competition=competition)
         db_session.commit()
-        
+
         assert season.competition == competition
 
     def test_season_optional_fields(self, db_session):
         """Test that optional fields can be null."""
-        season = SeasonFactory(
-            competition=None,
-            start_year=None,
-            end_year=None,
-            matches_url=None
-        )
+        season = SeasonFactory(competition=None, start_year=None, end_year=None, matches_url=None)
         db_session.commit()
-        
+
         assert season.competition_id is None
         assert season.competition is None
         assert season.start_year is None

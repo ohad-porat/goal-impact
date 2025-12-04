@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.models import Player
-from app.tests.utils.factories import PlayerFactory, NationFactory
+from app.tests.utils.factories import NationFactory, PlayerFactory
 
 
 class TestPlayerModel:
@@ -17,10 +17,10 @@ class TestPlayerModel:
             name="Lionel Messi",
             fbref_id="d70ce98e",
             fbref_url="/en/players/d70ce98e/",
-            nation=nation
+            nation=nation,
         )
         db_session.commit()
-        
+
         assert player.id is not None
         assert player.name == "Lionel Messi"
         assert player.fbref_id == "d70ce98e"
@@ -32,7 +32,7 @@ class TestPlayerModel:
         """Test that fbref_id must be unique."""
         PlayerFactory(fbref_id="d70ce98e", fbref_url="/en/players/d70ce98e/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             PlayerFactory(fbref_id="d70ce98e", fbref_url="/en/players/d70ce98e2/")
             db_session.commit()
@@ -41,7 +41,7 @@ class TestPlayerModel:
         """Test that fbref_url must be unique."""
         PlayerFactory(fbref_id="d70ce98e", fbref_url="/en/players/d70ce98e/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             PlayerFactory(fbref_id="d70ce98e2", fbref_url="/en/players/d70ce98e/")
             db_session.commit()
@@ -49,13 +49,9 @@ class TestPlayerModel:
     def test_player_required_fields(self, db_session):
         """Test that required fields cannot be null."""
         nation = NationFactory()
-        
+
         with pytest.raises(IntegrityError):
-            player = Player(
-                name="Test Player",
-                fbref_url="/en/players/test/",
-                nation_id=nation.id
-            )
+            player = Player(name="Test Player", fbref_url="/en/players/test/", nation_id=nation.id)
             db_session.add(player)
             db_session.commit()
 
@@ -64,14 +60,14 @@ class TestPlayerModel:
         nation = NationFactory()
         player = PlayerFactory(nation=nation)
         db_session.commit()
-        
+
         assert player.nation == nation
 
     def test_player_optional_nation(self, db_session):
         """Test that nation_id can be null."""
         player = PlayerFactory(nation=None)
         db_session.commit()
-        
+
         assert player.nation_id is None
         assert player.nation is None
 
@@ -80,10 +76,10 @@ class TestPlayerModel:
         nation = NationFactory()
         player = PlayerFactory(nation=nation)
         db_session.commit()
-        
+
         player_id = player.id
         db_session.delete(nation)
         db_session.commit()
-        
+
         player = db_session.query(Player).filter(Player.id == player_id).first()
         assert player is not None

@@ -20,10 +20,10 @@ class TestCompetitionModel:
             tier="1",
             fbref_id="9",
             fbref_url="/en/comps/9/",
-            nation=nation
+            nation=nation,
         )
         db_session.commit()
-        
+
         assert competition.id is not None
         assert competition.name == "Premier League"
         assert competition.gender == "M"
@@ -35,7 +35,7 @@ class TestCompetitionModel:
         """Test that fbref_id must be unique."""
         CompetitionFactory(fbref_id="9", fbref_url="/en/comps/9/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             CompetitionFactory(fbref_id="9", fbref_url="/en/comps/9-2/")
             db_session.commit()
@@ -44,7 +44,7 @@ class TestCompetitionModel:
         """Test that fbref_url must be unique."""
         CompetitionFactory(fbref_id="9", fbref_url="/en/comps/9/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             CompetitionFactory(fbref_id="10", fbref_url="/en/comps/9/")
             db_session.commit()
@@ -52,10 +52,7 @@ class TestCompetitionModel:
     def test_competition_required_fields(self, db_session):
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
-            competition = Competition(
-                name="Test League",
-                fbref_url="/en/comps/test/"
-            )
+            competition = Competition(name="Test League", fbref_url="/en/comps/test/")
             db_session.add(competition)
             db_session.commit()
 
@@ -64,20 +61,16 @@ class TestCompetitionModel:
         nation = NationFactory()
         competition = CompetitionFactory(nation=nation)
         db_session.commit()
-        
+
         assert competition.nation == nation
 
     def test_competition_optional_fields(self, db_session):
         """Test that optional fields can be null."""
         competition = CompetitionFactory(
-            nation=None,
-            name=None,
-            gender=None,
-            competition_type=None,
-            tier=None
+            nation=None, name=None, gender=None, competition_type=None, tier=None
         )
         db_session.commit()
-        
+
         assert competition.nation_id is None
         assert competition.nation is None
         assert competition.name is None

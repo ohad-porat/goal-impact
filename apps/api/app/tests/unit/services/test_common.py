@@ -2,16 +2,17 @@
 
 import pytest
 from sqlalchemy.sql.elements import BooleanClauseList
-from app.services.common import (
-    format_season_display_name,
-    build_nation_info,
-    normalize_season_years,
-    calculate_goal_value_avg,
-    build_season_filter_for_all_leagues,
-    build_club_info,
-)
-from app.schemas.common import NationInfo
+
 from app.schemas.clubs import ClubInfo, NationDetailed
+from app.schemas.common import NationInfo
+from app.services.common import (
+    build_club_info,
+    build_nation_info,
+    build_season_filter_for_all_leagues,
+    calculate_goal_value_avg,
+    format_season_display_name,
+    normalize_season_years,
+)
 from app.tests.utils.factories import NationFactory, TeamFactory
 
 
@@ -72,15 +73,18 @@ class TestNormalizeSeasonYears:
 class TestCalculateGoalValueAvg:
     """Test calculate_goal_value_avg function."""
 
-    @pytest.mark.parametrize("total_value,total_goals,expected", [
-        (10.0, 5, 2.0),  # Valid data
-        (7.5, 3, 2.5),  # Float result
-        (10.0, 0, None),  # Zero goals
-        (10.0, None, None),  # None total_goals
-        (None, 5, None),  # None total_goal_value
-        (0.0, 5, None),  # Zero goal value
-        (None, None, None),  # Both None
-    ])
+    @pytest.mark.parametrize(
+        "total_value,total_goals,expected",
+        [
+            (10.0, 5, 2.0),  # Valid data
+            (7.5, 3, 2.5),  # Float result
+            (10.0, 0, None),  # Zero goals
+            (10.0, None, None),  # None total_goals
+            (None, 5, None),  # None total_goal_value
+            (0.0, 5, None),  # Zero goal value
+            (None, None, None),  # Both None
+        ],
+    )
     def test_calculate_goal_value_avg(self, total_value, total_goals, expected):
         """Test calculating goal value average with various inputs."""
         result = calculate_goal_value_avg(total_value, total_goals)
@@ -100,7 +104,7 @@ class TestBuildSeasonFilterForAllLeagues:
         result = build_season_filter_for_all_leagues(2020, 2021)
 
         assert isinstance(result, BooleanClauseList)
-        assert hasattr(result, 'clauses')
+        assert hasattr(result, "clauses")
         assert len(result.clauses) == 2
 
 
@@ -110,11 +114,7 @@ class TestBuildClubInfo:
     def test_build_club_info_with_team_and_nation(self, db_session):
         """Test building ClubInfo from Team with nation."""
         nation = NationFactory(id=1, name="England", country_code="ENG")
-        team = TeamFactory(
-            id=1,
-            name="Arsenal",
-            nation=nation
-        )
+        team = TeamFactory(id=1, name="Arsenal", nation=nation)
         db_session.commit()
 
         result = build_club_info(team)
@@ -129,11 +129,7 @@ class TestBuildClubInfo:
 
     def test_build_club_info_with_team_without_nation(self, db_session):
         """Test building ClubInfo from Team without nation."""
-        team = TeamFactory(
-            id=2,
-            name="Unknown Team",
-            nation=None
-        )
+        team = TeamFactory(id=2, name="Unknown Team", nation=None)
         db_session.commit()
 
         result = build_club_info(team)

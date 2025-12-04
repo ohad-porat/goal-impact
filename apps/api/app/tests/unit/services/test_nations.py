@@ -1,17 +1,17 @@
 """Unit tests for nations service layer."""
 
 from app.services.nations import (
-    tier_order,
-    get_competitions_for_nation,
     get_all_nations_with_player_count,
+    get_competitions_for_nation,
     get_top_players_for_nation,
+    tier_order,
 )
 from app.tests.utils.factories import (
-    NationFactory,
     CompetitionFactory,
-    SeasonFactory,
+    NationFactory,
     PlayerFactory,
     PlayerStatsFactory,
+    SeasonFactory,
     TeamFactory,
 )
 from app.tests.utils.service_helpers import create_basic_season_setup
@@ -48,13 +48,13 @@ class TestGetCompetitionsForNation:
     def test_returns_competitions_for_nation(self, db_session):
         """Test that competitions are returned for a nation."""
         nation = NationFactory()
-        comp1 = CompetitionFactory(name="Premier League", nation=nation, tier="1st")
-        comp2 = CompetitionFactory(name="Championship", nation=nation, tier="2nd")
-        
+        CompetitionFactory(name="Premier League", nation=nation, tier="1st")
+        CompetitionFactory(name="Championship", nation=nation, tier="2nd")
+
         db_session.commit()
-        
+
         result = get_competitions_for_nation(db_session, nation.id)
-        
+
         assert len(result) == 2
         assert any(c["name"] == "Premier League" for c in result)
         assert any(c["name"] == "Championship" for c in result)
@@ -63,34 +63,34 @@ class TestGetCompetitionsForNation:
         """Test that season_count is included in results."""
         nation, comp, _ = create_basic_season_setup(db_session)
         SeasonFactory(competition=comp, start_year=2022, end_year=2023)
-        
+
         db_session.commit()
-        
+
         result = get_competitions_for_nation(db_session, nation.id)
-        
+
         assert len(result) == 1
         assert result[0]["season_count"] == 2
 
     def test_sets_has_seasons_true_when_seasons_exist(self, db_session):
         """Test that has_seasons is True when seasons exist."""
         nation, comp, _ = create_basic_season_setup(db_session)
-        
+
         db_session.commit()
-        
+
         result = get_competitions_for_nation(db_session, nation.id)
-        
+
         assert len(result) == 1
         assert result[0]["has_seasons"] is True
 
     def test_sets_has_seasons_false_when_no_seasons(self, db_session):
         """Test that has_seasons is False when no seasons exist."""
         nation = NationFactory()
-        comp = CompetitionFactory(nation=nation)
-        
+        CompetitionFactory(nation=nation)
+
         db_session.commit()
-        
+
         result = get_competitions_for_nation(db_session, nation.id)
-        
+
         assert len(result) == 1
         assert result[0]["has_seasons"] is False
         assert result[0]["season_count"] == 0
@@ -98,14 +98,14 @@ class TestGetCompetitionsForNation:
     def test_sorts_by_tier_then_name(self, db_session):
         """Test that competitions are sorted by tier then name."""
         nation = NationFactory()
-        comp1 = CompetitionFactory(name="Championship", nation=nation, tier="2nd")
-        comp2 = CompetitionFactory(name="Premier League", nation=nation, tier="1st")
-        comp3 = CompetitionFactory(name="League One", nation=nation, tier="3rd")
-        
+        CompetitionFactory(name="Championship", nation=nation, tier="2nd")
+        CompetitionFactory(name="Premier League", nation=nation, tier="1st")
+        CompetitionFactory(name="League One", nation=nation, tier="3rd")
+
         db_session.commit()
-        
+
         result = get_competitions_for_nation(db_session, nation.id)
-        
+
         assert len(result) == 3
         assert result[0]["name"] == "Premier League"
         assert result[0]["tier"] == "1st"
@@ -117,13 +117,13 @@ class TestGetCompetitionsForNation:
     def test_handles_competitions_without_tier(self, db_session):
         """Test that competitions without tier are sorted last."""
         nation = NationFactory()
-        comp1 = CompetitionFactory(name="Premier League", nation=nation, tier="1st")
-        comp2 = CompetitionFactory(name="Unknown League", nation=nation, tier=None)
-        
+        CompetitionFactory(name="Premier League", nation=nation, tier="1st")
+        CompetitionFactory(name="Unknown League", nation=nation, tier=None)
+
         db_session.commit()
-        
+
         result = get_competitions_for_nation(db_session, nation.id)
-        
+
         assert len(result) == 2
         assert result[0]["name"] == "Premier League"
         assert result[1]["name"] == "Unknown League"
@@ -132,11 +132,11 @@ class TestGetCompetitionsForNation:
     def test_returns_empty_list_when_no_competitions(self, db_session):
         """Test that empty list is returned when nation has no competitions."""
         nation = NationFactory()
-        
+
         db_session.commit()
-        
+
         result = get_competitions_for_nation(db_session, nation.id)
-        
+
         assert result == []
 
 
@@ -147,15 +147,15 @@ class TestGetAllNationsWithPlayerCount:
         """Test that all nations are returned with player counts."""
         nation1 = NationFactory(name="England", country_code="ENG")
         nation2 = NationFactory(name="Spain", country_code="ESP")
-        
+
         PlayerFactory(nation=nation1)
         PlayerFactory(nation=nation1)
         PlayerFactory(nation=nation2)
-        
+
         db_session.commit()
-        
+
         result = get_all_nations_with_player_count(db_session)
-        
+
         assert len(result) >= 2
         england = next((n for n in result if n.name == "England"), None)
         spain = next((n for n in result if n.name == "Spain"), None)
@@ -166,60 +166,60 @@ class TestGetAllNationsWithPlayerCount:
 
     def test_sets_player_count_to_zero_when_no_players(self, db_session):
         """Test that player_count is 0 when nation has no players."""
-        nation = NationFactory(name="New Nation", country_code="NEW")
-        
+        NationFactory(name="New Nation", country_code="NEW")
+
         db_session.commit()
-        
+
         result = get_all_nations_with_player_count(db_session)
-        
+
         new_nation = next((n for n in result if n.name == "New Nation"), None)
         assert new_nation is not None
         assert new_nation.player_count == 0
 
     def test_sorts_by_name(self, db_session):
         """Test that nations are sorted by name."""
-        nation1 = NationFactory(name="Zimbabwe", country_code="ZWE")
-        nation2 = NationFactory(name="Argentina", country_code="ARG")
-        nation3 = NationFactory(name="Brazil", country_code="BRA")
-        
+        NationFactory(name="Zimbabwe", country_code="ZWE")
+        NationFactory(name="Argentina", country_code="ARG")
+        NationFactory(name="Brazil", country_code="BRA")
+
         db_session.commit()
-        
+
         result = get_all_nations_with_player_count(db_session)
-        
+
         arg = next((n for n in result if n.name == "Argentina"), None)
         bra = next((n for n in result if n.name == "Brazil"), None)
         zwe = next((n for n in result if n.name == "Zimbabwe"), None)
-        
+
         assert arg is not None
         assert bra is not None
         assert zwe is not None
-        
+
         arg_idx = result.index(arg)
         bra_idx = result.index(bra)
         zwe_idx = result.index(zwe)
-        
+
         assert arg_idx < bra_idx < zwe_idx
 
     def test_includes_governing_body(self, db_session):
         """Test that governing_body is included in results."""
-        nation = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
-        
+        NationFactory(name="England", country_code="ENG", governing_body="UEFA")
+
         db_session.commit()
-        
+
         result = get_all_nations_with_player_count(db_session)
-        
+
         england = next((n for n in result if n.name == "England"), None)
         assert england is not None
         assert england.governing_body == "UEFA"
 
     def test_sets_governing_body_to_na_when_none(self, db_session):
         """Test that governing_body is 'N/A' when None."""
-        nation = NationFactory(name="New Nation", country_code="NEW", governing_body=None)
-        
+        NationFactory(name="New Nation", country_code="NEW", governing_body=None)
+
         db_session.commit()
-        
+
         result = get_all_nations_with_player_count(db_session)
-        
+
         new_nation = next((n for n in result if n.name == "New Nation"), None)
         assert new_nation is not None
         assert new_nation.governing_body == "N/A"
@@ -232,19 +232,19 @@ class TestGetTopPlayersForNation:
         """Test that top players are returned sorted by goal value."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
-        
+
         player1 = PlayerFactory(name="Player 1", nation=nation)
         player2 = PlayerFactory(name="Player 2", nation=nation)
         player3 = PlayerFactory(name="Player 3", nation=nation)
-        
+
         PlayerStatsFactory(player=player1, season=season, team=team, goal_value=50.5)
         PlayerStatsFactory(player=player2, season=season, team=team, goal_value=30.2)
         PlayerStatsFactory(player=player3, season=season, team=team, goal_value=75.8)
-        
+
         db_session.commit()
-        
+
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
-        
+
         assert len(result) == 3
         assert result[0]["name"] == "Player 3"
         assert result[0]["total_goal_value"] == 75.8
@@ -257,15 +257,15 @@ class TestGetTopPlayersForNation:
         """Test that limit parameter is respected."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
-        
+
         for i in range(10):
             player = PlayerFactory(nation=nation)
             PlayerStatsFactory(player=player, season=season, team=team, goal_value=float(i))
-        
+
         db_session.commit()
-        
+
         result = get_top_players_for_nation(db_session, nation.id, limit=5)
-        
+
         assert len(result) == 5
 
     def test_sums_goal_value_across_multiple_seasons(self, db_session):
@@ -273,15 +273,15 @@ class TestGetTopPlayersForNation:
         nation, comp, season1 = create_basic_season_setup(db_session)
         season2 = SeasonFactory(competition=comp, start_year=2024, end_year=2025)
         team = TeamFactory(nation=nation)
-        
+
         player = PlayerFactory(name="Top Player", nation=nation)
         PlayerStatsFactory(player=player, season=season1, team=team, goal_value=25.5)
         PlayerStatsFactory(player=player, season=season2, team=team, goal_value=30.2)
-        
+
         db_session.commit()
-        
+
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
-        
+
         assert len(result) == 1
         assert result[0]["total_goal_value"] == 55.7
 
@@ -289,14 +289,14 @@ class TestGetTopPlayersForNation:
         """Test that zero is returned when player has no goal value."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
-        
+
         player = PlayerFactory(nation=nation)
         PlayerStatsFactory(player=player, season=season, team=team, goal_value=None)
-        
+
         db_session.commit()
-        
+
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
-        
+
         assert len(result) == 1
         assert result[0]["total_goal_value"] == 0.0
 
@@ -304,19 +304,19 @@ class TestGetTopPlayersForNation:
         """Test that players are sorted by name when goal value is tied."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
-        
+
         player1 = PlayerFactory(name="Alice", nation=nation)
         player2 = PlayerFactory(name="Bob", nation=nation)
         player3 = PlayerFactory(name="Charlie", nation=nation)
-        
+
         PlayerStatsFactory(player=player1, season=season, team=team, goal_value=50.0)
         PlayerStatsFactory(player=player2, season=season, team=team, goal_value=50.0)
         PlayerStatsFactory(player=player3, season=season, team=team, goal_value=50.0)
-        
+
         db_session.commit()
-        
+
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
-        
+
         assert len(result) == 3
         assert result[0]["name"] == "Alice"
         assert result[1]["name"] == "Bob"
@@ -324,46 +324,47 @@ class TestGetTopPlayersForNation:
 
     def test_only_returns_players_for_specified_nation(self, db_session):
         """Test that only players for the specified nation are returned."""
-        nation1, comp1, season1 = create_basic_season_setup(db_session, nation=None, comp_name="League 1")
+        nation1, comp1, season1 = create_basic_season_setup(
+            db_session, nation=None, comp_name="League 1"
+        )
         nation2 = NationFactory(name="Spain", country_code="ESP")
         comp2 = CompetitionFactory(nation=nation2)
         season2 = SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
-        
+
         team1 = TeamFactory(nation=nation1)
         team2 = TeamFactory(nation=nation2)
-        
+
         player1 = PlayerFactory(nation=nation1)
         player2 = PlayerFactory(nation=nation2)
-        
+
         PlayerStatsFactory(player=player1, season=season1, team=team1, goal_value=50.0)
         PlayerStatsFactory(player=player2, season=season2, team=team2, goal_value=75.0)
-        
+
         db_session.commit()
-        
+
         result = get_top_players_for_nation(db_session, nation1.id, limit=10)
-        
+
         assert len(result) == 1
         assert result[0]["name"] == player1.name
 
     def test_returns_empty_list_when_no_players(self, db_session):
         """Test that empty list is returned when nation has no players."""
         nation = NationFactory()
-        
+
         db_session.commit()
-        
+
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
-        
+
         assert result == []
 
     def test_only_includes_players_with_stats(self, db_session):
         """Test that only players with stats are included."""
         nation = NationFactory()
-        player1 = PlayerFactory(nation=nation)
-        player2 = PlayerFactory(nation=nation)
-        
-        db_session.commit()
-        
-        result = get_top_players_for_nation(db_session, nation.id, limit=10)
-        
-        assert result == []
+        PlayerFactory(nation=nation)
+        PlayerFactory(nation=nation)
 
+        db_session.commit()
+
+        result = get_top_players_for_nation(db_session, nation.id, limit=10)
+
+        assert result == []

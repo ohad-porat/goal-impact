@@ -3,10 +3,7 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app.models import PlayerStats
-from app.tests.utils.factories import (
-    PlayerStatsFactory, PlayerFactory, SeasonFactory, TeamFactory
-)
+from app.tests.utils.factories import PlayerFactory, PlayerStatsFactory, SeasonFactory, TeamFactory
 
 
 class TestPlayerStatsModel:
@@ -17,17 +14,12 @@ class TestPlayerStatsModel:
         player = PlayerFactory()
         season = SeasonFactory()
         team = TeamFactory()
-        
+
         stats = PlayerStatsFactory(
-            player=player,
-            season=season,
-            team=team,
-            matches_played=38,
-            goals_scored=20,
-            assists=10
+            player=player, season=season, team=team, matches_played=38, goals_scored=20, assists=10
         )
         db_session.commit()
-        
+
         assert stats.id is not None
         assert stats.player_id == player.id
         assert stats.season_id == season.id
@@ -41,10 +33,10 @@ class TestPlayerStatsModel:
         player = PlayerFactory()
         season = SeasonFactory()
         team = TeamFactory()
-        
+
         PlayerStatsFactory(player=player, season=season, team=team)
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             PlayerStatsFactory(player=player, season=season, team=team)
             db_session.commit()
@@ -55,13 +47,13 @@ class TestPlayerStatsModel:
         team = TeamFactory()
         season1 = SeasonFactory()
         season2 = SeasonFactory()
-        
+
         stats1 = PlayerStatsFactory(player=player, season=season1, team=team)
         db_session.commit()
-        
+
         stats2 = PlayerStatsFactory(player=player, season=season2, team=team)
         db_session.commit()
-        
+
         assert stats1.id != stats2.id
         assert stats1.season_id != stats2.season_id
 
@@ -72,7 +64,7 @@ class TestPlayerStatsModel:
         team = TeamFactory()
         stats = PlayerStatsFactory(player=player, season=season, team=team)
         db_session.commit()
-        
+
         assert stats.player == player
         assert stats.season == season
         assert stats.team == team
@@ -96,13 +88,13 @@ class TestPlayerStatsModel:
             xag=0.0,
             npxg_and_xag=0.0,
             goal_value=None,
-            gv_avg=None
+            gv_avg=None,
         )
         db_session.commit()
-        
+
         stats.goal_value = None
         stats.gv_avg = None
         db_session.commit()
-        
+
         assert stats.goal_value is None
         assert stats.gv_avg is None

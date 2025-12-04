@@ -1,33 +1,38 @@
 """Configuration management for FBRef scrapers."""
 
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Optional
 
 
 @dataclass
 class ScraperConfig:
     """Configuration class for FBRef scrapers."""
-    SELECTED_NATIONS: Optional[List[str]] = None
-    YEAR_RANGE: Tuple[int, int] = (1992, 2024)
-    RATE_LIMITS: Optional[Dict[str, int]] = None
+
+    SELECTED_NATIONS: list[str] | None = None
+    YEAR_RANGE: tuple[int, int] = (1992, 2024)
+    RATE_LIMITS: dict[str, int] | None = None
     DEBUG: bool = True
     REQUEST_TIMEOUT: int = 60
-    FBREF_BASE_URL: str = 'https://fbref.com'
-    LOG_LEVEL: str = 'INFO'
-    LOG_FORMAT: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    LOG_DATE_FORMAT: str = '%Y-%m-%d %H:%M:%S'
-    
+    FBREF_BASE_URL: str = "https://fbref.com"
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    LOG_DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
+
     def __post_init__(self) -> None:
         """Initialize default values after dataclass creation."""
         if self.SELECTED_NATIONS is None:
-            self.SELECTED_NATIONS = ['Brazil', 'England', 'France', 'Germany', 'Italy', 'Netherlands', 'Portugal', 'Spain']
-        
+            self.SELECTED_NATIONS = [
+                "Brazil",
+                "England",
+                "France",
+                "Germany",
+                "Italy",
+                "Netherlands",
+                "Portugal",
+                "Spain",
+            ]
+
         if self.RATE_LIMITS is None:
-            self.RATE_LIMITS = {
-                'default': 7,
-                'heavy': 10,
-                'light': 6
-            }
+            self.RATE_LIMITS = {"default": 7, "heavy": 10, "light": 6}
 
 
 config = ScraperConfig()
@@ -48,19 +53,19 @@ def update_config(**kwargs) -> None:
             raise ValueError(f"Unknown configuration key: {key}")
 
 
-def get_selected_nations() -> List[str]:
+def get_selected_nations() -> list[str]:
     """Get the list of selected nations for scraping."""
     return config.SELECTED_NATIONS
 
 
-def get_year_range() -> Tuple[int, int]:
+def get_year_range() -> tuple[int, int]:
     """Get the year range for data scraping."""
     return config.YEAR_RANGE
 
 
-def get_rate_limit(operation_type: str = 'default') -> int:
+def get_rate_limit(operation_type: str = "default") -> int:
     """Get the rate limit for a specific operation type."""
-    return config.RATE_LIMITS.get(operation_type, config.RATE_LIMITS['default'])
+    return config.RATE_LIMITS.get(operation_type, config.RATE_LIMITS["default"])
 
 
 def is_debug_mode() -> bool:

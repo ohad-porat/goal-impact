@@ -6,16 +6,16 @@ from .matches_scraper import MatchesScraper
 from .nations_scraper import NationsScraper
 from .players_scraper import PlayersScraper
 from .seasons_scraper import SeasonsScraper
-from .teams_scraper import TeamsScraper
 from .team_stats_scraper import TeamStatsScraper
+from .teams_scraper import TeamsScraper
 
 __all__ = [
-    'CompetitionsScraper',
-    'EventsScraper',
-    'MatchesScraper',
-    'NationsScraper',
-    'PlayersScraper',
-    'SeasonsScraper',
-    'TeamsScraper',
-    'TeamStatsScraper'
+    "CompetitionsScraper",
+    "EventsScraper",
+    "MatchesScraper",
+    "NationsScraper",
+    "PlayersScraper",
+    "SeasonsScraper",
+    "TeamsScraper",
+    "TeamStatsScraper",
 ]

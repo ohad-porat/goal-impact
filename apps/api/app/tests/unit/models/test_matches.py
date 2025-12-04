@@ -1,13 +1,12 @@
 """Unit tests for Match model."""
 
-import pytest
-from sqlalchemy.exc import IntegrityError
 from datetime import date
 
+import pytest
+from sqlalchemy.exc import IntegrityError
+
 from app.models import Match
-from app.tests.utils.factories import (
-    MatchFactory, SeasonFactory, TeamFactory
-)
+from app.tests.utils.factories import MatchFactory, SeasonFactory, TeamFactory
 
 
 class TestMatchModel:
@@ -18,7 +17,7 @@ class TestMatchModel:
         season = SeasonFactory()
         home_team = TeamFactory()
         away_team = TeamFactory()
-        
+
         match = MatchFactory(
             home_team_goals=2,
             away_team_goals=1,
@@ -27,10 +26,10 @@ class TestMatchModel:
             fbref_url="/en/matches/abc123/",
             season=season,
             home_team=home_team,
-            away_team=away_team
+            away_team=away_team,
         )
         db_session.commit()
-        
+
         assert match.id is not None
         assert match.home_team_goals == 2
         assert match.away_team_goals == 1
@@ -43,7 +42,7 @@ class TestMatchModel:
         """Test that fbref_id must be unique."""
         MatchFactory(fbref_id="abc123", fbref_url="/en/matches/abc123/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             MatchFactory(fbref_id="abc123", fbref_url="/en/matches/abc123-2/")
             db_session.commit()
@@ -52,7 +51,7 @@ class TestMatchModel:
         """Test that fbref_url must be unique."""
         MatchFactory(fbref_id="abc123", fbref_url="/en/matches/abc123/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             MatchFactory(fbref_id="abc124", fbref_url="/en/matches/abc123/")
             db_session.commit()
@@ -60,10 +59,7 @@ class TestMatchModel:
     def test_match_required_fields(self, db_session):
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
-            match = Match(
-                home_team_goals=2,
-                away_team_goals=1
-            )
+            match = Match(home_team_goals=2, away_team_goals=1)
             db_session.add(match)
             db_session.commit()
 
@@ -72,26 +68,18 @@ class TestMatchModel:
         season = SeasonFactory()
         home_team = TeamFactory()
         away_team = TeamFactory()
-        match = MatchFactory(
-            season=season,
-            home_team=home_team,
-            away_team=away_team
-        )
+        match = MatchFactory(season=season, home_team=home_team, away_team=away_team)
         db_session.commit()
-        
+
         assert match.season == season
         assert match.home_team == home_team
         assert match.away_team == away_team
 
     def test_match_optional_fields(self, db_session):
         """Test that optional fields can be null."""
-        match = MatchFactory(
-            home_team_goals=None,
-            away_team_goals=None,
-            date=None
-        )
+        match = MatchFactory(home_team_goals=None, away_team_goals=None, date=None)
         db_session.commit()
-        
+
         assert match.home_team_goals is None
         assert match.away_team_goals is None
         assert match.date is None
@@ -101,5 +89,5 @@ class TestMatchModel:
         team = TeamFactory()
         match = MatchFactory(home_team=team, away_team=team)
         db_session.commit()
-        
+
         assert match.home_team_id == match.away_team_id
