@@ -60,6 +60,7 @@ class TestSeasonsScraper:
             return None
 
         scraper.find_element = mocker.Mock(side_effect=mock_find_element)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"])
 
@@ -110,6 +111,7 @@ class TestSeasonsScraper:
             return None
 
         scraper.find_element = mocker.Mock(side_effect=mock_find_element)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"])
 
@@ -153,6 +155,7 @@ class TestSeasonsScraper:
             return None
 
         scraper.find_element = mocker.Mock(side_effect=mock_find_element)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"])
 
@@ -210,6 +213,7 @@ class TestSeasonsScraper:
             return None
 
         scraper.find_element = mocker.Mock(side_effect=mock_find_element)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"])
 
@@ -242,6 +246,7 @@ class TestSeasonsScraper:
 
         mocker.patch("pandas.read_html", return_value=[])
         mocker.patch("app.fbref_scraper.core.get_year_range", return_value=(2020, 2030))
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"])
 
@@ -380,6 +385,7 @@ class TestSeasonsScraper:
             return None
 
         scraper.find_element = mocker.Mock(side_effect=mock_find_element)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"], seasonal_mode=True)
 
@@ -446,6 +452,7 @@ class TestSeasonsScraper:
             return None
 
         scraper.find_element = mocker.Mock(side_effect=mock_find_element)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"], from_year=2022, to_year=2024)
 
@@ -484,6 +491,7 @@ class TestSeasonsScraper:
         mocker.patch("app.fbref_scraper.core.get_year_range", return_value=(2020, 2030))
 
         scraper.find_element = mocker.Mock(return_value=None)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"])
 
@@ -524,6 +532,7 @@ class TestSeasonsScraper:
             return None
 
         scraper.find_element = mocker.Mock(side_effect=mock_find_element)
+        mocker.patch("time.sleep")
 
         scraper.scrape(nations=["England"])
 

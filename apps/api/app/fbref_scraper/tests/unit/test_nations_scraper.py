@@ -34,6 +34,7 @@ class TestNationsScraper:
         mock_response.status_code = 200
         mock_response.raise_for_status = mocker.Mock()
         mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
+        mocker.patch("time.sleep")
 
         soup = scraper.fetch_page("https://fbref.com/test")
 
@@ -48,6 +49,7 @@ class TestNationsScraper:
         mocker.patch.object(
             scraper.http_session, "get", side_effect=Exception("Connection timeout")
         )
+        mocker.patch("time.sleep")
 
         with pytest.raises(Exception, match="Connection timeout"):
             scraper.fetch_page("https://fbref.com/test")
@@ -61,6 +63,7 @@ class TestNationsScraper:
         mock_response.text = "<html><body><table><tr><td>Test</td></tr></table></body></html>"
         mock_response.raise_for_status = mocker.Mock()
         mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
+        mocker.patch("time.sleep")
 
         mock_read_html = mocker.patch("pandas.read_html")
         mock_df = pd.DataFrame({"Country": ["England", "France"], "Governing Body": ["FA", "FFF"]})
@@ -85,6 +88,7 @@ class TestNationsScraper:
 
         mock_read_html = mocker.patch("pandas.read_html")
         mock_read_html.side_effect = Exception("Table parsing failed")
+        mocker.patch("time.sleep")
 
         with pytest.raises(Exception, match="Table parsing failed"):
             scraper.fetch_html_table("https://fbref.com/test")
@@ -103,6 +107,7 @@ class TestNationsScraper:
         mock_read_html = mocker.patch("pandas.read_html")
         mock_df = pd.DataFrame({"Country": ["England", "France"], "Governing Body": ["FA", "FFF"]})
         mock_read_html.return_value = [mock_df]
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 
@@ -141,6 +146,7 @@ class TestNationsScraper:
         mock_read_html = mocker.patch("pandas.read_html")
         mock_df = pd.DataFrame({"Country": ["Italy"], "Governing Body": ["FIGC"]})
         mock_read_html.return_value = [mock_df]
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 

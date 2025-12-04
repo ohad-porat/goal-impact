@@ -56,6 +56,7 @@ class TestTeamsScraper:
             return []
 
         scraper.find_elements = mocker.Mock(side_effect=mock_find_elements)
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 
@@ -106,6 +107,7 @@ class TestTeamsScraper:
             return []
 
         scraper.find_elements = mocker.Mock(side_effect=mock_find_elements)
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 
@@ -141,6 +143,7 @@ class TestTeamsScraper:
 
         scraper.find_elements = mocker.Mock(return_value=[])
         scraper.log_error = mocker.Mock()
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 
@@ -169,6 +172,7 @@ class TestTeamsScraper:
 
         mocker.patch("pandas.read_html", return_value=[])
         scraper.log_progress = mocker.Mock()
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 
@@ -213,6 +217,7 @@ class TestTeamsScraper:
             return []
 
         scraper.find_elements = mocker.Mock(side_effect=mock_find_elements)
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 
@@ -267,6 +272,7 @@ class TestTeamsScraper:
             return []
 
         scraper.find_elements = mocker.Mock(side_effect=mock_find_elements)
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 

@@ -146,6 +146,7 @@ class TestTeamStatsScraper:
         mocker.patch("app.fbref_scraper.core.get_config").return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
+        mocker.patch("time.sleep")
 
         scraper.scrape()
 

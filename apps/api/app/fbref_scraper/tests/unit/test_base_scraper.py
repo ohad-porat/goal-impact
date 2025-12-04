@@ -244,6 +244,7 @@ class TestWebScraper:
         mock_df = mocker.Mock()
         mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
         mocker.patch("pandas.read_html", return_value=[mock_df])
+        mocker.patch("time.sleep")
 
         result = scraper.fetch_html_table("https://fbref.com/test")
 
@@ -260,6 +261,7 @@ class TestWebScraper:
             "404 Client Error: Not Found"
         )
         mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
+        mocker.patch("time.sleep")
 
         with pytest.raises(requests.HTTPError):
             scraper.fetch_html_table("https://fbref.com/test")
@@ -292,6 +294,7 @@ class TestWebScraper:
         mock_response.status_code = 200
         mock_response.raise_for_status = mocker.Mock()
         mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
+        mocker.patch("time.sleep")
 
         result = scraper.fetch_page("https://fbref.com/test")
 
