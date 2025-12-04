@@ -4,9 +4,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.models import TeamStats
-from app.tests.utils.factories import (
-    TeamStatsFactory, TeamFactory, SeasonFactory
-)
+from app.tests.utils.factories import SeasonFactory, TeamFactory, TeamStatsFactory
 
 
 class TestTeamStatsModel:
@@ -16,7 +14,7 @@ class TestTeamStatsModel:
         """Test creating team stats with all fields."""
         team = TeamFactory()
         season = SeasonFactory()
-        
+
         stats = TeamStatsFactory(
             team=team,
             season=season,
@@ -26,10 +24,10 @@ class TestTeamStatsModel:
             draws=5,
             losses=3,
             goals_for=90,
-            goals_against=30
+            goals_against=30,
         )
         db_session.commit()
-        
+
         assert stats.id is not None
         assert stats.team_id == team.id
         assert stats.season_id == season.id
@@ -41,7 +39,7 @@ class TestTeamStatsModel:
         """Test that fbref_url must be unique."""
         TeamStatsFactory(fbref_url="/en/squads/team_1/stats/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             TeamStatsFactory(fbref_url="/en/squads/team_1/stats/")
             db_session.commit()
@@ -49,10 +47,7 @@ class TestTeamStatsModel:
     def test_team_stats_required_fields(self, db_session):
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
-            stats = TeamStats(
-                ranking=1,
-                matches_played=38
-            )
+            stats = TeamStats(ranking=1, matches_played=38)
             db_session.add(stats)
             db_session.commit()
 
@@ -62,20 +57,15 @@ class TestTeamStatsModel:
         season = SeasonFactory()
         stats = TeamStatsFactory(team=team, season=season)
         db_session.commit()
-        
+
         assert stats.team == team
         assert stats.season == season
 
     def test_team_stats_optional_fields(self, db_session):
         """Test that optional fields can be null."""
-        stats = TeamStatsFactory(
-            ranking=None,
-            goal_logs_url=None,
-            notes=None,
-            attendance=None
-        )
+        stats = TeamStatsFactory(ranking=None, goal_logs_url=None, notes=None, attendance=None)
         db_session.commit()
-        
+
         assert stats.ranking is None
         assert stats.goal_logs_url is None
         assert stats.notes is None
@@ -87,6 +77,6 @@ class TestTeamStatsModel:
         season = SeasonFactory()
         stats = TeamStatsFactory(team=team, season=season)
         db_session.commit()
-        
+
         assert stats in team.team_stats
         assert stats in season.team_stats

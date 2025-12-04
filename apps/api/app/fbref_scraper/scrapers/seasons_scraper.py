@@ -1,91 +1,110 @@
 """Seasons scraper for FBRef data extraction."""
 
-from typing import Optional, List
-from app.models import Competition, Season, Nation
-from ..core import WebScraper, get_config, get_year_range, get_selected_nations
+from app.models import Competition, Nation, Season
+
+from ..core import WebScraper, get_config, get_selected_nations, get_year_range
 
 
 class SeasonsScraper(WebScraper):
-    def scrape(self, nations: Optional[List[str]] = None, from_year: Optional[int] = None, to_year: Optional[int] = None, seasonal_mode: bool = False):
+    def scrape(
+        self,
+        nations: list[str] | None = None,
+        from_year: int | None = None,
+        to_year: int | None = None,
+        seasonal_mode: bool = False,
+    ):
         """Scrape season data."""
         nations = nations or get_selected_nations()
         year_range = get_year_range()
         from_year = from_year or year_range[0]
         to_year = to_year or year_range[1]
-        
+
         config = get_config()
-        
-        query = self.session.query(Competition).join(Nation) \
-            .filter(Nation.name.in_(nations))
+
+        query = self.session.query(Competition).join(Nation).filter(Nation.name.in_(nations))
         all_competitions = query.all()
 
         for competition in all_competitions:
             competition = self.session.merge(competition)
             self.log_progress(f"Processing seasons for {competition.name}")
-            
+
             url = f"{config.FBREF_BASE_URL}{competition.fbref_url}"
             self.load_page(url)
-            
+
             df_list = self.fetch_html_table(url)
-            
+
             if not df_list:
                 self.log_progress(f"No seasons found for {competition.name}")
                 continue
 
             for season_tuple in df_list[0].iloc[::-1].iterrows():
                 season_data = season_tuple[1]
-                
-                season_str = str(season_data['Season'])
-                
-                if '-' in season_str:
-                    start_year, end_year = map(int, season_str.split('-'))
+
+                season_str = str(season_data["Season"])
+
+                if "-" in season_str:
+                    start_year, end_year = map(int, season_str.split("-"))
                 else:
                     start_year = int(season_str[:4])
                     end_year = int(season_str[:4])
 
                 if start_year < from_year or start_year > to_year:
-                    self.log_progress(f"Not scraping season {season_str} in {competition.name}. Out of range.")
+                    self.log_progress(
+                        f"Not scraping season {season_str} in {competition.name}. Out of range."
+                    )
                     continue
 
-                season_link = self.find_element('a', string=season_str)
+                season_link = self.find_element("a", string=season_str)
                 if not season_link:
                     continue
-                    
-                fbref_url = season_link['href']
+
+                fbref_url = season_link["href"]
 
                 season_dict = {
-                    'start_year': start_year,
-                    'end_year': end_year,
-                    'fbref_url': fbref_url,
-                    'competition_id': competition.id,
+                    "start_year": start_year,
+                    "end_year": end_year,
+                    "fbref_url": fbref_url,
+                    "competition_id": competition.id,
                 }
 
                 if seasonal_mode:
-                    existing_season = self.session.query(Season).filter_by(
-                        start_year=start_year, 
-                        end_year=end_year, 
-                        competition_id=competition.id
-                    ).first()
-                    
+                    existing_season = (
+                        self.session.query(Season)
+                        .filter_by(
+                            start_year=start_year, end_year=end_year, competition_id=competition.id
+                        )
+                        .first()
+                    )
+
                     if existing_season:
                         if existing_season.fbref_url != fbref_url:
                             existing_season.fbref_url = fbref_url
                             self.session.commit()
-                            self.logger.info(f"Updated season URL to archived format: {season_str} for {competition.name}")
+                            self.logger.info(
+                                f"Updated season URL to archived format: {season_str} for {competition.name}"
+                            )
                         else:
                             self.log_skip("season", f"{season_str} for {competition.name}")
                     else:
                         self.find_or_create_record(
                             Season,
-                            {'start_year': start_year, 'end_year': end_year, 'competition_id': competition.id},
+                            {
+                                "start_year": start_year,
+                                "end_year": end_year,
+                                "competition_id": competition.id,
+                            },
                             season_dict,
-                            f"season: {season_str} for {competition.name}"
+                            f"season: {season_str} for {competition.name}",
                         )
                         self.logger.info(f"Created new season: {season_str} for {competition.name}")
                 else:
                     self.find_or_create_record(
                         Season,
-                        {'start_year': start_year, 'end_year': end_year, 'competition_id': competition.id},
+                        {
+                            "start_year": start_year,
+                            "end_year": end_year,
+                            "competition_id": competition.id,
+                        },
                         season_dict,
-                        f"season: {season_str} for {competition.name}"
+                        f"season: {season_str} for {competition.name}",
                     )

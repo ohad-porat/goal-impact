@@ -2,11 +2,14 @@
 
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class Nation(Base):
     """Model representing a nation/country in the database."""
-    __tablename__ = 'nations'
+
+    __tablename__ = "nations"
 
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)

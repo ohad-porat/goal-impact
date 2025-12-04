@@ -1,12 +1,15 @@
 """TeamStats model definition for FBRef scrapers."""
 
-from sqlalchemy import Column, Integer, Float, String, ForeignKey
+from sqlalchemy import Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class TeamStats(Base):
     """Model representing team statistics in the database."""
-    __tablename__ = 'team_stats'
+
+    __tablename__ = "team_stats"
 
     id = Column(Integer, primary_key=True)
     fbref_url = Column(String, unique=True, nullable=False)
@@ -28,8 +31,8 @@ class TeamStats(Base):
     attendance = Column(Integer)
     notes = Column(String)
 
-    team_id = Column(Integer, ForeignKey('teams.id'))
-    season_id = Column(Integer, ForeignKey('seasons.id'))
+    team_id = Column(Integer, ForeignKey("teams.id"))
+    season_id = Column(Integer, ForeignKey("seasons.id"))
 
     team = relationship("Team", back_populates="team_stats")
     season = relationship("Season", back_populates="team_stats")

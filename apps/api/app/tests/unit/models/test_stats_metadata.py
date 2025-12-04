@@ -1,7 +1,9 @@
 """Unit tests for StatsCalculationMetadata model."""
 
-import pytest
 from datetime import datetime
+
+import pytest
+from sqlalchemy.exc import IntegrityError
 
 from app.models import StatsCalculationMetadata
 from app.tests.utils.factories import StatsCalculationMetadataFactory
@@ -14,12 +16,10 @@ class TestStatsCalculationMetadataModel:
         """Test creating stats calculation metadata."""
         test_datetime = datetime(2024, 1, 15, 12, 0, 0)
         metadata = StatsCalculationMetadataFactory(
-            calculation_date=test_datetime,
-            total_goals_processed=5000,
-            version="1.0.0"
+            calculation_date=test_datetime, total_goals_processed=5000, version="1.0.0"
         )
         db_session.commit()
-        
+
         assert metadata.id is not None
         assert metadata.calculation_date == test_datetime
         assert metadata.total_goals_processed == 5000
@@ -27,10 +27,8 @@ class TestStatsCalculationMetadataModel:
 
     def test_stats_metadata_required_fields(self, db_session):
         """Test that required fields cannot be null."""
-        with pytest.raises(Exception):
-            metadata = StatsCalculationMetadata(
-                version="1.0.0"
-            )
+        with pytest.raises(IntegrityError):
+            metadata = StatsCalculationMetadata(version="1.0.0")
             db_session.add(metadata)
             db_session.commit()
 
@@ -38,7 +36,7 @@ class TestStatsCalculationMetadataModel:
         """Test creating metadata with factory defaults."""
         metadata = StatsCalculationMetadataFactory()
         db_session.commit()
-        
+
         assert metadata.calculation_date is not None
         assert isinstance(metadata.calculation_date, datetime)
         assert metadata.total_goals_processed is not None
@@ -48,15 +46,13 @@ class TestStatsCalculationMetadataModel:
     def test_stats_metadata_multiple_entries(self, db_session):
         """Test that multiple metadata entries can be created."""
         metadata1 = StatsCalculationMetadataFactory(
-            calculation_date=datetime(2024, 1, 15),
-            version="1.0.0"
+            calculation_date=datetime(2024, 1, 15), version="1.0.0"
         )
         metadata2 = StatsCalculationMetadataFactory(
-            calculation_date=datetime(2024, 1, 16),
-            version="1.0.1"
+            calculation_date=datetime(2024, 1, 16), version="1.0.1"
         )
         db_session.commit()
-        
+
         assert metadata1.id != metadata2.id
         assert metadata1.calculation_date != metadata2.calculation_date
         assert metadata1.version != metadata2.version

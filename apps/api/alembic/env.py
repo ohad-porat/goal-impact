@@ -1,15 +1,15 @@
+import os
+import sys
 from logging.config import fileConfig
 
 from sqlalchemy import create_engine, pool
 
 from alembic import context
 
-import sys
-import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from app.models import Base
 from app.core.database import DATABASE_URL
+from app.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -69,9 +69,7 @@ def run_migrations_online() -> None:
     connectable = create_engine(url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

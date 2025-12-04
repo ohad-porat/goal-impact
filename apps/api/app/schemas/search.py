@@ -1,14 +1,15 @@
 """Search-related schemas for API responses."""
 
-from pydantic import BaseModel
 from typing import Literal
 
+from pydantic import BaseModel
 
 SearchResultType = Literal["Player", "Club", "Competition", "Nation"]
 
 
 class SearchResult(BaseModel):
     """Individual search result."""
+
     id: int
     name: str
     type: SearchResultType
@@ -16,5 +17,5 @@ class SearchResult(BaseModel):
 
 class SearchResponse(BaseModel):
     """Search API response with results."""
-    results: list[SearchResult]
 
+    results: list[SearchResult]

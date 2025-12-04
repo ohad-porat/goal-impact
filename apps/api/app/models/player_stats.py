@@ -1,12 +1,15 @@
 """PlayerStats model definition for FBRef scrapers."""
 
-from sqlalchemy import Column, Integer, Float, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Float, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class PlayerStats(Base):
     """Model representing player statistics in the database."""
-    __tablename__ = 'player_stats'
+
+    __tablename__ = "player_stats"
 
     id = Column(Integer, primary_key=True)
     matches_played = Column(Integer)
@@ -41,14 +44,14 @@ class PlayerStats(Base):
     goal_value = Column(Float)
     gv_avg = Column(Float)
 
-    player_id = Column(Integer, ForeignKey('players.id'))
-    season_id = Column(Integer, ForeignKey('seasons.id'))
-    team_id = Column(Integer, ForeignKey('teams.id'))
+    player_id = Column(Integer, ForeignKey("players.id"))
+    season_id = Column(Integer, ForeignKey("seasons.id"))
+    team_id = Column(Integer, ForeignKey("teams.id"))
 
     player = relationship("Player", back_populates="player_stats")
     season = relationship("Season")
     team = relationship("Team")
 
     __table_args__ = (
-        UniqueConstraint('player_id', 'season_id', 'team_id', name='unique_player_season_team'),
+        UniqueConstraint("player_id", "season_id", "team_id", name="unique_player_season_team"),
     )

@@ -4,6 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "source venv/bin/activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
-    "start": "source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    "start": "source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
+    "lint": "source venv/bin/activate && ruff check .",
+    "lint:fix": "source venv/bin/activate && ruff check --fix .",
+    "format": "source venv/bin/activate && ruff format .",
+    "format:check": "source venv/bin/activate && ruff format --check ."
   }
 }

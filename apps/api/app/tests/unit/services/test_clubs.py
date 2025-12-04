@@ -3,24 +3,28 @@
 from datetime import date
 
 from app.services.clubs import (
-    get_top_clubs_for_nation_core,
-    get_clubs_by_nation,
     get_club_with_seasons,
-    get_team_season_squad_stats,
+    get_clubs_by_nation,
     get_team_season_goal_log,
+    get_team_season_squad_stats,
+    get_top_clubs_for_nation_core,
 )
 from app.tests.utils.factories import (
-    NationFactory,
     CompetitionFactory,
+    EventFactory,
+    MatchFactory,
+    NationFactory,
+    PlayerFactory,
+    PlayerStatsFactory,
     SeasonFactory,
     TeamFactory,
     TeamStatsFactory,
-    PlayerFactory,
-    PlayerStatsFactory,
-    MatchFactory,
-    EventFactory,
 )
-from app.tests.utils.service_helpers import create_basic_season_setup, create_goal_event, create_assist_event
+from app.tests.utils.service_helpers import (
+    create_assist_event,
+    create_basic_season_setup,
+    create_goal_event,
+)
 
 
 class TestGetTopClubsForNationCore:
@@ -30,21 +34,21 @@ class TestGetTopClubsForNationCore:
         """Test that clubs are returned sorted by average position."""
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
-        
+
         season1 = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
         season2 = SeasonFactory(competition=comp, start_year=2022, end_year=2023)
-        
+
         team1 = TeamFactory(name="Arsenal", nation=nation)
         team2 = TeamFactory(name="Chelsea", nation=nation)
         team3 = TeamFactory(name="Liverpool", nation=nation)
-        
+
         TeamStatsFactory(team=team1, season=season1, ranking=1)
         TeamStatsFactory(team=team1, season=season2, ranking=2)
         TeamStatsFactory(team=team2, season=season1, ranking=2)
         TeamStatsFactory(team=team2, season=season2, ranking=3)
         TeamStatsFactory(team=team3, season=season1, ranking=3)
         TeamStatsFactory(team=team3, season=season2, ranking=1)
-        
+
         db_session.commit()
 
         result = get_top_clubs_for_nation_core(db_session, nation.id, limit=10, tier="1st")
@@ -62,11 +66,11 @@ class TestGetTopClubsForNationCore:
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
         season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
-        
+
         for i in range(5):
             team = TeamFactory(name=f"Team {i}", nation=nation)
             TeamStatsFactory(team=team, season=season, ranking=i + 1)
-        
+
         db_session.commit()
 
         result = get_top_clubs_for_nation_core(db_session, nation.id, limit=3, tier="1st")
@@ -78,16 +82,16 @@ class TestGetTopClubsForNationCore:
         nation = NationFactory()
         tier1_competition = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
         tier2_competition = CompetitionFactory(name="Championship", tier="2nd", nation=nation)
-        
+
         season1 = SeasonFactory(competition=tier1_competition, start_year=2023, end_year=2024)
         season2 = SeasonFactory(competition=tier2_competition, start_year=2023, end_year=2024)
-        
+
         team1 = TeamFactory(name="Premier League Team", nation=nation)
         team2 = TeamFactory(name="Championship Team", nation=nation)
-        
+
         TeamStatsFactory(team=team1, season=season1, ranking=1)
         TeamStatsFactory(team=team2, season=season2, ranking=1)
-        
+
         db_session.commit()
 
         result = get_top_clubs_for_nation_core(db_session, nation.id, limit=10, tier="1st")
@@ -100,13 +104,13 @@ class TestGetTopClubsForNationCore:
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
         season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
-        
+
         team_with_ranking = TeamFactory(name="Team With Ranking", nation=nation)
         team_without_ranking = TeamFactory(name="Team Without Ranking", nation=nation)
-        
+
         TeamStatsFactory(team=team_with_ranking, season=season, ranking=1)
         TeamStatsFactory(team=team_without_ranking, season=season, ranking=None)
-        
+
         db_session.commit()
 
         result = get_top_clubs_for_nation_core(db_session, nation.id, limit=10, tier="1st")
@@ -119,15 +123,15 @@ class TestGetTopClubsForNationCore:
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
         season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
-        
+
         team_a = TeamFactory(name="Arsenal", nation=nation)
         team_b = TeamFactory(name="Brighton", nation=nation)
         team_c = TeamFactory(name="Chelsea", nation=nation)
-        
+
         TeamStatsFactory(team=team_a, season=season, ranking=1)
         TeamStatsFactory(team=team_b, season=season, ranking=1)
         TeamStatsFactory(team=team_c, season=season, ranking=1)
-        
+
         db_session.commit()
 
         result = get_top_clubs_for_nation_core(db_session, nation.id, limit=10, tier="1st")
@@ -145,37 +149,37 @@ class TestGetClubsByNation:
         """Test that top clubs per nation are returned."""
         nation1 = NationFactory(name="England", country_code="ENG")
         nation2 = NationFactory(name="Spain", country_code="ESP")
-        
+
         comp1 = CompetitionFactory(name="Premier League", tier="1st", nation=nation1)
         comp2 = CompetitionFactory(name="La Liga", tier="1st", nation=nation2)
-        
+
         season1 = SeasonFactory(competition=comp1, start_year=2023, end_year=2024)
         season2 = SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
-        
+
         eng_team1 = TeamFactory(name="Arsenal", nation=nation1)
         eng_team2 = TeamFactory(name="Chelsea", nation=nation1)
         eng_team3 = TeamFactory(name="Liverpool", nation=nation1)
-        
+
         esp_team1 = TeamFactory(name="Real Madrid", nation=nation2)
         esp_team2 = TeamFactory(name="Barcelona", nation=nation2)
-        
+
         TeamStatsFactory(team=eng_team1, season=season1, ranking=1)
         TeamStatsFactory(team=eng_team2, season=season1, ranking=2)
         TeamStatsFactory(team=eng_team3, season=season1, ranking=3)
         TeamStatsFactory(team=esp_team1, season=season2, ranking=1)
         TeamStatsFactory(team=esp_team2, season=season2, ranking=2)
-        
+
         db_session.commit()
 
         result = get_clubs_by_nation(db_session, limit_per_nation=2)
 
         assert len(result) == 2
-        
+
         eng_result = next(r for r in result if r.nation.name == "England")
         assert len(eng_result.clubs) == 2
         assert eng_result.clubs[0].name == "Arsenal"
         assert eng_result.clubs[1].name == "Chelsea"
-        
+
         esp_result = next(r for r in result if r.nation.name == "Spain")
         assert len(esp_result.clubs) == 2
         assert esp_result.clubs[0].name == "Real Madrid"
@@ -184,11 +188,11 @@ class TestGetClubsByNation:
     def test_respects_limit_per_nation(self, db_session):
         """Test that limit_per_nation parameter is respected."""
         nation, _, season = create_basic_season_setup(db_session)
-        
+
         for i in range(5):
             team = TeamFactory(name=f"Team {i}", nation=nation)
             TeamStatsFactory(team=team, season=season, ranking=i + 1)
-        
+
         db_session.commit()
 
         result = get_clubs_by_nation(db_session, limit_per_nation=2)
@@ -201,16 +205,16 @@ class TestGetClubsByNation:
         nation = NationFactory()
         tier1_comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
         tier2_comp = CompetitionFactory(name="Championship", tier="2nd", nation=nation)
-        
+
         season1 = SeasonFactory(competition=tier1_comp, start_year=2023, end_year=2024)
         season2 = SeasonFactory(competition=tier2_comp, start_year=2023, end_year=2024)
-        
+
         tier1_team = TeamFactory(name="Premier League Team", nation=nation)
         tier2_team = TeamFactory(name="Championship Team", nation=nation)
-        
+
         TeamStatsFactory(team=tier1_team, season=season1, ranking=1)
         TeamStatsFactory(team=tier2_team, season=season2, ranking=1)
-        
+
         db_session.commit()
 
         result = get_clubs_by_nation(db_session, limit_per_nation=5)
@@ -222,13 +226,13 @@ class TestGetClubsByNation:
     def test_excludes_teams_without_ranking(self, db_session):
         """Test that teams without ranking are excluded."""
         nation, _, season = create_basic_season_setup(db_session)
-        
+
         team_with_ranking = TeamFactory(name="Team With Ranking", nation=nation)
         team_without_ranking = TeamFactory(name="Team Without Ranking", nation=nation)
-        
+
         TeamStatsFactory(team=team_with_ranking, season=season, ranking=1)
         TeamStatsFactory(team=team_without_ranking, season=season, ranking=None)
-        
+
         db_session.commit()
 
         result = get_clubs_by_nation(db_session, limit_per_nation=5)
@@ -245,18 +249,18 @@ class TestGetClubWithSeasons:
         """Test that club with all season stats is returned."""
         nation = NationFactory(name="England", country_code="ENG")
         team = TeamFactory(name="Arsenal", nation=nation)
-        
+
         comp1 = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
         comp2 = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
-        
+
         season1 = SeasonFactory(competition=comp1, start_year=2023, end_year=2024)
         season2 = SeasonFactory(competition=comp1, start_year=2022, end_year=2023)
         season3 = SeasonFactory(competition=comp2, start_year=2024, end_year=2025)
-        
+
         TeamStatsFactory(team=team, season=season1, ranking=1, matches_played=38, wins=30)
         TeamStatsFactory(team=team, season=season2, ranking=2, matches_played=38, wins=28)
         TeamStatsFactory(team=team, season=season3, ranking=1, matches_played=10, wins=8)
-        
+
         db_session.commit()
 
         club_info, seasons_data = get_club_with_seasons(db_session, team.id)
@@ -266,7 +270,7 @@ class TestGetClubWithSeasons:
         assert club_info.name == "Arsenal"
         assert club_info.nation.name == "England"
         assert len(seasons_data) == 3
-        
+
         assert seasons_data[0].season.start_year == 2024
         assert seasons_data[0].competition.name == "Premier League"
         assert seasons_data[1].season.start_year == 2023
@@ -277,7 +281,7 @@ class TestGetClubWithSeasons:
     def test_returns_none_when_club_not_found(self, db_session):
         """Test that None is returned when club doesn't exist."""
         club_info, seasons_data = get_club_with_seasons(db_session, 99999)
-        
+
         assert club_info is None
         assert seasons_data == []
 
@@ -297,7 +301,7 @@ class TestGetClubWithSeasons:
         """Test that all team stats fields are included."""
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)
-        
+
         team_stats = TeamStatsFactory(
             team=team,
             season=season,
@@ -311,9 +315,9 @@ class TestGetClubWithSeasons:
             goal_difference=60,
             points=95,
             attendance=60000,
-            notes="Champions"
+            notes="Champions",
         )
-        
+
         db_session.commit()
 
         _, seasons_data = get_club_with_seasons(db_session, team.id)
@@ -340,36 +344,21 @@ class TestGetTeamSeasonSquadStats:
         """Test that squad with player stats is returned."""
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)
-        
+
         player1 = PlayerFactory(name="Player 1", nation=nation)
         player2 = PlayerFactory(name="Player 2", nation=nation)
         player3 = PlayerFactory(name="Player 3", nation=nation)
-        
+
         PlayerStatsFactory(
-            team=team,
-            season=season,
-            player=player1,
-            goal_value=5.0,
-            goals_scored=10,
-            assists=5
+            team=team, season=season, player=player1, goal_value=5.0, goals_scored=10, assists=5
         )
         PlayerStatsFactory(
-            team=team,
-            season=season,
-            player=player2,
-            goal_value=3.0,
-            goals_scored=5,
-            assists=3
+            team=team, season=season, player=player2, goal_value=3.0, goals_scored=5, assists=3
         )
         PlayerStatsFactory(
-            team=team,
-            season=season,
-            player=player3,
-            goal_value=2.0,
-            goals_scored=2,
-            assists=1
+            team=team, season=season, player=player3, goal_value=2.0, goals_scored=2, assists=1
         )
-        
+
         db_session.commit()
 
         club_info, season_display, competition_display, players_data = get_team_season_squad_stats(
@@ -383,7 +372,7 @@ class TestGetTeamSeasonSquadStats:
         assert competition_display is not None
         assert competition_display.name == "Premier League"
         assert len(players_data) == 3
-        
+
         assert players_data[0].player.name == "Player 1"
         assert players_data[0].stats.goal_value == 5.0
         assert players_data[1].player.name == "Player 2"
@@ -441,19 +430,17 @@ class TestGetTeamSeasonSquadStats:
         team1 = TeamFactory(name="Arsenal", nation=nation)
         team2 = TeamFactory(name="Chelsea", nation=nation)
         season2 = SeasonFactory(competition=comp, start_year=2022, end_year=2023)
-        
+
         player1 = PlayerFactory(name="Player 1", nation=nation)
         player2 = PlayerFactory(name="Player 2", nation=nation)
-        
+
         PlayerStatsFactory(team=team1, season=season1, player=player1, goal_value=5.0)
         PlayerStatsFactory(team=team2, season=season1, player=player1, goal_value=3.0)
         PlayerStatsFactory(team=team1, season=season2, player=player2, goal_value=2.0)
-        
+
         db_session.commit()
 
-        _, _, _, players_data = get_team_season_squad_stats(
-            db_session, team1.id, season1.id
-        )
+        _, _, _, players_data = get_team_season_squad_stats(db_session, team1.id, season1.id)
 
         assert len(players_data) == 1
         assert players_data[0].player.name == "Player 1"
@@ -469,22 +456,29 @@ class TestGetTeamSeasonGoalLog:
         team = TeamFactory(name="Arsenal", nation=nation)
         opponent = TeamFactory(name="Chelsea", nation=nation)
         player = PlayerFactory(name="Scorer", nation=nation)
-        
+
         match = MatchFactory(
             home_team=team,
             away_team=opponent,
             season=season,
             date=date(2023, 9, 1),
             home_team_goals=2,
-            away_team_goals=1
+            away_team_goals=1,
         )
-        
+
         _ = create_goal_event(
-            match, player, minute=10,
-            home_pre=0, home_post=1, away_pre=0, away_post=0,
-            goal_value=0.5, xg=0.3, post_shot_xg=0.4
+            match,
+            player,
+            minute=10,
+            home_pre=0,
+            home_post=1,
+            away_pre=0,
+            away_post=0,
+            goal_value=0.5,
+            xg=0.3,
+            post_shot_xg=0.4,
         )
-        
+
         db_session.commit()
 
         club_info, season_display, competition_display, goal_entries = get_team_season_goal_log(
@@ -498,7 +492,7 @@ class TestGetTeamSeasonGoalLog:
         assert competition_display is not None
         assert competition_display.name == "Premier League"
         assert len(goal_entries) == 1
-        
+
         goal = goal_entries[0]
         assert goal.scorer.name == "Scorer"
         assert goal.opponent.name == "Chelsea"
@@ -513,25 +507,25 @@ class TestGetTeamSeasonGoalLog:
         team = TeamFactory(name="Arsenal", nation=nation)
         opponent = TeamFactory(name="Chelsea", nation=nation)
         player = PlayerFactory(name="Scorer", nation=nation)
-        
+
         match = MatchFactory(
-            home_team=team,
-            away_team=opponent,
-            season=season,
-            date=date(2023, 9, 1)
+            home_team=team, away_team=opponent, season=season, date=date(2023, 9, 1)
         )
-        
+
         _ = create_goal_event(
-            match, player, minute=10,
-            home_pre=0, home_post=1, away_pre=0, away_post=0,
-            event_type="own goal"
+            match,
+            player,
+            minute=10,
+            home_pre=0,
+            home_post=1,
+            away_pre=0,
+            away_post=0,
+            event_type="own goal",
         )
-        
+
         db_session.commit()
 
-        _, _, _, goal_entries = get_team_season_goal_log(
-            db_session, team.id, season.id
-        )
+        _, _, _, goal_entries = get_team_season_goal_log(db_session, team.id, season.id)
 
         assert len(goal_entries) == 1
         assert goal_entries[0].scorer.name == "Scorer (OG)"
@@ -543,29 +537,22 @@ class TestGetTeamSeasonGoalLog:
         opponent = TeamFactory(name="Chelsea", nation=nation)
         scorer = PlayerFactory(name="Scorer", nation=nation)
         assister = PlayerFactory(name="Assister", nation=nation)
-        
+
         match = MatchFactory(
-            home_team=team,
-            away_team=opponent,
-            season=season,
-            date=date(2023, 9, 1)
+            home_team=team, away_team=opponent, season=season, date=date(2023, 9, 1)
         )
-        
+
         _ = create_goal_event(
-            match, scorer, minute=10,
-            home_pre=0, home_post=1, away_pre=0, away_post=0
+            match, scorer, minute=10, home_pre=0, home_post=1, away_pre=0, away_post=0
         )
-        
+
         _ = create_assist_event(
-            match, assister, minute=10,
-            home_pre=0, home_post=1, away_pre=0, away_post=0
+            match, assister, minute=10, home_pre=0, home_post=1, away_pre=0, away_post=0
         )
-        
+
         db_session.commit()
 
-        _, _, _, goal_entries = get_team_season_goal_log(
-            db_session, team.id, season.id
-        )
+        _, _, _, goal_entries = get_team_season_goal_log(db_session, team.id, season.id)
 
         assert len(goal_entries) == 1
         assert goal_entries[0].assisted_by is not None
@@ -606,20 +593,13 @@ class TestGetTeamSeasonGoalLog:
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)
         opponent = TeamFactory(name="Chelsea", nation=nation)
-        
+
         match = MatchFactory(
-            home_team=team,
-            away_team=opponent,
-            season=season,
-            date=date(2023, 9, 1)
+            home_team=team, away_team=opponent, season=season, date=date(2023, 9, 1)
         )
-        
-        EventFactory(
-            match=match,
-            event_type="yellow card",
-            minute=10
-        )
-        
+
+        EventFactory(match=match, event_type="yellow card", minute=10)
+
         db_session.commit()
 
         club_info, season_display, _, goal_entries = get_team_season_goal_log(
@@ -637,29 +617,20 @@ class TestGetTeamSeasonGoalLog:
         team2 = TeamFactory(name="Chelsea", nation=nation)
         player1 = PlayerFactory(name="Player 1", nation=nation)
         player2 = PlayerFactory(name="Player 2", nation=nation)
-        
-        match = MatchFactory(
-            home_team=team1,
-            away_team=team2,
-            season=season,
-            date=date(2023, 9, 1)
-        )
-        
+
+        match = MatchFactory(home_team=team1, away_team=team2, season=season, date=date(2023, 9, 1))
+
         create_goal_event(
-            match, player1, minute=10,
-            home_pre=0, home_post=1, away_pre=0, away_post=0
+            match, player1, minute=10, home_pre=0, home_post=1, away_pre=0, away_post=0
         )
-        
+
         create_goal_event(
-            match, player2, minute=20,
-            home_pre=1, home_post=1, away_pre=0, away_post=1
+            match, player2, minute=20, home_pre=1, home_post=1, away_pre=0, away_post=1
         )
-        
+
         db_session.commit()
 
-        _, _, _, goal_entries = get_team_season_goal_log(
-            db_session, team1.id, season.id
-        )
+        _, _, _, goal_entries = get_team_season_goal_log(db_session, team1.id, season.id)
 
         assert len(goal_entries) == 1
         assert goal_entries[0].scorer.name == "Player 1"
@@ -671,24 +642,18 @@ class TestGetTeamSeasonGoalLog:
         team = TeamFactory(name="Arsenal", nation=nation)
         opponent = TeamFactory(name="Chelsea", nation=nation)
         player = PlayerFactory(name="Scorer", nation=nation)
-        
+
         match = MatchFactory(
-            home_team=opponent,
-            away_team=team,
-            season=season,
-            date=date(2023, 9, 1)
+            home_team=opponent, away_team=team, season=season, date=date(2023, 9, 1)
         )
-        
+
         _ = create_goal_event(
-            match, player, minute=10,
-            home_pre=0, home_post=0, away_pre=0, away_post=1
+            match, player, minute=10, home_pre=0, home_post=0, away_pre=0, away_post=1
         )
-        
+
         db_session.commit()
 
-        _, _, _, goal_entries = get_team_season_goal_log(
-            db_session, team.id, season.id
-        )
+        _, _, _, goal_entries = get_team_season_goal_log(db_session, team.id, season.id)
 
         assert len(goal_entries) == 1
         assert goal_entries[0].scorer.name == "Scorer"

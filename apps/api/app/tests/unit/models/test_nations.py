@@ -16,10 +16,10 @@ class TestNationModel:
             name="England",
             country_code="ENG",
             fbref_url="/en/countries/ENG/",
-            governing_body="The FA"
+            governing_body="The FA",
         )
         db_session.commit()
-        
+
         assert nation.id is not None
         assert nation.name == "England"
         assert nation.country_code == "ENG"
@@ -30,7 +30,7 @@ class TestNationModel:
         """Test that nation name must be unique."""
         NationFactory(name="England", country_code="ENG", fbref_url="/en/countries/ENG/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             NationFactory(name="England", country_code="FRA", fbref_url="/en/countries/FRA/")
             db_session.commit()
@@ -39,16 +39,18 @@ class TestNationModel:
         """Test that country_code must be unique."""
         NationFactory(name="England", country_code="ENG", fbref_url="/en/countries/ENG/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
-            NationFactory(name="United Kingdom", country_code="ENG", fbref_url="/en/countries/ENG2/")
+            NationFactory(
+                name="United Kingdom", country_code="ENG", fbref_url="/en/countries/ENG2/"
+            )
             db_session.commit()
 
     def test_nation_unique_fbref_url(self, db_session):
         """Test that fbref_url must be unique."""
         NationFactory(name="England", country_code="ENG", fbref_url="/en/countries/ENG/")
         db_session.commit()
-        
+
         with pytest.raises(IntegrityError):
             NationFactory(name="France", country_code="FRA", fbref_url="/en/countries/ENG/")
             db_session.commit()
@@ -56,10 +58,7 @@ class TestNationModel:
     def test_nation_required_fields(self, db_session):
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
-            nation = Nation(
-                country_code="ENG",
-                fbref_url="/en/countries/ENG/"
-            )
+            nation = Nation(country_code="ENG", fbref_url="/en/countries/ENG/")
             db_session.add(nation)
             db_session.commit()
 
@@ -70,9 +69,9 @@ class TestNationModel:
             country_code="TST",
             fbref_url="/en/countries/TST/",
             governing_body=None,
-            clubs_url=None
+            clubs_url=None,
         )
         db_session.commit()
-        
+
         assert nation.governing_body is None
         assert nation.clubs_url is None

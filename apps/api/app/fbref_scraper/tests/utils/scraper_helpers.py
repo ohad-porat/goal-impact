@@ -9,7 +9,7 @@ def create_mock_html_response(html_content: str, status_code: int = 200, mocker=
     if mocker is None:
         pytest.skip("mocker fixture required")
     mock_response = mocker.Mock()
-    
+
     mock_response.text = html_content
     mock_response.status_code = status_code
     mock_response.raise_for_status = mocker.Mock()
@@ -18,7 +18,7 @@ def create_mock_html_response(html_content: str, status_code: int = 200, mocker=
 
 def create_mock_soup(html_content: str) -> BeautifulSoup:
     """Create a BeautifulSoup object from HTML content."""
-    return BeautifulSoup(html_content, 'html.parser')
+    return BeautifulSoup(html_content, "html.parser")
 
 
 def mock_fbref_countries_page():
@@ -123,10 +123,10 @@ def mock_fbref_player_stats_page():
 @pytest.fixture
 def mock_requests_get(mocker):
     """Mock requests.get for testing HTTP calls."""
-    return mocker.patch('requests.get')
+    return mocker.patch("requests.get")
 
 
 @pytest.fixture
 def mock_pandas_read_html(mocker):
     """Mock pandas.read_html for testing HTML table parsing."""
-    return mocker.patch('pandas.read_html')
+    return mocker.patch("pandas.read_html")

@@ -14,7 +14,11 @@ from app.tests.utils.factories import (
     TeamFactory,
     TeamStatsFactory,
 )
-from app.tests.utils.service_helpers import create_basic_season_setup, create_goal_event, create_assist_event
+from app.tests.utils.service_helpers import (
+    create_assist_event,
+    create_basic_season_setup,
+    create_goal_event,
+)
 
 
 class TestTransformPlayerStats:
@@ -177,8 +181,7 @@ class TestGetPlayerSeasonsStats:
             date=date(2022, 8, 10),
         )
         create_goal_event(
-            match1, player, minute=15,
-            home_pre=0, home_post=1, away_pre=0, away_post=0
+            match1, player, minute=15, home_pre=0, home_post=1, away_pre=0, away_post=0
         )
 
         match2 = MatchFactory(
@@ -188,8 +191,7 @@ class TestGetPlayerSeasonsStats:
             date=date(2023, 8, 5),
         )
         create_goal_event(
-            match2, player, minute=30,
-            home_pre=0, home_post=0, away_pre=0, away_post=1
+            match2, player, minute=30, home_pre=0, home_post=0, away_pre=0, away_post=1
         )
 
         player_info, seasons = get_player_seasons_stats(db_session, player.id)
@@ -281,19 +283,32 @@ class TestGetPlayerCareerGoalLog:
 
         assist_player = PlayerFactory(name="Playmaker", nation=nation)
         create_assist_event(
-            match1, assist_player, minute=15,
-            home_pre=0, home_post=1, away_pre=0, away_post=0
+            match1, assist_player, minute=15, home_pre=0, home_post=1, away_pre=0, away_post=0
         )
 
         create_goal_event(
-            match1, player, minute=15,
-            home_pre=0, home_post=1, away_pre=0, away_post=0,
-            goal_value=0.75, xg=0.35, post_shot_xg=0.4
+            match1,
+            player,
+            minute=15,
+            home_pre=0,
+            home_post=1,
+            away_pre=0,
+            away_post=0,
+            goal_value=0.75,
+            xg=0.35,
+            post_shot_xg=0.4,
         )
         create_goal_event(
-            match2, player, minute=55,
-            home_pre=0, home_post=0, away_pre=0, away_post=1,
-            goal_value=0.5, xg=0.25, post_shot_xg=0.3
+            match2,
+            player,
+            minute=55,
+            home_pre=0,
+            home_post=0,
+            away_pre=0,
+            away_post=1,
+            goal_value=0.5,
+            xg=0.25,
+            post_shot_xg=0.3,
         )
 
         player_basic, goal_entries = get_player_career_goal_log(db_session, player.id)

@@ -1,25 +1,24 @@
 """Nation-related business logic services."""
 
-from typing import List, Dict, Optional
-from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from app.models.competitions import Competition
-from app.models.seasons import Season
-from app.models.players import Player
-from app.models.player_stats import PlayerStats
 from app.models.nations import Nation
+from app.models.player_stats import PlayerStats
+from app.models.players import Player
+from app.models.seasons import Season
 from app.schemas.nations import NationSummary
 
 
-def tier_order(tier: Optional[str]) -> int:
+def tier_order(tier: str | None) -> int:
     """Order tiers for sorting competitions."""
     if tier is None:
         return 99
     return {"1st": 1, "2nd": 2, "3rd": 3}.get(tier, 50)
 
 
-def get_competitions_for_nation(db: Session, nation_id: int) -> List[Dict]:
+def get_competitions_for_nation(db: Session, nation_id: int) -> list[dict]:
     """Get competitions for a specific nation."""
     rows = (
         db.query(
@@ -48,7 +47,7 @@ def get_competitions_for_nation(db: Session, nation_id: int) -> List[Dict]:
     return data
 
 
-def get_all_nations_with_player_count(db: Session) -> List[NationSummary]:
+def get_all_nations_with_player_count(db: Session) -> list[NationSummary]:
     """Get all nations with their player counts, sorted by name."""
     nations_query = (
         db.query(
@@ -56,32 +55,27 @@ def get_all_nations_with_player_count(db: Session) -> List[NationSummary]:
             Nation.name,
             Nation.country_code,
             Nation.governing_body,
-            func.count(Player.id).label('player_count')
+            func.count(Player.id).label("player_count"),
         )
         .outerjoin(Player, Nation.id == Player.nation_id)
-        .group_by(
-            Nation.id,
-            Nation.name,
-            Nation.country_code,
-            Nation.governing_body
-        )
+        .group_by(Nation.id, Nation.name, Nation.country_code, Nation.governing_body)
         .order_by(Nation.name)
         .all()
     )
-    
+
     return [
         NationSummary(
             id=nation.id,
             name=nation.name,
             country_code=nation.country_code,
             governing_body=nation.governing_body or "N/A",
-            player_count=nation.player_count
+            player_count=nation.player_count,
         )
         for nation in nations_query
     ]
 
 
-def get_top_players_for_nation(db: Session, nation_id: int, limit: int = 20) -> List[Dict]:
+def get_top_players_for_nation(db: Session, nation_id: int, limit: int = 20) -> list[dict]:
     """Get top players for a nation by total goal value."""
     rows = (
         db.query(
@@ -105,5 +99,3 @@ def get_top_players_for_nation(db: Session, nation_id: int, limit: int = 20) -> 
         }
         for row in rows
     ]
-
-
