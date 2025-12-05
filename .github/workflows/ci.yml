@@ -30,6 +30,9 @@ jobs:
       - name: Set DATABASE_URL for tests
         run: echo "DATABASE_URL=sqlite:///:memory:" >> $GITHUB_ENV
       
+      - name: Set ALLOWED_HOSTS for tests
+        run: echo 'ALLOWED_HOSTS=["*"]' >> $GITHUB_ENV
+      
       - name: Run unit tests (models & services)
         run: |
           source venv/bin/activate
@@ -60,6 +63,9 @@ jobs:
       
       - name: Set DATABASE_URL for tests
         run: echo "DATABASE_URL=sqlite:///:memory:" >> $GITHUB_ENV
+      
+      - name: Set ALLOWED_HOSTS for tests
+        run: echo 'ALLOWED_HOSTS=["*"]' >> $GITHUB_ENV
       
       - name: Run scraper tests
         run: |
