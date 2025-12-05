@@ -1,4 +1,4 @@
-"""Shared test helpers for service layer tests."""
+"""Shared test helpers for creating test data."""
 
 from app.tests.utils.factories import (
     CompetitionFactory,

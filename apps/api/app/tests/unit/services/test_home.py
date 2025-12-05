@@ -12,7 +12,7 @@ from app.tests.utils.factories import (
     SeasonFactory,
     TeamFactory,
 )
-from app.tests.utils.service_helpers import create_basic_season_setup, create_goal_event
+from app.tests.utils.helpers import create_basic_season_setup, create_goal_event
 
 
 class TestGetRecentImpactGoals:
