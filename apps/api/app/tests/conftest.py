@@ -102,6 +102,7 @@ def temp_db_file():
 @pytest.fixture
 def client(db_session):
     """Create a FastAPI TestClient using the test database session."""
+
     def override_get_db():
         try:
             yield db_session
