@@ -160,7 +160,9 @@ class TestGetRecentImpactGoalsRoute:
         assert data["goals"] == []
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_league_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid league_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/home/recent-goals?league_id={invalid_id}")
 

@@ -406,9 +406,9 @@ class TestGetBySeasonLeadersRoute:
         comp1, _comp2, player1, _player2, _nation = create_two_competitions_with_data(
             db_session, create_player_data
         )
-        player_stats = db_session.query(PlayerStats).filter(
-            PlayerStats.player_id == player1.id
-        ).first()
+        player_stats = (
+            db_session.query(PlayerStats).filter(PlayerStats.player_id == player1.id).first()
+        )
         assert player_stats is not None, "Player stats should exist"
         season1 = player_stats.season
 
@@ -444,7 +444,9 @@ class TestGetBySeasonLeadersRoute:
         assert len(data["top_goal_value"]) == 1
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_season_id_types(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_season_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid season_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/leaders/by-season?season_id={invalid_id}")
 
@@ -460,7 +462,9 @@ class TestGetBySeasonLeadersRoute:
             assert response_zero.json()["top_goal_value"] == []
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_league_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid league_id types return validation error."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -476,7 +480,9 @@ class TestGetBySeasonLeadersRoute:
         db_session.commit()
 
         assert_422_validation_error(client, f"/api/v1/leaders/career-totals?league_id={invalid_id}")
-        assert_422_validation_error(client, f"/api/v1/leaders/by-season?season_id={season.id}&league_id={invalid_id}")
+        assert_422_validation_error(
+            client, f"/api/v1/leaders/by-season?season_id={season.id}&league_id={invalid_id}"
+        )
 
     def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session):
         """Test that negative and zero league_id return validation error or empty results."""
@@ -497,7 +503,7 @@ class TestGetBySeasonLeadersRoute:
         response_zero1 = client.get("/api/v1/leaders/career-totals?league_id=0")
         response_neg2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=-1")
         response_zero2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=0")
-        
+
         assert response_neg1.status_code in [200, 422]
         assert response_zero1.status_code in [200, 422]
         assert response_neg2.status_code in [200, 422]

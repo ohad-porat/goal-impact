@@ -28,8 +28,8 @@ class TestGetNationsRoute:
 
     def test_returns_all_nations_successfully(self, client: TestClient, db_session):
         """Test that all nations are returned with correct structure."""
-        nation1 = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
-        nation2 = NationFactory(name="Spain", country_code="ESP", governing_body="UEFA")
+        _nation1 = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
+        _nation2 = NationFactory(name="Spain", country_code="ESP", governing_body="UEFA")
         db_session.commit()
 
         response = client.get("/api/v1/nations/")
@@ -271,7 +271,9 @@ class TestGetNationDetailsRoute:
             assert "total_goal_value" in player
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_nation_id_types(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_nation_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid nation_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/nations/{invalid_id}")
 

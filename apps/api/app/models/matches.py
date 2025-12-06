@@ -26,3 +26,10 @@ class Match(Base):
     home_team = relationship("Team", foreign_keys=[home_team_id])
     away_team = relationship("Team", foreign_keys=[away_team_id])
     events = relationship("Event", back_populates="match")
+
+    def __repr__(self):
+        return (
+            f"<Match(id={self.id}, date={self.date}, "
+            f"home_goals={self.home_team_goals}, away_goals={self.away_team_goals}, "
+            f"fbref_id={self.fbref_id!r})>"
+        )

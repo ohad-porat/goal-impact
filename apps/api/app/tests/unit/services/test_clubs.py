@@ -568,7 +568,7 @@ class TestGetTeamSeasonGoalLog:
             home_team=team, away_team=opponent, season=season, date=date(2023, 9, 1)
         )
 
-        EventFactory(match=match, event_type="yellow card", minute=10)
+        EventFactory(match=match, event_type="assist", minute=10)
 
         db_session.commit()
 

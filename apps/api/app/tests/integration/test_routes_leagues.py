@@ -214,7 +214,9 @@ class TestGetLeagueSeasonsRoute:
             assert "display_name" in season_data
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_league_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid league_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/leagues/{invalid_id}/seasons")
 
@@ -261,7 +263,9 @@ class TestGetLeagueTableRoute:
 
         assert_404_not_found(client, f"/api/v1/leagues/{comp.id}/table/99999", "season")
 
-    def test_returns_404_when_season_belongs_to_different_league(self, client: TestClient, db_session):
+    def test_returns_404_when_season_belongs_to_different_league(
+        self, client: TestClient, db_session
+    ):
         """Test that 404 is returned when season exists but belongs to different league."""
         nation, comp1, season1 = create_basic_season_setup(db_session)
         comp2 = CompetitionFactory(nation=nation)
@@ -339,7 +343,9 @@ class TestGetLeagueTableRoute:
         assert data["table"] == []
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_league_id_types_for_table(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_league_id_types_for_table(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid league_id types return validation error for table endpoint."""
         nation, _comp, season = create_basic_season_setup(db_session)
         db_session.commit()
@@ -357,7 +363,9 @@ class TestGetLeagueTableRoute:
         assert response_zero.status_code == 404
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_season_id_types_for_table(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_season_id_types_for_table(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid season_id types return validation error for table endpoint."""
         nation, comp, _season = create_basic_season_setup(db_session)
         db_session.commit()

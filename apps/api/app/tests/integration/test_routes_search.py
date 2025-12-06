@@ -209,7 +209,9 @@ class TestSearchRoute:
         for char in special_chars:
             encoded_char = quote(char)
             response = client.get(f"/api/v1/search/?q={encoded_char}")
-            assert response.status_code in [200, 422], f"Character '{char}' caused unexpected status: {response.status_code}"
+            assert response.status_code in [200, 422], (
+                f"Character '{char}' caused unexpected status: {response.status_code}"
+            )
             if response.status_code == 200:
                 data = response.json()
                 assert "results" in data

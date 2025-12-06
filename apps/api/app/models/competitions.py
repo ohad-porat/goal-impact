@@ -23,3 +23,9 @@ class Competition(Base):
 
     nation = relationship("Nation", back_populates="competitions")
     seasons = relationship("Season", back_populates="competition")
+
+    def __repr__(self):
+        return (
+            f"<Competition(id={self.id}, name={self.name!r}, "
+            f"type={self.competition_type!r}, tier={self.tier!r}, fbref_id={self.fbref_id!r})>"
+        )

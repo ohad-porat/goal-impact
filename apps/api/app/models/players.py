@@ -21,3 +21,6 @@ class Player(Base):
     nation = relationship("Nation")
     events = relationship("Event", back_populates="player")
     player_stats = relationship("PlayerStats", back_populates="player")
+
+    def __repr__(self):
+        return f"<Player(id={self.id}, name={self.name!r}, fbref_id={self.fbref_id!r})>"

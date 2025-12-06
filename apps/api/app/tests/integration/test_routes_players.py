@@ -106,7 +106,9 @@ class TestGetPlayerDetailsRoute:
         assert isinstance(data["seasons"], list)
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_player_id_types(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_player_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid player_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/players/{invalid_id}")
 
@@ -238,7 +240,9 @@ class TestGetPlayerCareerGoalLogRoute:
         assert goal.get("assisted_by") is None
 
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_player_id_types_for_goals(self, client: TestClient, db_session, invalid_id):
+    def test_handles_various_invalid_player_id_types_for_goals(
+        self, client: TestClient, db_session, invalid_id
+    ):
         """Test that various invalid player_id types return validation error for goals endpoint."""
         assert_422_validation_error(client, f"/api/v1/players/{invalid_id}/goals")
 
