@@ -209,6 +209,7 @@ class TestTeamsScraper:
                 return [pd.DataFrame({"Squad": ["PSG"], "Gender": ["M"]})]
             return []
 
+        scraper.load_page = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(side_effect=mock_fetch_html_table)
 
         def mock_find_elements(_, string):
