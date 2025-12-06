@@ -1,5 +1,6 @@
 """Integration tests for leagues router endpoints."""
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
@@ -32,8 +33,8 @@ class TestGetLeaguesRoute:
         comp1 = CompetitionFactory(name="Premier League", nation=nation1, tier="1st")
         comp2 = CompetitionFactory(name="La Liga", nation=nation2, tier="1st")
 
-        SeasonFactory(competition=comp1, start_year=2023, end_year=2024)
-        SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
+        _season1 = SeasonFactory(competition=comp1, start_year=2023, end_year=2024)
+        _season2 = SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
         db_session.commit()
 
         response = client.get("/api/v1/leagues/")
@@ -49,7 +50,7 @@ class TestGetLeaguesRoute:
         """Test that response structure matches the expected schema."""
         nation = NationFactory(name="England", country_code="ENG")
         comp = CompetitionFactory(name="Premier League", nation=nation, tier="1st")
-        SeasonFactory(competition=comp, start_year=2023, end_year=2024)
+        _season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
         db_session.commit()
 
         response = client.get("/api/v1/leagues/")
@@ -79,8 +80,8 @@ class TestGetLeaguesRoute:
         """Test that available_seasons is included in response."""
         nation = NationFactory(name="England", country_code="ENG")
         comp = CompetitionFactory(name="Premier League", nation=nation)
-        SeasonFactory(competition=comp, start_year=2022, end_year=2023)
-        SeasonFactory(competition=comp, start_year=2023, end_year=2024)
+        _season1 = SeasonFactory(competition=comp, start_year=2022, end_year=2023)
+        _season2 = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
         db_session.commit()
 
         response = client.get("/api/v1/leagues/")
@@ -212,9 +213,17 @@ class TestGetLeagueSeasonsRoute:
             assert "end_year" in season_data
             assert "display_name" in season_data
 
-    def test_handles_invalid_league_id_type(self, client: TestClient, db_session):
-        """Test that invalid league_id type returns validation error."""
-        assert_422_validation_error(client, "/api/v1/leagues/not-a-number/seasons")
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session, invalid_id):
+        """Test that various invalid league_id types return validation error."""
+        assert_422_validation_error(client, f"/api/v1/leagues/{invalid_id}/seasons")
+
+    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session):
+        """Test that negative and zero league_id return 404."""
+        response_neg = client.get("/api/v1/leagues/-1/seasons")
+        response_zero = client.get("/api/v1/leagues/0/seasons")
+        assert response_neg.status_code == 404
+        assert response_zero.status_code == 404
 
     def test_only_returns_seasons_for_specified_league(self, client: TestClient, db_session):
         """Test that only seasons for the specified league are returned."""
@@ -224,7 +233,7 @@ class TestGetLeagueSeasonsRoute:
         comp2 = CompetitionFactory(nation=nation2)
 
         season1 = SeasonFactory(competition=comp1, start_year=2023, end_year=2024)
-        SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
+        _season2 = SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
         db_session.commit()
 
         response = client.get(f"/api/v1/leagues/{comp1.id}/seasons")
@@ -251,6 +260,15 @@ class TestGetLeagueTableRoute:
         db_session.commit()
 
         assert_404_not_found(client, f"/api/v1/leagues/{comp.id}/table/99999", "season")
+
+    def test_returns_404_when_season_belongs_to_different_league(self, client: TestClient, db_session):
+        """Test that 404 is returned when season exists but belongs to different league."""
+        nation, comp1, season1 = create_basic_season_setup(db_session)
+        comp2 = CompetitionFactory(nation=nation)
+        season2 = SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
+        db_session.commit()
+
+        assert_404_not_found(client, f"/api/v1/leagues/{comp1.id}/table/{season2.id}", "season")
 
     def test_returns_league_table_successfully(self, client: TestClient, db_session):
         """Test that league table is returned with correct structure."""
@@ -320,19 +338,41 @@ class TestGetLeagueTableRoute:
         data = response.json()
         assert data["table"] == []
 
-    def test_handles_invalid_league_id_type(self, client: TestClient, db_session):
-        """Test that invalid league_id type returns validation error."""
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_league_id_types_for_table(self, client: TestClient, db_session, invalid_id):
+        """Test that various invalid league_id types return validation error for table endpoint."""
         nation, _comp, season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        assert_422_validation_error(client, f"/api/v1/leagues/not-a-number/table/{season.id}")
+        assert_422_validation_error(client, f"/api/v1/leagues/{invalid_id}/table/{season.id}")
 
-    def test_handles_invalid_season_id_type(self, client: TestClient, db_session):
-        """Test that invalid season_id type returns validation error."""
+    def test_handles_negative_and_zero_league_id_for_table(self, client: TestClient, db_session):
+        """Test that negative and zero league_id return 404 for table endpoint."""
+        nation, _comp, season = create_basic_season_setup(db_session)
+        db_session.commit()
+
+        response_neg = client.get(f"/api/v1/leagues/-1/table/{season.id}")
+        response_zero = client.get(f"/api/v1/leagues/0/table/{season.id}")
+        assert response_neg.status_code == 404
+        assert response_zero.status_code == 404
+
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_season_id_types_for_table(self, client: TestClient, db_session, invalid_id):
+        """Test that various invalid season_id types return validation error for table endpoint."""
         nation, comp, _season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        assert_422_validation_error(client, f"/api/v1/leagues/{comp.id}/table/not-a-number")
+        assert_422_validation_error(client, f"/api/v1/leagues/{comp.id}/table/{invalid_id}")
+
+    def test_handles_negative_and_zero_season_id_for_table(self, client: TestClient, db_session):
+        """Test that negative and zero season_id return 404 for table endpoint."""
+        nation, comp, _season = create_basic_season_setup(db_session)
+        db_session.commit()
+
+        response_neg = client.get(f"/api/v1/leagues/{comp.id}/table/-1")
+        response_zero = client.get(f"/api/v1/leagues/{comp.id}/table/0")
+        assert response_neg.status_code == 404
+        assert response_zero.status_code == 404
 
     def test_table_entries_sorted_by_position(self, client: TestClient, db_session):
         """Test that table entries are sorted by position."""

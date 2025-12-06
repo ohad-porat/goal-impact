@@ -2,6 +2,7 @@
 
 from datetime import date
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
@@ -10,6 +11,7 @@ from app.tests.utils.factories import (
     TeamFactory,
 )
 from app.tests.utils.helpers import (
+    assert_422_validation_error,
     assert_empty_list_response,
     create_basic_season_setup,
     create_goal_event,
@@ -95,7 +97,7 @@ class TestGetRecentImpactGoalsRoute:
             )
             return player
 
-        comp1, comp2, player1, player2, nation = create_two_competitions_with_data(
+        comp1, _comp2, player1, _player2, _nation = create_two_competitions_with_data(
             db_session, create_goal_data
         )
 
@@ -119,7 +121,7 @@ class TestGetRecentImpactGoalsRoute:
         assert len(data["goals"]) == 1
 
     def test_returns_top_5_goals_sorted_by_goal_value(self, client: TestClient, db_session):
-        """Test that results are limited to top 5 and sorted correctly."""
+        """Test that results are limited to top 5 and sorted by goal_value descending."""
         nation, comp, season = create_basic_season_setup(db_session)
         home_team = TeamFactory(nation=nation)
         away_team = TeamFactory(nation=nation)
@@ -142,9 +144,11 @@ class TestGetRecentImpactGoalsRoute:
         assert len(data["goals"]) == 5
         assert data["goals"][0]["goal_value"] == 6.0
         assert data["goals"][4]["goal_value"] == 2.0
+        goal_values = [g["goal_value"] for g in data["goals"]]
+        assert goal_values == sorted(goal_values, reverse=True)
 
     def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session):
-        """Test that invalid league_id doesn't cause errors."""
+        """Test that invalid league_id returns empty list without errors."""
         _match, _player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=5.5, minute=10
         )
@@ -154,3 +158,15 @@ class TestGetRecentImpactGoalsRoute:
         assert response.status_code == 200
         data = response.json()
         assert data["goals"] == []
+
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session, invalid_id):
+        """Test that various invalid league_id types return validation error."""
+        assert_422_validation_error(client, f"/api/v1/home/recent-goals?league_id={invalid_id}")
+
+    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session):
+        """Test that negative and zero league_id return validation error or empty results."""
+        response_neg = client.get("/api/v1/home/recent-goals?league_id=-1")
+        response_zero = client.get("/api/v1/home/recent-goals?league_id=0")
+        assert response_neg.status_code in [200, 422]
+        assert response_zero.status_code in [200, 422]

@@ -1,5 +1,6 @@
 """Integration tests for nations router endpoints."""
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
@@ -27,8 +28,8 @@ class TestGetNationsRoute:
 
     def test_returns_all_nations_successfully(self, client: TestClient, db_session):
         """Test that all nations are returned with correct structure."""
-        _nation1 = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
-        _nation2 = NationFactory(name="Spain", country_code="ESP", governing_body="UEFA")
+        nation1 = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
+        nation2 = NationFactory(name="Spain", country_code="ESP", governing_body="UEFA")
         db_session.commit()
 
         response = client.get("/api/v1/nations/")
@@ -269,9 +270,17 @@ class TestGetNationDetailsRoute:
             assert "name" in player
             assert "total_goal_value" in player
 
-    def test_handles_invalid_nation_id_type(self, client: TestClient, db_session):
-        """Test that invalid nation_id type returns validation error."""
-        assert_422_validation_error(client, "/api/v1/nations/not-a-number")
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_nation_id_types(self, client: TestClient, db_session, invalid_id):
+        """Test that various invalid nation_id types return validation error."""
+        assert_422_validation_error(client, f"/api/v1/nations/{invalid_id}")
+
+    def test_handles_negative_and_zero_nation_id(self, client: TestClient, db_session):
+        """Test that negative and zero nation_id return 404."""
+        response_neg = client.get("/api/v1/nations/-1")
+        response_zero = client.get("/api/v1/nations/0")
+        assert response_neg.status_code == 404
+        assert response_zero.status_code == 404
 
     def test_governing_body_defaults_to_na(self, client: TestClient, db_session):
         """Test that governing_body defaults to 'N/A' when None."""

@@ -1,5 +1,7 @@
 """Integration tests for search router endpoints."""
 
+from urllib.parse import quote
+
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
@@ -153,7 +155,7 @@ class TestSearchRoute:
     def test_handles_whitespace_in_query(self, client: TestClient, db_session):
         """Test that whitespace in query is handled correctly."""
         nation = NationFactory()
-        _player = PlayerFactory(name="Alice Smith", nation=nation)
+        player = PlayerFactory(name="Alice Smith", nation=nation)
         db_session.commit()
 
         response = client.get("/api/v1/search/?q=  alice  ")
@@ -161,6 +163,8 @@ class TestSearchRoute:
         assert response.status_code == 200
         data = response.json()
         assert "results" in data
+        result = next((r for r in data["results"] if r["id"] == player.id), None)
+        assert result is not None
 
     def test_limits_results_per_type(self, client: TestClient, db_session):
         """Test that results are limited per type (limit_per_type=5)."""
@@ -194,3 +198,47 @@ class TestSearchRoute:
         ids = {r["id"] for r in player_results}
         assert player1.id in ids
         assert player2.id in ids
+
+    def test_handles_special_characters_in_query(self, client: TestClient, db_session):
+        """Test that special characters in query don't cause server errors (500)."""
+        nation = NationFactory()
+        _player = PlayerFactory(name="Test Player", nation=nation)
+        db_session.commit()
+
+        special_chars = ["@", "#", "$", "%", "&", "*", "(", ")", "[", "]", "{", "}", "|", "\\", "/"]
+        for char in special_chars:
+            encoded_char = quote(char)
+            response = client.get(f"/api/v1/search/?q={encoded_char}")
+            assert response.status_code in [200, 422], f"Character '{char}' caused unexpected status: {response.status_code}"
+            if response.status_code == 200:
+                data = response.json()
+                assert "results" in data
+                assert isinstance(data["results"], list)
+
+    def test_handles_very_long_query(self, client: TestClient, db_session):
+        """Test that very long queries are handled gracefully."""
+        nation = NationFactory()
+        _player = PlayerFactory(name="Test Player", nation=nation)
+        db_session.commit()
+
+        long_query = "a" * 500
+        response = client.get(f"/api/v1/search/?q={long_query}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "results" in data
+        assert isinstance(data["results"], list)
+
+    def test_handles_unicode_characters(self, client: TestClient, db_session):
+        """Test that unicode characters in query are handled correctly."""
+        nation = NationFactory()
+        player = PlayerFactory(name="José María", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=josé")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 1
+        result = next((r for r in data["results"] if r["id"] == player.id), None)
+        assert result is not None
