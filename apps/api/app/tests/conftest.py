@@ -5,6 +5,7 @@ import sys
 import tempfile
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import sessionmaker
@@ -17,6 +18,8 @@ app_dir = os.path.join(api_dir, "app")
 sys.path.insert(0, api_dir)
 sys.path.insert(0, app_dir)
 
+from app.core.database import get_db
+from app.main import app
 from app.models import Base
 from app.tests.utils.factories import (
     CompetitionFactory,
@@ -94,6 +97,24 @@ def temp_db_file():
 
     if os.path.exists(db_path):
         os.unlink(db_path)
+
+
+@pytest.fixture
+def client(db_session):
+    """Create a FastAPI TestClient using the test database session."""
+
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture(autouse=True)

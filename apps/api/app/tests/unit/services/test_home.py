@@ -5,14 +5,17 @@ from datetime import date, timedelta
 from app.services.home import get_recent_impact_goals
 from app.tests.utils.factories import (
     CompetitionFactory,
-    EventFactory,
     MatchFactory,
     NationFactory,
     PlayerFactory,
     SeasonFactory,
     TeamFactory,
 )
-from app.tests.utils.service_helpers import create_basic_season_setup, create_goal_event
+from app.tests.utils.helpers import (
+    create_basic_season_setup,
+    create_goal_event,
+    create_match_with_goal,
+)
 
 
 class TestGetRecentImpactGoals:
@@ -101,19 +104,10 @@ class TestGetRecentImpactGoals:
 
     def test_includes_goals_within_date_range(self, db_session):
         """Test that goals within date range are included."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        home_team = TeamFactory(nation=nation)
-        away_team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
         match_date = date.today() - timedelta(days=3)
-        match = MatchFactory(
-            home_team=home_team, away_team=away_team, season=season, date=match_date
+        _match, _player, _team, _season, _ = create_match_with_goal(
+            db_session, goal_value=5.5, minute=10, match_date=match_date
         )
-
-        create_goal_event(match, player, 10, 0, 1, 0, 0, goal_value=5.5)
-
-        db_session.commit()
 
         result = get_recent_impact_goals(db_session, days=7, limit=5)
 
@@ -152,19 +146,9 @@ class TestGetRecentImpactGoals:
 
     def test_includes_own_goals(self, db_session):
         """Test that own goals are included in results."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        home_team = TeamFactory(nation=nation)
-        away_team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        match_date = date.today()
-        match = MatchFactory(
-            home_team=home_team, away_team=away_team, season=season, date=match_date
+        _match, _player, _team, _season, _ = create_match_with_goal(
+            db_session, goal_value=3.5, minute=10, event_type="own goal"
         )
-
-        create_goal_event(match, player, 10, 0, 1, 0, 0, event_type="own goal", goal_value=3.5)
-
-        db_session.commit()
 
         result = get_recent_impact_goals(db_session, days=7, limit=5)
 
@@ -182,17 +166,7 @@ class TestGetRecentImpactGoals:
             home_team=home_team, away_team=away_team, season=season, date=match_date
         )
 
-        EventFactory(
-            match=match,
-            player=player,
-            event_type="goal",
-            minute=10,
-            home_team_goals_pre_event=0,
-            home_team_goals_post_event=1,
-            away_team_goals_pre_event=0,
-            away_team_goals_post_event=0,
-            goal_value=None,
-        )
+        create_goal_event(match, player, 10, 0, 1, 0, 0, goal_value=None)
 
         db_session.commit()
 
@@ -202,19 +176,10 @@ class TestGetRecentImpactGoals:
 
     def test_formats_match_date_correctly(self, db_session):
         """Test that match date is formatted correctly."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        home_team = TeamFactory(nation=nation)
-        away_team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
         match_date = date(2024, 3, 15)
-        match = MatchFactory(
-            home_team=home_team, away_team=away_team, season=season, date=match_date
+        _match, _player, _team, _season, _ = create_match_with_goal(
+            db_session, goal_value=5.5, minute=10, match_date=match_date
         )
-
-        create_goal_event(match, player, 10, 0, 1, 0, 0, goal_value=5.5)
-
-        db_session.commit()
 
         result = get_recent_impact_goals(db_session, days=7, limit=5)
 
@@ -223,19 +188,9 @@ class TestGetRecentImpactGoals:
 
     def test_formats_score_before_and_after(self, db_session):
         """Test that score before and after are formatted correctly."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        home_team = TeamFactory(nation=nation)
-        away_team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        match_date = date.today()
-        match = MatchFactory(
-            home_team=home_team, away_team=away_team, season=season, date=match_date
+        _match, _player, _team, _season, _ = create_match_with_goal(
+            db_session, goal_value=5.5, minute=10, home_pre=1, home_post=2
         )
-
-        create_goal_event(match, player, 10, 1, 2, 0, 0, goal_value=5.5)
-
-        db_session.commit()
 
         result = get_recent_impact_goals(db_session, days=7, limit=5)
 
@@ -275,19 +230,13 @@ class TestGetRecentImpactGoals:
 
     def test_includes_team_names(self, db_session):
         """Test that team names are included in match info."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        home_team = TeamFactory(name="Home FC", nation=nation)
-        away_team = TeamFactory(name="Away FC", nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        match_date = date.today()
-        match = MatchFactory(
-            home_team=home_team, away_team=away_team, season=season, date=match_date
+        _match, _player, team, _season, _ = create_match_with_goal(
+            db_session,
+            goal_value=5.5,
+            minute=10,
+            home_team_name="Home FC",
+            away_team_name="Away FC",
         )
-
-        create_goal_event(match, player, 10, 0, 1, 0, 0, goal_value=5.5)
-
-        db_session.commit()
 
         result = get_recent_impact_goals(db_session, days=7, limit=5)
 
@@ -297,19 +246,9 @@ class TestGetRecentImpactGoals:
 
     def test_includes_minute(self, db_session):
         """Test that minute is included in result."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        home_team = TeamFactory(nation=nation)
-        away_team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        match_date = date.today()
-        match = MatchFactory(
-            home_team=home_team, away_team=away_team, season=season, date=match_date
+        _match, _player, _team, _season, _ = create_match_with_goal(
+            db_session, goal_value=5.5, minute=45
         )
-
-        create_goal_event(match, player, 45, 0, 1, 0, 0, goal_value=5.5)
-
-        db_session.commit()
 
         result = get_recent_impact_goals(db_session, days=7, limit=5)
 

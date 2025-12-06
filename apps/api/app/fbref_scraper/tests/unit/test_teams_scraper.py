@@ -32,11 +32,12 @@ class TestTeamsScraper:
         db_session.add(nation)
         db_session.commit()
 
-        mocker.patch("requests.get").return_value = mocker.Mock(
+        mock_response = mocker.Mock(
             text="<html><body><table></table></body></html>",
             status_code=200,
             raise_for_status=mocker.Mock(),
         )
+        mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
         mocker.patch("app.fbref_scraper.core.get_config").return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
@@ -77,11 +78,12 @@ class TestTeamsScraper:
         db_session.add(nation)
         db_session.commit()
 
-        mocker.patch("requests.get").return_value = mocker.Mock(
+        mock_response = mocker.Mock(
             text="<html><body><table></table></body></html>",
             status_code=200,
             raise_for_status=mocker.Mock(),
         )
+        mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
         mocker.patch("app.fbref_scraper.core.get_config").return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
@@ -127,11 +129,12 @@ class TestTeamsScraper:
         db_session.add(nation)
         db_session.commit()
 
-        mocker.patch("requests.get").return_value = mocker.Mock(
+        mock_response = mocker.Mock(
             text="<html><body><table></table></body></html>",
             status_code=200,
             raise_for_status=mocker.Mock(),
         )
+        mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
         mocker.patch("app.fbref_scraper.core.get_config").return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
@@ -159,11 +162,12 @@ class TestTeamsScraper:
         db_session.add(nation)
         db_session.commit()
 
-        mocker.patch("requests.get").return_value = mocker.Mock(
+        mock_response = mocker.Mock(
             text="<html><body><table></table></body></html>",
             status_code=200,
             raise_for_status=mocker.Mock(),
         )
+        mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
         mocker.patch("app.fbref_scraper.core.get_config").return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )
@@ -205,6 +209,7 @@ class TestTeamsScraper:
                 return [pd.DataFrame({"Squad": ["PSG"], "Gender": ["M"]})]
             return []
 
+        scraper.load_page = mocker.Mock()
         scraper.fetch_html_table = mocker.Mock(side_effect=mock_fetch_html_table)
 
         def mock_find_elements(_, string):
@@ -250,11 +255,12 @@ class TestTeamsScraper:
         db_session.add(existing_team)
         db_session.commit()
 
-        mocker.patch("requests.get").return_value = mocker.Mock(
+        mock_response = mocker.Mock(
             text="<html><body><table></table></body></html>",
             status_code=200,
             raise_for_status=mocker.Mock(),
         )
+        mocker.patch.object(scraper.http_session, "get", return_value=mock_response)
         mocker.patch("app.fbref_scraper.core.get_config").return_value = mocker.Mock(
             FBREF_BASE_URL="https://fbref.com"
         )

@@ -14,7 +14,7 @@ from app.tests.utils.factories import (
     TeamFactory,
     TeamStatsFactory,
 )
-from app.tests.utils.service_helpers import (
+from app.tests.utils.helpers import (
     create_assist_event,
     create_basic_season_setup,
     create_goal_event,

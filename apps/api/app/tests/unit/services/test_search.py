@@ -8,7 +8,7 @@ from app.tests.utils.factories import (
     PlayerStatsFactory,
     TeamFactory,
 )
-from app.tests.utils.service_helpers import create_basic_season_setup
+from app.tests.utils.helpers import create_basic_season_setup
 
 
 class TestSearchAll:
