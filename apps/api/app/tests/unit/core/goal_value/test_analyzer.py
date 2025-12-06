@@ -15,7 +15,7 @@ class TestInit:
         """Test that analyzer initializes with data processor and repository."""
         mocker.patch("app.core.goal_value.analyzer.GoalDataProcessor")
         mocker.patch("app.core.goal_value.analyzer.GoalValueRepository")
-        
+
         analyzer = GoalValueAnalyzer()
 
         assert analyzer.data_processor is not None
@@ -289,6 +289,8 @@ class TestShowGoalDetails:
         """Test that method requires both minute and score_diff."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
+        analyzer.data_processor = mocker.Mock()
+        analyzer.data_processor.query_goals.return_value = []
         analyzer.repository = mocker.Mock()
         analyzer.repository.load_goal_values.return_value = {}
 

@@ -5,7 +5,7 @@ from collections import defaultdict
 import pytest
 
 from app.core.goal_value.calculator import GoalValueCalculator
-from app.core.goal_value.utils import MAX_MINUTE, MIN_MINUTE, MIN_SCORE_DIFF, NOISE_THRESHOLD
+from app.core.goal_value.utils import MAX_MINUTE, MIN_MINUTE, MIN_SCORE_DIFF
 
 FLOAT_TOLERANCE = 0.0001
 
@@ -17,7 +17,7 @@ class TestInit:
         """Test that calculator initializes with data processor and repository."""
         mocker.patch("app.core.goal_value.calculator.GoalDataProcessor")
         mocker.patch("app.core.goal_value.calculator.GoalValueRepository")
-        
+
         calculator = GoalValueCalculator()
 
         assert calculator.data_processor is not None
