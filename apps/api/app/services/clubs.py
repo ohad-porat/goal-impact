@@ -37,9 +37,20 @@ from app.services.players import transform_player_stats
 def get_top_clubs_for_nation_core(
     db: Session, nation_id: int, limit: int = 10, tier: str = "1st"
 ) -> list[ClubSummary]:
-    """Get top clubs for a nation by average position."""
+    """Get top clubs for a nation by average league position.
+
+    Args:
+        db: Database session
+        nation_id: ID of the nation
+        limit: Max clubs to return (default: 10)
+        tier: Competition tier to filter by (default: "1st")
+
+    Returns:
+        List of ClubSummary sorted by average position (ascending), then name.
+    """
+    avg_position = func.avg(TeamStats.ranking).label("avg_position")
     teams_with_avg_position = (
-        db.query(Team.id, Team.name, func.avg(TeamStats.ranking).label("avg_position"))
+        db.query(Team.id, Team.name, avg_position)
         .join(TeamStats)
         .join(Season)
         .join(Competition)
@@ -47,7 +58,7 @@ def get_top_clubs_for_nation_core(
             Team.nation_id == nation_id, Competition.tier == tier, TeamStats.ranking.isnot(None)
         )
         .group_by(Team.id, Team.name)
-        .order_by("avg_position", Team.name)
+        .order_by(avg_position, Team.name)
         .limit(limit)
         .all()
     )
@@ -59,7 +70,17 @@ def get_top_clubs_for_nation_core(
 
 
 def get_clubs_by_nation(db: Session, limit_per_nation: int = 5) -> list[ClubByNation]:
-    """Get top clubs per nation based on average finishing position in tier 1 leagues."""
+    """Get top clubs per nation based on average finishing position in tier 1 leagues.
+
+    Calculates average position, ranks teams per nation, and returns top N per nation.
+
+    Args:
+        db: Database session
+        limit_per_nation: Max clubs per nation (default: 5)
+
+    Returns:
+        List of ClubByNation objects with top clubs sorted by average position.
+    """
     tier = "1st"
 
     team_avg_subquery = (
@@ -131,7 +152,20 @@ def get_clubs_by_nation(db: Session, limit_per_nation: int = 5) -> list[ClubByNa
 
 
 def get_club_with_seasons(db: Session, club_id: int) -> tuple[ClubInfo | None, list[SeasonStats]]:
-    """Get club information with all season statistics."""
+    """Get club information with all season statistics.
+
+    Retrieves comprehensive club information including all seasons the club has
+    participated in, with full statistics for each season.
+
+    Args:
+        db: Database session
+        club_id: ID of the club/team
+
+    Returns:
+        Tuple containing:
+        - ClubInfo object or None if club not found
+        - List of SeasonStats objects, sorted by start_year descending, then competition name
+    """
     team = db.query(Team).options(joinedload(Team.nation)).filter(Team.id == club_id).first()
 
     if not team:
@@ -181,7 +215,24 @@ def get_club_with_seasons(db: Session, club_id: int) -> tuple[ClubInfo | None, l
 def get_team_season_squad_stats(
     db: Session, team_id: int, season_id: int
 ) -> tuple[ClubInfo | None, SeasonDisplay | None, CompetitionDisplay | None, list[SquadPlayer]]:
-    """Get team squad with player statistics for a specific season."""
+    """Get team squad with player statistics for a specific season.
+
+    Retrieves all players who played for the team in the specified season,
+    along with their complete statistics. Players are sorted by goal value
+    (descending).
+
+    Args:
+        db: Database session
+        team_id: ID of the team
+        season_id: ID of the season
+
+    Returns:
+        Tuple containing:
+        - ClubInfo or None if team not found
+        - SeasonDisplay or None if season not found
+        - CompetitionDisplay or None if season not found
+        - List of SquadPlayer objects, sorted by goal_value descending
+    """
     team = db.query(Team).options(joinedload(Team.nation)).filter(Team.id == team_id).first()
     if not team:
         return None, None, None, []
@@ -230,7 +281,20 @@ def get_team_season_squad_stats(
 def get_team_season_goal_log(
     db: Session, team_id: int, season_id: int
 ) -> tuple[ClubInfo | None, SeasonDisplay | None, CompetitionDisplay | None, list[GoalLogEntry]]:
-    """Get goal log for a team in a specific season."""
+    """Get goal log for a team in a specific season.
+
+    Includes scorer, assist, opponent, score, goal value, and xG metrics.
+    Goals are matched to assists by match_id and minute.
+
+    Args:
+        db: Database session
+        team_id: ID of the team
+        season_id: ID of the season
+
+    Returns:
+        Tuple of (ClubInfo, SeasonDisplay, CompetitionDisplay, list[GoalLogEntry]).
+        Returns None values if team/season not found. Goals sorted by date and minute.
+    """
     team = db.query(Team).options(joinedload(Team.nation)).filter(Team.id == team_id).first()
     if not team:
         return None, None, None, []

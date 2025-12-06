@@ -8,18 +8,36 @@ from app.models.nations import Nation
 from app.models.player_stats import PlayerStats
 from app.models.players import Player
 from app.models.seasons import Season
-from app.schemas.nations import NationSummary
+from app.schemas.nations import CompetitionSummary, NationSummary, PlayerSummary
+
+DEFAULT_TIER_ORDER = 50
+UNKNOWN_TIER_ORDER = 99
 
 
 def tier_order(tier: str | None) -> int:
-    """Order tiers for sorting competitions."""
+    """Order tiers for sorting competitions.
+
+    Args:
+        tier: The tier string (e.g., "1st", "2nd", "3rd") or None
+
+    Returns:
+        Integer order value for sorting (lower = higher priority)
+    """
     if tier is None:
-        return 99
-    return {"1st": 1, "2nd": 2, "3rd": 3}.get(tier, 50)
+        return UNKNOWN_TIER_ORDER
+    return {"1st": 1, "2nd": 2, "3rd": 3}.get(tier, DEFAULT_TIER_ORDER)
 
 
-def get_competitions_for_nation(db: Session, nation_id: int) -> list[dict]:
-    """Get competitions for a specific nation."""
+def get_competitions_for_nation(db: Session, nation_id: int) -> list[CompetitionSummary]:
+    """Get competitions for a specific nation.
+
+    Args:
+        db: Database session
+        nation_id: ID of the nation to get competitions for
+
+    Returns:
+        List of CompetitionSummary objects, sorted by tier then name
+    """
     rows = (
         db.query(
             Competition.id,
@@ -34,16 +52,16 @@ def get_competitions_for_nation(db: Session, nation_id: int) -> list[dict]:
     )
 
     data = [
-        {
-            "id": row.id,
-            "name": row.name,
-            "tier": row.tier,
-            "season_count": int(row.season_count or 0),
-            "has_seasons": (row.season_count or 0) > 0,
-        }
+        CompetitionSummary(
+            id=row.id,
+            name=row.name,
+            tier=row.tier,
+            season_count=int(row.season_count or 0),
+            has_seasons=(row.season_count or 0) > 0,
+        )
         for row in rows
     ]
-    data.sort(key=lambda x: (tier_order(x["tier"]), x["name"]))
+    data.sort(key=lambda x: (tier_order(x.tier), x.name))
     return data
 
 
@@ -75,8 +93,17 @@ def get_all_nations_with_player_count(db: Session) -> list[NationSummary]:
     ]
 
 
-def get_top_players_for_nation(db: Session, nation_id: int, limit: int = 20) -> list[dict]:
-    """Get top players for a nation by total goal value."""
+def get_top_players_for_nation(db: Session, nation_id: int, limit: int = 20) -> list[PlayerSummary]:
+    """Get top players for a nation by total goal value.
+
+    Args:
+        db: Database session
+        nation_id: ID of the nation to get players for
+        limit: Maximum number of players to return (default: 20)
+
+    Returns:
+        List of PlayerSummary objects, sorted by total goal value descending
+    """
     rows = (
         db.query(
             Player.id,
@@ -92,10 +119,10 @@ def get_top_players_for_nation(db: Session, nation_id: int, limit: int = 20) -> 
     )
 
     return [
-        {
-            "id": row.id,
-            "name": row.name,
-            "total_goal_value": float(row.total_goal_value or 0.0),
-        }
+        PlayerSummary(
+            id=row.id,
+            name=row.name,
+            total_goal_value=float(row.total_goal_value or 0.0),
+        )
         for row in rows
     ]

@@ -12,8 +12,20 @@ from app.schemas.search import SearchResult
 
 
 def search_all(db: Session, query: str, limit_per_type: int = 1) -> list[SearchResult]:
-    """Search across players, clubs, competitions, and nations with prefix preference."""
-    if not query or len(query.strip()) == 0:
+    """Search across players, clubs, competitions, and nations with prefix preference.
+
+    Prefix matches (name starts with query) are returned before contains matches.
+    Players are sorted by matches played; other types have no specific ordering.
+
+    Args:
+        db: Database session
+        query: Search query string (lowercased and trimmed)
+        limit_per_type: Max results per entity type (default: 1)
+
+    Returns:
+        List of SearchResult objects: prefix matches first, then contains matches.
+    """
+    if not query or not query.strip():
         return []
 
     query_lower = query.lower().strip()

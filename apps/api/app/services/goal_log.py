@@ -11,7 +11,16 @@ from app.services.common import build_club_info
 
 
 def is_goal_for_team(goal_event: Event, match: Match, team_id: int) -> bool:
-    """Determine if a goal was scored FOR the specified team."""
+    """Determine if a goal was scored FOR the specified team.
+
+    Args:
+        goal_event: The Event object representing the goal
+        match: The Match object containing the goal event
+        team_id: The ID of the team to check
+
+    Returns:
+        True if the goal was scored for the specified team, False otherwise
+    """
     if (
         goal_event.home_team_goals_post_event is None
         or goal_event.home_team_goals_pre_event is None
@@ -28,7 +37,15 @@ def is_goal_for_team(goal_event: Event, match: Match, team_id: int) -> bool:
 
 
 def format_score(goal_event: Event) -> tuple[str, str]:
-    """Format score before and after the goal."""
+    """Format score before and after the goal.
+
+    Args:
+        goal_event: The Event object representing the goal
+
+    Returns:
+        Tuple of (score_before, score_after) as formatted strings (e.g., "1-0")
+        Returns ("", "") if score data is incomplete
+    """
     if (
         goal_event.home_team_goals_pre_event is None
         or goal_event.away_team_goals_pre_event is None
@@ -60,7 +77,15 @@ def format_scorer_name(scorer: Player, event_type: str) -> str:
 
 
 def get_venue_for_team(match: Match, team_id: int) -> str:
-    """Get venue (Home/Away) for a team in a match."""
+    """Get venue (Home/Away) for a team in a match.
+
+    Args:
+        match: The Match object
+        team_id: The ID of the team to check
+
+    Returns:
+        "Home" if the team is the home team, "Away" otherwise
+    """
     return "Home" if match.home_team_id == team_id else "Away"
 
 
@@ -108,8 +133,18 @@ def _format_date(date_obj: date | None) -> str:
 def sort_and_format_team_season_goal_entries(
     goal_entries_with_date: list[tuple[date | None, GoalLogEntry]],
 ) -> list[GoalLogEntry]:
-    """Sort team season goal entries by date and minute, then format dates."""
-    goal_entries_with_date.sort(key=lambda g: (g[0] if g[0] is not None else "", g[1].minute))
+    """Sort team season goal entries by date and minute, then format dates.
+
+    Entries with None dates are sorted last (using date.max as sentinel).
+
+    Args:
+        goal_entries_with_date: List of tuples containing (date, GoalLogEntry)
+
+    Returns:
+        Sorted list of GoalLogEntry objects with formatted dates
+    """
+    # Use date.max as sentinel for None dates to ensure they sort last
+    goal_entries_with_date.sort(key=lambda g: (g[0] if g[0] is not None else date.max, g[1].minute))
 
     goal_entries = []
     for date_obj, goal_entry in goal_entries_with_date:
