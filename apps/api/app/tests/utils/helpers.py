@@ -118,11 +118,24 @@ def create_match_with_goal(
     home_post=1,
     away_pre=0,
     away_post=0,
+    home_team_name=None,
+    away_team_name=None,
+    event_type="goal",
+    xg=None,
+    post_shot_xg=None,
 ):
     """Create a match with a goal event, optionally with assist."""
     nation, comp, season = create_basic_season_setup(db_session)
-    team = TeamFactory(nation=nation)
-    opponent = TeamFactory(nation=nation)
+    team = (
+        TeamFactory(name=home_team_name, nation=nation)
+        if home_team_name
+        else TeamFactory(nation=nation)
+    )
+    opponent = (
+        TeamFactory(name=away_team_name, nation=nation)
+        if away_team_name
+        else TeamFactory(nation=nation)
+    )
     player = PlayerFactory(nation=nation)
 
     if match_date is None:
@@ -136,7 +149,17 @@ def create_match_with_goal(
         create_assist_event(match, assister, minute, home_pre, home_post, away_pre, away_post)
 
     create_goal_event(
-        match, player, minute, home_pre, home_post, away_pre, away_post, goal_value=goal_value
+        match,
+        player,
+        minute,
+        home_pre,
+        home_post,
+        away_pre,
+        away_post,
+        goal_value=goal_value,
+        event_type=event_type,
+        xg=xg,
+        post_shot_xg=post_shot_xg,
     )
     db_session.commit()
     return match, player, team, season, assister

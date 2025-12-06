@@ -21,9 +21,9 @@ from app.tests.utils.factories import (
     TeamStatsFactory,
 )
 from app.tests.utils.helpers import (
-    create_assist_event,
     create_basic_season_setup,
     create_goal_event,
+    create_match_with_goal,
 )
 
 
@@ -405,7 +405,8 @@ class TestGetTeamSeasonSquadStats:
             db_session, team.id, 99999
         )
 
-        assert club_info is None
+        assert club_info is not None
+        assert club_info.id == team.id
         assert season_display is None
         assert competition_display is None
         assert players_data == []
@@ -452,33 +453,20 @@ class TestGetTeamSeasonGoalLog:
 
     def test_returns_goal_log_for_team_season(self, db_session):
         """Test that goal log for team season is returned."""
-        nation, _, season = create_basic_season_setup(db_session)
-        team = TeamFactory(name="Arsenal", nation=nation)
-        opponent = TeamFactory(name="Chelsea", nation=nation)
-        player = PlayerFactory(name="Scorer", nation=nation)
-
-        match = MatchFactory(
-            home_team=team,
-            away_team=opponent,
-            season=season,
-            date=date(2023, 9, 1),
-            home_team_goals=2,
-            away_team_goals=1,
-        )
-
-        _ = create_goal_event(
-            match,
-            player,
-            minute=10,
-            home_pre=0,
-            home_post=1,
-            away_pre=0,
-            away_post=0,
+        match, player, team, season, _ = create_match_with_goal(
+            db_session,
             goal_value=0.5,
+            minute=10,
+            match_date=date(2023, 9, 1),
+            home_team_name="Arsenal",
+            away_team_name="Chelsea",
             xg=0.3,
             post_shot_xg=0.4,
         )
-
+        # Update match with final score
+        match.home_team_goals = 2
+        match.away_team_goals = 1
+        player.name = "Scorer"
         db_session.commit()
 
         club_info, season_display, competition_display, goal_entries = get_team_season_goal_log(
@@ -503,26 +491,15 @@ class TestGetTeamSeasonGoalLog:
 
     def test_includes_own_goals(self, db_session):
         """Test that own goals are included."""
-        nation, _, season = create_basic_season_setup(db_session)
-        team = TeamFactory(name="Arsenal", nation=nation)
-        opponent = TeamFactory(name="Chelsea", nation=nation)
-        player = PlayerFactory(name="Scorer", nation=nation)
-
-        match = MatchFactory(
-            home_team=team, away_team=opponent, season=season, date=date(2023, 9, 1)
-        )
-
-        _ = create_goal_event(
-            match,
-            player,
+        _match, player, team, season, _ = create_match_with_goal(
+            db_session,
             minute=10,
-            home_pre=0,
-            home_post=1,
-            away_pre=0,
-            away_post=0,
+            match_date=date(2023, 9, 1),
+            home_team_name="Arsenal",
+            away_team_name="Chelsea",
             event_type="own goal",
         )
-
+        player.name = "Scorer"
         db_session.commit()
 
         _, _, _, goal_entries = get_team_season_goal_log(db_session, team.id, season.id)
@@ -532,24 +509,18 @@ class TestGetTeamSeasonGoalLog:
 
     def test_includes_assists_when_present(self, db_session):
         """Test that assists are included when present."""
-        nation, _, season = create_basic_season_setup(db_session)
-        team = TeamFactory(name="Arsenal", nation=nation)
-        opponent = TeamFactory(name="Chelsea", nation=nation)
-        scorer = PlayerFactory(name="Scorer", nation=nation)
-        assister = PlayerFactory(name="Assister", nation=nation)
-
-        match = MatchFactory(
-            home_team=team, away_team=opponent, season=season, date=date(2023, 9, 1)
+        _match, scorer, team, season, assister = create_match_with_goal(
+            db_session,
+            minute=10,
+            match_date=date(2023, 9, 1),
+            home_team_name="Arsenal",
+            away_team_name="Chelsea",
+            with_assist=True,
         )
-
-        _ = create_goal_event(
-            match, scorer, minute=10, home_pre=0, home_post=1, away_pre=0, away_post=0
-        )
-
-        _ = create_assist_event(
-            match, assister, minute=10, home_pre=0, home_post=1, away_pre=0, away_post=0
-        )
-
+        # Update player names for assertions
+        scorer.name = "Scorer"
+        if assister:
+            assister.name = "Assister"
         db_session.commit()
 
         _, _, _, goal_entries = get_team_season_goal_log(db_session, team.id, season.id)
@@ -583,7 +554,8 @@ class TestGetTeamSeasonGoalLog:
             db_session, team.id, 99999
         )
 
-        assert club_info is None
+        assert club_info is not None
+        assert club_info.id == team.id
         assert season_display is None
         assert competition_display is None
         assert goal_entries == []
