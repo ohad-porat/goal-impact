@@ -85,7 +85,9 @@ class TestAggregatePlayerGoalValues:
         event2 = (1, 1, 1, 0, 0, 0, 0.75, 1, 2)
         event3 = (1, 1, 1, 0, 0, 0, 1.0, 1, 2)
 
-        updater.session = create_mock_session_with_queries(mocker, [player_stat], [event1, event2, event3])
+        updater.session = create_mock_session_with_queries(
+            mocker, [player_stat], [event1, event2, event3]
+        )
 
         updater._aggregate_player_goal_values()
 

@@ -188,11 +188,7 @@ def create_mock_session_with_queries(mocker, player_stats, events):
     mock_query2.join.return_value.filter.return_value.all.return_value = events
 
     def query_side_effect(*args):
-        if (
-            len(args) == 1
-            and hasattr(args[0], "__name__")
-            and args[0].__name__ == "PlayerStats"
-        ):
+        if len(args) == 1 and hasattr(args[0], "__name__") and args[0].__name__ == "PlayerStats":
             return mock_query1
         return mock_query2
 

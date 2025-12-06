@@ -29,13 +29,16 @@ class TestInit:
 class TestGetCalculationWindow:
     """Tests for _get_calculation_window method."""
 
-    @pytest.mark.parametrize("minute,expected_start,expected_end", [
-        (45, 43, 47),
-        (MIN_MINUTE, MIN_MINUTE, 3),
-        (MAX_MINUTE, 93, MAX_MINUTE),
-        (2, MIN_MINUTE, 4),
-        (94, 92, MAX_MINUTE),
-    ])
+    @pytest.mark.parametrize(
+        "minute,expected_start,expected_end",
+        [
+            (45, 43, 47),
+            (MIN_MINUTE, MIN_MINUTE, 3),
+            (MAX_MINUTE, 93, MAX_MINUTE),
+            (2, MIN_MINUTE, 4),
+            (94, 92, MAX_MINUTE),
+        ],
+    )
     def test_returns_window_for_minute(self, minute, expected_start, expected_end):
         """Test that method returns correct window for various minutes."""
         calculator = GoalValueCalculator()
