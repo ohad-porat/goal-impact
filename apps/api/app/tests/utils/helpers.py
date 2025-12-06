@@ -177,3 +177,21 @@ def create_two_competitions_with_data(db_session, create_data_func, start_year=2
     data2 = create_data_func(season2, nation)
     db_session.commit()
     return comp1, comp2, data1, data2, nation
+
+
+def create_mock_session_with_queries(mocker, player_stats, events):
+    """Return a configured mock session with query side effects for testing PlayerStatsGoalValueUpdater."""
+    mock_query1 = mocker.Mock()
+    mock_query1.all.return_value = player_stats
+
+    mock_query2 = mocker.Mock()
+    mock_query2.join.return_value.filter.return_value.all.return_value = events
+
+    def query_side_effect(*args):
+        if len(args) == 1 and hasattr(args[0], "__name__") and args[0].__name__ == "PlayerStats":
+            return mock_query1
+        return mock_query2
+
+    session = mocker.Mock()
+    session.query.side_effect = query_side_effect
+    return session

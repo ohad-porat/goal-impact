@@ -463,7 +463,6 @@ class TestGetTeamSeasonGoalLog:
             xg=0.3,
             post_shot_xg=0.4,
         )
-        # Update match with final score
         match.home_team_goals = 2
         match.away_team_goals = 1
         player.name = "Scorer"
@@ -517,7 +516,6 @@ class TestGetTeamSeasonGoalLog:
             away_team_name="Chelsea",
             with_assist=True,
         )
-        # Update player names for assertions
         scorer.name = "Scorer"
         if assister:
             assister.name = "Assister"
