@@ -156,7 +156,12 @@ def get_league_table_for_season(
         db.query(Season).filter(Season.id == season_id, Season.competition_id == league_id).first()
     )
     if not season:
-        return None, None, []
+        league_info = LeagueInfo(
+            id=competition.id,
+            name=competition.name,
+            country=competition.nation.name if competition.nation else "Unknown",
+        )
+        return league_info, None, []
 
     team_stats = (
         db.query(TeamStats)

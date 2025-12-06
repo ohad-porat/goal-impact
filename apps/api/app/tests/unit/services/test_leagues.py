@@ -319,17 +319,19 @@ class TestGetLeagueTableForSeason:
         assert table == []
 
     def test_returns_none_when_season_not_found(self, db_session):
-        """Test that None is returned when season doesn't exist."""
+        """Test that league_info is returned but season_info is None when season doesn't exist."""
         nation, comp, _ = create_basic_season_setup(db_session)
 
         league_info, season_info, table = get_league_table_for_season(db_session, comp.id, 99999)
 
-        assert league_info is None
+        assert league_info is not None
+        assert league_info.id == comp.id
+        assert league_info.name == comp.name
         assert season_info is None
         assert table == []
 
     def test_returns_none_when_season_not_for_league(self, db_session):
-        """Test that None is returned when season doesn't belong to league."""
+        """Test that league_info is returned but season_info is None when season doesn't belong to league."""
         nation = NationFactory()
         comp1 = CompetitionFactory(nation=nation)
         comp2 = CompetitionFactory(nation=nation)
@@ -342,7 +344,9 @@ class TestGetLeagueTableForSeason:
             db_session, comp1.id, season2.id
         )
 
-        assert league_info is None
+        assert league_info is not None
+        assert league_info.id == comp1.id
+        assert league_info.name == comp1.name
         assert season_info is None
         assert table == []
 

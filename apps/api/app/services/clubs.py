@@ -193,7 +193,7 @@ def get_team_season_squad_stats(
         .first()
     )
     if not season:
-        return None, None, None, []
+        return build_club_info(team), None, None, []
 
     player_stats_query = (
         db.query(PlayerStats, Player)
@@ -242,7 +242,7 @@ def get_team_season_goal_log(
         .first()
     )
     if not season:
-        return None, None, None, []
+        return build_club_info(team), None, None, []
 
     EventAssist = aliased(Event)
     PlayerAssist = aliased(Player)
