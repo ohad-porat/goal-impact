@@ -262,7 +262,6 @@ class BaseScraper(ABC):
 
     def log_failed_record(self, record_type: str, record_identifier: str, error: str) -> None:
         """Log a failed record to the failed records file."""
-        # Skip file logging during tests
         if _is_testing():
             return
 

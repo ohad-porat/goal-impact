@@ -76,13 +76,13 @@ class TestCalculateGoalValueAvg:
     @pytest.mark.parametrize(
         "total_value,total_goals,expected",
         [
-            (10.0, 5, 2.0),  # Valid data
-            (7.5, 3, 2.5),  # Float result
-            (10.0, 0, None),  # Zero goals
-            (10.0, None, None),  # None total_goals
-            (None, 5, None),  # None total_goal_value
-            (0.0, 5, None),  # Zero goal value
-            (None, None, None),  # Both None
+            (10.0, 5, 2.0),
+            (7.5, 3, 2.5),
+            (10.0, 0, None),
+            (10.0, None, None),
+            (None, 5, None),
+            (0.0, 5, None),
+            (None, None, None),
         ],
     )
     def test_calculate_goal_value_avg(self, total_value, total_goals, expected):
