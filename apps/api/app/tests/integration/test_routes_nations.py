@@ -22,11 +22,11 @@ from app.tests.utils.helpers import (
 class TestGetNationsRoute:
     """Tests for GET /api/v1/nations/ endpoint."""
 
-    def test_returns_empty_list_when_no_nations(self, client: TestClient, db_session):
+    def test_returns_empty_list_when_no_nations(self, client: TestClient, db_session) -> None:
         """Test that empty list is returned when no nations exist."""
         assert_empty_list_response(client, "/api/v1/nations/", "nations")
 
-    def test_returns_all_nations_successfully(self, client: TestClient, db_session):
+    def test_returns_all_nations_successfully(self, client: TestClient, db_session) -> None:
         """Test that all nations are returned with correct structure."""
         _nation1 = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
         _nation2 = NationFactory(name="Spain", country_code="ESP", governing_body="UEFA")
@@ -41,7 +41,7 @@ class TestGetNationsRoute:
         assert "England" in nations_dict
         assert "Spain" in nations_dict
 
-    def test_includes_player_count(self, client: TestClient, db_session):
+    def test_includes_player_count(self, client: TestClient, db_session) -> None:
         """Test that player_count is included in response."""
         nation = NationFactory()
         PlayerFactory(nation=nation)
@@ -56,7 +56,9 @@ class TestGetNationsRoute:
         assert nation_data is not None
         assert nation_data["player_count"] == 2
 
-    def test_sets_player_count_to_zero_when_no_players(self, client: TestClient, db_session):
+    def test_sets_player_count_to_zero_when_no_players(
+        self, client: TestClient, db_session
+    ) -> None:
         """Test that player_count is 0 when nation has no players."""
         _nation = NationFactory(name="New Nation", country_code="NEW")
         db_session.commit()
@@ -69,7 +71,7 @@ class TestGetNationsRoute:
         assert nation_data is not None
         assert nation_data["player_count"] == 0
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session):
+    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
         """Test that response structure matches the expected schema."""
         nation = NationFactory(name="Test Nation", country_code="TST", governing_body="UEFA")
         db_session.commit()
@@ -93,7 +95,7 @@ class TestGetNationsRoute:
                 assert isinstance(nation_data["name"], str)
                 assert isinstance(nation_data["player_count"], int)
 
-    def test_includes_governing_body(self, client: TestClient, db_session):
+    def test_includes_governing_body(self, client: TestClient, db_session) -> None:
         """Test that governing_body is included in response."""
         nation = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
         db_session.commit()
@@ -106,7 +108,7 @@ class TestGetNationsRoute:
         assert nation_data is not None
         assert nation_data["governing_body"] == "UEFA"
 
-    def test_sets_governing_body_to_na_when_none(self, client: TestClient, db_session):
+    def test_sets_governing_body_to_na_when_none(self, client: TestClient, db_session) -> None:
         """Test that governing_body is 'N/A' when None."""
         nation = NationFactory(name="New Nation", country_code="NEW", governing_body=None)
         db_session.commit()
@@ -119,7 +121,7 @@ class TestGetNationsRoute:
         assert nation_data is not None
         assert nation_data["governing_body"] == "N/A"
 
-    def test_sorts_nations_by_name(self, client: TestClient, db_session):
+    def test_sorts_nations_by_name(self, client: TestClient, db_session) -> None:
         """Test that nations are sorted by name."""
         NationFactory(name="Zimbabwe", country_code="ZWE")
         NationFactory(name="Argentina", country_code="ARG")
@@ -140,11 +142,11 @@ class TestGetNationsRoute:
 class TestGetNationDetailsRoute:
     """Tests for GET /api/v1/nations/{nation_id} endpoint."""
 
-    def test_returns_404_when_nation_not_found(self, client: TestClient, db_session):
+    def test_returns_404_when_nation_not_found(self, client: TestClient, db_session) -> None:
         """Test that 404 is returned when nation doesn't exist."""
         assert_404_not_found(client, "/api/v1/nations/99999")
 
-    def test_returns_nation_details_successfully(self, client: TestClient, db_session):
+    def test_returns_nation_details_successfully(self, client: TestClient, db_session) -> None:
         """Test that nation details are returned with correct structure."""
         nation = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
         db_session.commit()
@@ -164,7 +166,7 @@ class TestGetNationDetailsRoute:
         assert isinstance(data["clubs"], list)
         assert isinstance(data["players"], list)
 
-    def test_includes_competitions(self, client: TestClient, db_session):
+    def test_includes_competitions(self, client: TestClient, db_session) -> None:
         """Test that competitions are included in response."""
         nation = NationFactory()
         _comp1 = CompetitionFactory(name="Premier League", nation=nation, tier="1st")
@@ -180,7 +182,7 @@ class TestGetNationDetailsRoute:
         assert "Premier League" in comp_names
         assert "Championship" in comp_names
 
-    def test_includes_clubs(self, client: TestClient, db_session):
+    def test_includes_clubs(self, client: TestClient, db_session) -> None:
         """Test that clubs are included in response."""
         nation, _comp, season = create_basic_season_setup(db_session)
         team1 = TeamFactory(name="Arsenal FC", nation=nation)
@@ -197,7 +199,7 @@ class TestGetNationDetailsRoute:
         club_names = [c["name"] for c in data["clubs"]]
         assert "Arsenal FC" in club_names or "Chelsea FC" in club_names
 
-    def test_includes_players(self, client: TestClient, db_session):
+    def test_includes_players(self, client: TestClient, db_session) -> None:
         """Test that players are included in response."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -216,7 +218,7 @@ class TestGetNationDetailsRoute:
         player_names = [p["name"] for p in data["players"]]
         assert "Player 1" in player_names or "Player 2" in player_names
 
-    def test_returns_empty_lists_when_no_data(self, client: TestClient, db_session):
+    def test_returns_empty_lists_when_no_data(self, client: TestClient, db_session) -> None:
         """Test that empty lists are returned when nation has no competitions/clubs/players."""
         nation = NationFactory()
         db_session.commit()
@@ -230,7 +232,7 @@ class TestGetNationDetailsRoute:
         assert data["clubs"] == []
         assert data["players"] == []
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session):
+    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
         """Test that response structure matches the expected schema."""
         nation = NationFactory(name="Test Nation", country_code="TST", governing_body="UEFA")
         db_session.commit()
@@ -273,18 +275,18 @@ class TestGetNationDetailsRoute:
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_nation_id_types(
         self, client: TestClient, db_session, invalid_id
-    ):
+    ) -> None:
         """Test that various invalid nation_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/nations/{invalid_id}")
 
-    def test_handles_negative_and_zero_nation_id(self, client: TestClient, db_session):
+    def test_handles_negative_and_zero_nation_id(self, client: TestClient, db_session) -> None:
         """Test that negative and zero nation_id return 404."""
         response_neg = client.get("/api/v1/nations/-1")
         response_zero = client.get("/api/v1/nations/0")
         assert response_neg.status_code == 404
         assert response_zero.status_code == 404
 
-    def test_governing_body_defaults_to_na(self, client: TestClient, db_session):
+    def test_governing_body_defaults_to_na(self, client: TestClient, db_session) -> None:
         """Test that governing_body defaults to 'N/A' when None."""
         nation = NationFactory(name="Test Nation", country_code="TST", governing_body=None)
         db_session.commit()
@@ -295,7 +297,7 @@ class TestGetNationDetailsRoute:
         data = response.json()
         assert data["nation"]["governing_body"] == "N/A"
 
-    def test_limits_clubs_to_top_10(self, client: TestClient, db_session):
+    def test_limits_clubs_to_top_10(self, client: TestClient, db_session) -> None:
         """Test that clubs are limited to top 10."""
         nation = NationFactory()
         for i in range(15):
@@ -308,7 +310,7 @@ class TestGetNationDetailsRoute:
         data = response.json()
         assert len(data["clubs"]) <= 10
 
-    def test_limits_players_to_top_20(self, client: TestClient, db_session):
+    def test_limits_players_to_top_20(self, client: TestClient, db_session) -> None:
         """Test that players are limited to top 20."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)

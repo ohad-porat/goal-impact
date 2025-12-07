@@ -9,7 +9,7 @@ from app.tests.utils.helpers import create_mock_session_with_queries
 class TestInit:
     """Tests for __init__ method."""
 
-    def test_initializes_with_dependencies(self, mocker):
+    def test_initializes_with_dependencies(self, mocker) -> None:
         """Test that updater initializes with session and counters."""
         mocker.patch("app.core.goal_value.player_stats_updater.Session")
         updater = PlayerStatsGoalValueUpdater()
@@ -25,7 +25,7 @@ class TestInit:
 class TestAggregatePlayerGoalValues:
     """Tests for _aggregate_player_goal_values method."""
 
-    def test_initializes_all_player_stats_with_zeros(self, mocker):
+    def test_initializes_all_player_stats_with_zeros(self, mocker) -> None:
         """Test that method initializes all player stats with zero values."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -50,7 +50,7 @@ class TestAggregatePlayerGoalValues:
         assert updater.aggregated_data[(1, 1, 1)]["gv_avg"] == 0.0
         assert updater.aggregated_data[(1, 1, 1)]["goal_count"] == 0
 
-    def test_aggregates_goal_values_by_player_season_team(self, mocker):
+    def test_aggregates_goal_values_by_player_season_team(self, mocker) -> None:
         """Test that method aggregates goal values by player, season, and team."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -71,7 +71,7 @@ class TestAggregatePlayerGoalValues:
         assert updater.aggregated_data[(1, 1, 1)]["goal_count"] == 2
         assert updater.aggregated_data[(1, 1, 1)]["gv_avg"] == 0.625
 
-    def test_calculates_gv_avg_correctly(self, mocker):
+    def test_calculates_gv_avg_correctly(self, mocker) -> None:
         """Test that method calculates gv_avg correctly."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -93,7 +93,7 @@ class TestAggregatePlayerGoalValues:
 
         assert updater.aggregated_data[(1, 1, 1)]["gv_avg"] == 0.75
 
-    def test_skips_events_with_unclear_scoring_team(self, mocker):
+    def test_skips_events_with_unclear_scoring_team(self, mocker) -> None:
         """Test that method skips events where scoring team is unclear."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -111,7 +111,7 @@ class TestAggregatePlayerGoalValues:
 
         assert updater.aggregated_data[(1, 1, 1)]["goal_count"] == 0
 
-    def test_only_includes_goals_for_matching_team(self, mocker):
+    def test_only_includes_goals_for_matching_team(self, mocker) -> None:
         """Test that method only includes goals for matching team."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -131,7 +131,7 @@ class TestAggregatePlayerGoalValues:
         assert updater.aggregated_data[(1, 1, 1)]["goal_count"] == 1
         assert updater.aggregated_data[(1, 1, 1)]["total_goal_value"] == 0.5
 
-    def test_handles_zero_goals(self, mocker):
+    def test_handles_zero_goals(self, mocker) -> None:
         """Test that method handles player stats with zero goals."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -152,7 +152,7 @@ class TestAggregatePlayerGoalValues:
 class TestCommitBatch:
     """Tests for _commit_batch method."""
 
-    def test_commits_batch_successfully(self, mocker):
+    def test_commits_batch_successfully(self, mocker) -> None:
         """Test that method commits batch successfully."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -168,7 +168,7 @@ class TestCommitBatch:
         updater.session.commit.assert_called_once()
         assert result == 1
 
-    def test_handles_commit_errors(self, mocker):
+    def test_handles_commit_errors(self, mocker) -> None:
         """Test that method handles commit errors."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -184,7 +184,7 @@ class TestCommitBatch:
         assert len(updater.errors) == 1
         assert updater.error_count == 1
 
-    def test_prints_final_prefix_for_final_batch(self, mocker):
+    def test_prints_final_prefix_for_final_batch(self, mocker) -> None:
         """Test that method prints final prefix for final batch."""
         mock_print = mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -203,7 +203,7 @@ class TestCommitBatch:
 class TestBatchUpdate:
     """Tests for _batch_update method."""
 
-    def test_updates_all_player_stats(self, mocker):
+    def test_updates_all_player_stats(self, mocker) -> None:
         """Test that method updates all player stats."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -234,7 +234,7 @@ class TestBatchUpdate:
         assert updater.update_count == 2
         assert updater.session.bulk_update_mappings.called
 
-    def test_handles_errors_gracefully(self, mocker):
+    def test_handles_errors_gracefully(self, mocker) -> None:
         """Test that method handles errors gracefully."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -254,7 +254,7 @@ class TestBatchUpdate:
         assert updater.error_count == 1
         assert len(updater.errors) == 1
 
-    def test_rounds_values_to_three_decimals(self, mocker):
+    def test_rounds_values_to_three_decimals(self, mocker) -> None:
         """Test that method rounds values to three decimal places."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -284,7 +284,7 @@ class TestBatchUpdate:
 class TestPrintSummary:
     """Tests for _print_summary method."""
 
-    def test_prints_summary(self, mocker):
+    def test_prints_summary(self, mocker) -> None:
         """Test that method prints summary information."""
         mock_print = mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -302,7 +302,7 @@ class TestPrintSummary:
         assert "100" in print_output
         assert "5" in print_output
 
-    def test_prints_errors_when_few_errors(self, mocker):
+    def test_prints_errors_when_few_errors(self, mocker) -> None:
         """Test that method prints all errors when there are few errors."""
         mock_print = mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -317,7 +317,7 @@ class TestPrintSummary:
         assert "Error 1" in print_output
         assert "Error 2" in print_output
 
-    def test_prints_first_10_errors_when_many_errors(self, mocker):
+    def test_prints_first_10_errors_when_many_errors(self, mocker) -> None:
         """Test that method prints first 10 errors when there are many errors."""
         mock_print = mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()
@@ -335,7 +335,7 @@ class TestPrintSummary:
 class TestUpdatePlayerStatsForCombinations:
     """Tests for update_player_stats_for_combinations method."""
 
-    def test_returns_early_when_no_combinations(self, mocker):
+    def test_returns_early_when_no_combinations(self, mocker) -> None:
         """Test that method returns early when no combinations provided."""
         updater = PlayerStatsGoalValueUpdater()
         updater.session = mocker.Mock()
@@ -344,7 +344,7 @@ class TestUpdatePlayerStatsForCombinations:
 
         updater.session.query.assert_not_called()
 
-    def test_updates_specific_combinations(self, mocker):
+    def test_updates_specific_combinations(self, mocker) -> None:
         """Test that method updates specific combinations."""
         mocker.patch("app.core.goal_value.player_stats_updater.logger")
         updater = PlayerStatsGoalValueUpdater()
@@ -371,7 +371,7 @@ class TestUpdatePlayerStatsForCombinations:
         updater.session.bulk_update_mappings.assert_called_once()
         updater.session.commit.assert_called_once()
 
-    def test_filters_goals_by_team_id(self, mocker):
+    def test_filters_goals_by_team_id(self, mocker) -> None:
         """Test that method filters goals by team_id."""
         mocker.patch("app.core.goal_value.player_stats_updater.logger")
         updater = PlayerStatsGoalValueUpdater()
@@ -401,7 +401,7 @@ class TestUpdatePlayerStatsForCombinations:
         assert update_data[0]["goal_value"] == 0.5
         assert all(item["goal_value"] != 0.75 for item in update_data)
 
-    def test_handles_zero_goals(self, mocker):
+    def test_handles_zero_goals(self, mocker) -> None:
         """Test that method handles combinations with zero goals."""
         mocker.patch("app.core.goal_value.player_stats_updater.logger")
         updater = PlayerStatsGoalValueUpdater()
@@ -427,7 +427,7 @@ class TestUpdatePlayerStatsForCombinations:
         assert update_data[0]["goal_value"] == 0.0
         assert update_data[0]["gv_avg"] == 0.0
 
-    def test_handles_missing_player_stat(self, mocker):
+    def test_handles_missing_player_stat(self, mocker) -> None:
         """Test that method handles missing player stat."""
         mocker.patch("app.core.goal_value.player_stats_updater.logger")
         updater = PlayerStatsGoalValueUpdater()
@@ -445,7 +445,7 @@ class TestUpdatePlayerStatsForCombinations:
 
         updater.session.bulk_update_mappings.assert_not_called()
 
-    def test_handles_exceptions(self, mocker):
+    def test_handles_exceptions(self, mocker) -> None:
         """Test that method handles exceptions gracefully."""
         mocker.patch("app.core.goal_value.player_stats_updater.logger")
         updater = PlayerStatsGoalValueUpdater()
@@ -456,7 +456,7 @@ class TestUpdatePlayerStatsForCombinations:
 
         assert updater.error_count == 1
 
-    def test_rolls_back_on_batch_error(self, mocker):
+    def test_rolls_back_on_batch_error(self, mocker) -> None:
         """Test that method rolls back on batch update error."""
         mocker.patch("app.core.goal_value.player_stats_updater.logger")
         updater = PlayerStatsGoalValueUpdater()
@@ -485,7 +485,7 @@ class TestUpdatePlayerStatsForCombinations:
 class TestRun:
     """Tests for run method."""
 
-    def test_runs_full_update_flow(self, mocker):
+    def test_runs_full_update_flow(self, mocker) -> None:
         """Test that run method executes full update flow."""
         mocker.patch("builtins.print")
         updater = PlayerStatsGoalValueUpdater()

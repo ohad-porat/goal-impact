@@ -11,7 +11,7 @@ from app.tests.utils.factories import GoalValueLookupFactory
 class TestPersistGoalValues:
     """Tests for persist_goal_values method."""
 
-    def test_persists_goal_values_to_database(self, db_session):
+    def test_persists_goal_values_to_database(self, db_session) -> None:
         """Test that goal values are persisted to database."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -34,7 +34,7 @@ class TestPersistGoalValues:
         assert lookup_dict[(90, 1)] == 0.8
         assert lookup_dict[(90, 0)] == 0.4
 
-    def test_deletes_existing_records_before_persisting(self, db_session):
+    def test_deletes_existing_records_before_persisting(self, db_session) -> None:
         """Test that existing records are deleted before persisting new ones."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -55,7 +55,7 @@ class TestPersistGoalValues:
         assert lookup_records[0].score_diff == 1
         assert lookup_records[0].goal_value == 0.8
 
-    def test_handles_empty_dict(self, db_session):
+    def test_handles_empty_dict(self, db_session) -> None:
         """Test that empty dict deletes all records without creating new ones."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -68,7 +68,7 @@ class TestPersistGoalValues:
         lookup_records = db_session.query(GoalValueLookup).all()
         assert len(lookup_records) == 0
 
-    def test_handles_large_dataset(self, db_session):
+    def test_handles_large_dataset(self, db_session) -> None:
         """Test that method handles large datasets correctly."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -85,7 +85,7 @@ class TestPersistGoalValues:
         expected_count = (MAX_MINUTE - MIN_MINUTE + 1) * (MAX_SCORE_DIFF - MIN_SCORE_DIFF + 1)
         assert len(lookup_records) == expected_count
 
-    def test_commits_transaction(self, db_session):
+    def test_commits_transaction(self, db_session) -> None:
         """Test that transaction is committed after persisting."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -104,7 +104,7 @@ class TestPersistGoalValues:
 class TestSaveMetadata:
     """Tests for save_metadata method."""
 
-    def test_saves_metadata_with_default_version(self, db_session):
+    def test_saves_metadata_with_default_version(self, db_session) -> None:
         """Test that metadata is saved with default version."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -116,7 +116,7 @@ class TestSaveMetadata:
         assert metadata_records[0].total_goals_processed == 1000
         assert metadata_records[0].version == "1.0"
 
-    def test_saves_metadata_with_custom_version(self, db_session):
+    def test_saves_metadata_with_custom_version(self, db_session) -> None:
         """Test that metadata is saved with custom version."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -128,7 +128,7 @@ class TestSaveMetadata:
         assert metadata_records[0].total_goals_processed == 2000
         assert metadata_records[0].version == "2.0"
 
-    def test_creates_multiple_metadata_records(self, db_session):
+    def test_creates_multiple_metadata_records(self, db_session) -> None:
         """Test that multiple metadata records can be created."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -140,7 +140,7 @@ class TestSaveMetadata:
         assert len(metadata_records) == 2
         assert {r.total_goals_processed for r in metadata_records} == {1000, 2000}
 
-    def test_commits_transaction(self, db_session):
+    def test_commits_transaction(self, db_session) -> None:
         """Test that transaction is committed after saving metadata."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -155,7 +155,7 @@ class TestSaveMetadata:
 class TestLoadGoalValues:
     """Tests for load_goal_values method."""
 
-    def test_loads_goal_values_from_database(self, db_session):
+    def test_loads_goal_values_from_database(self, db_session) -> None:
         """Test that goal values are loaded from database."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -172,7 +172,7 @@ class TestLoadGoalValues:
         assert goal_value_dict[45][0] == 0.5
         assert goal_value_dict[90][1] == 0.8
 
-    def test_returns_empty_dict_when_no_records(self, db_session):
+    def test_returns_empty_dict_when_no_records(self, db_session) -> None:
         """Test that method returns empty defaultdict when no records exist."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -182,7 +182,7 @@ class TestLoadGoalValues:
         assert isinstance(goal_value_dict, defaultdict)
         assert len(goal_value_dict) == 0
 
-    def test_handles_large_dataset(self, db_session):
+    def test_handles_large_dataset(self, db_session) -> None:
         """Test that method handles large datasets correctly."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -198,7 +198,7 @@ class TestLoadGoalValues:
         assert len(goal_value_dict[45]) == 9
         assert goal_value_dict[45][1] == 0.5
 
-    def test_returns_correct_structure(self, db_session):
+    def test_returns_correct_structure(self, db_session) -> None:
         """Test that returned structure matches expected format."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -214,7 +214,7 @@ class TestLoadGoalValues:
         assert goal_value_dict[45][1] == 0.75
         assert goal_value_dict[45][0] == 0.5
 
-    def test_handles_missing_minutes(self, db_session):
+    def test_handles_missing_minutes(self, db_session) -> None:
         """Test that method handles missing minutes correctly."""
         repository = GoalValueRepository()
         repository.session = db_session
@@ -227,7 +227,7 @@ class TestLoadGoalValues:
         assert goal_value_dict[45][1] == 0.75
         assert 90 not in goal_value_dict
 
-    def test_handles_missing_score_diffs(self, db_session):
+    def test_handles_missing_score_diffs(self, db_session) -> None:
         """Test that method handles missing score_diffs correctly."""
         repository = GoalValueRepository()
         repository.session = db_session

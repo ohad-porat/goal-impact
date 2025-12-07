@@ -20,20 +20,20 @@ from app.tests.utils.helpers import create_basic_season_setup
 class TestFormatSeasonRange:
     """Tests for format_season_range function."""
 
-    def test_returns_no_seasons_message_when_empty(self):
+    def test_returns_no_seasons_message_when_empty(self) -> None:
         """Test that 'No seasons available' is returned when list is empty."""
         result = format_season_range([])
 
         assert result == "No seasons available"
 
-    def test_formats_single_season(self):
+    def test_formats_single_season(self) -> None:
         """Test formatting a single season."""
         season = SeasonFactory.build(start_year=2023, end_year=2024)
         result = format_season_range([season])
 
         assert result == "2023/2024 - 2023/2024"
 
-    def test_formats_multiple_seasons(self):
+    def test_formats_multiple_seasons(self) -> None:
         """Test formatting multiple seasons."""
         season1 = SeasonFactory.build(start_year=2022, end_year=2023)
         season2 = SeasonFactory.build(start_year=2023, end_year=2024)
@@ -43,7 +43,7 @@ class TestFormatSeasonRange:
 
         assert result == "2022/2023 - 2024/2025"
 
-    def test_formats_brazilian_seasons(self):
+    def test_formats_brazilian_seasons(self) -> None:
         """Test formatting Brazilian single-year seasons."""
         season1 = SeasonFactory.build(start_year=2023, end_year=2023)
         season2 = SeasonFactory.build(start_year=2024, end_year=2024)
@@ -52,7 +52,7 @@ class TestFormatSeasonRange:
 
         assert result == "2023 - 2024"
 
-    def test_formats_mixed_season_types(self):
+    def test_formats_mixed_season_types(self) -> None:
         """Test formatting mix of European and Brazilian seasons."""
         season1 = SeasonFactory.build(start_year=2022, end_year=2023)
         season2 = SeasonFactory.build(start_year=2023, end_year=2023)
@@ -66,7 +66,7 @@ class TestFormatSeasonRange:
 class TestGetAllLeaguesWithSeasonRanges:
     """Tests for get_all_leagues_with_season_ranges function."""
 
-    def test_returns_all_leagues_with_season_ranges(self, db_session):
+    def test_returns_all_leagues_with_season_ranges(self, db_session) -> None:
         """Test that all leagues are returned with season ranges."""
         nation1 = NationFactory(name="England", country_code="ENG")
         nation2 = NationFactory(name="Spain", country_code="ESP")
@@ -86,7 +86,7 @@ class TestGetAllLeaguesWithSeasonRanges:
         assert any(league.name == "Premier League" for league in result)
         assert any(league.name == "La Liga" for league in result)
 
-    def test_sorts_by_country_and_tier(self, db_session):
+    def test_sorts_by_country_and_tier(self, db_session) -> None:
         """Test that leagues are sorted by country and tier."""
         nation1 = NationFactory(name="England", country_code="ENG")
         nation2 = NationFactory(name="Spain", country_code="ESP")
@@ -110,7 +110,7 @@ class TestGetAllLeaguesWithSeasonRanges:
         assert result[1].tier == "2nd"
         assert result[2].country == "Spain"
 
-    def test_includes_available_seasons_string(self, db_session):
+    def test_includes_available_seasons_string(self, db_session) -> None:
         """Test that available_seasons string is included."""
         nation, comp, season = create_basic_season_setup(db_session)
         SeasonFactory(competition=comp, start_year=2022, end_year=2023)
@@ -123,7 +123,7 @@ class TestGetAllLeaguesWithSeasonRanges:
         assert "2022/2023" in result[0].available_seasons
         assert "2023/2024" in result[0].available_seasons
 
-    def test_handles_competitions_without_seasons(self, db_session):
+    def test_handles_competitions_without_seasons(self, db_session) -> None:
         """Test that competitions without seasons are handled correctly."""
         nation = NationFactory()
         CompetitionFactory(name="New League", nation=nation)
@@ -139,7 +139,7 @@ class TestGetAllLeaguesWithSeasonRanges:
 class TestGetLeagueSeasons:
     """Tests for get_league_seasons function."""
 
-    def test_returns_seasons_for_league_sorted_descending(self, db_session):
+    def test_returns_seasons_for_league_sorted_descending(self, db_session) -> None:
         """Test that seasons are returned sorted by start_year descending."""
         nation, comp, _ = create_basic_season_setup(db_session)
         SeasonFactory(competition=comp, start_year=2021, end_year=2022)
@@ -154,7 +154,7 @@ class TestGetLeagueSeasons:
         assert result[1].start_year == 2022
         assert result[2].start_year == 2021
 
-    def test_returns_empty_list_when_no_seasons(self, db_session):
+    def test_returns_empty_list_when_no_seasons(self, db_session) -> None:
         """Test that empty list is returned when league has no seasons."""
         nation = NationFactory()
         comp = CompetitionFactory(name="New League", nation=nation)
@@ -169,7 +169,7 @@ class TestGetLeagueSeasons:
 class TestGetAllUniqueSeasons:
     """Tests for get_all_unique_seasons function."""
 
-    def test_returns_unique_seasons_normalized(self, db_session):
+    def test_returns_unique_seasons_normalized(self, db_session) -> None:
         """Test that unique seasons are returned with normalization."""
         nation = NationFactory()
         comp1 = CompetitionFactory(nation=nation)
@@ -187,7 +187,7 @@ class TestGetAllUniqueSeasons:
         assert any(season.start_year == 2022 and season.end_year == 2023 for season in result)
         assert any(season.start_year == 2023 and season.end_year == 2024 for season in result)
 
-    def test_normalizes_brazilian_seasons(self, db_session):
+    def test_normalizes_brazilian_seasons(self, db_session) -> None:
         """Test that Brazilian single-year seasons are normalized."""
         nation = NationFactory()
         comp = CompetitionFactory(nation=nation)
@@ -202,7 +202,7 @@ class TestGetAllUniqueSeasons:
         brazilian_season = next((s for s in result if s.display_name == "2022/2023"), None)
         assert brazilian_season is not None
 
-    def test_sorts_seasons_descending(self, db_session):
+    def test_sorts_seasons_descending(self, db_session) -> None:
         """Test that seasons are sorted by start_year descending."""
         nation = NationFactory()
         comp = CompetitionFactory(nation=nation)
@@ -219,7 +219,7 @@ class TestGetAllUniqueSeasons:
         start_years = [s.start_year for s in result if s.start_year in [2021, 2022, 2023]]
         assert start_years == sorted(start_years, reverse=True)
 
-    def test_removes_duplicate_display_names(self, db_session):
+    def test_removes_duplicate_display_names(self, db_session) -> None:
         """Test that duplicate display names are removed."""
         nation = NationFactory()
         comp1 = CompetitionFactory(nation=nation)
@@ -239,7 +239,7 @@ class TestGetAllUniqueSeasons:
 class TestGetLeagueTableForSeason:
     """Tests for get_league_table_for_season function."""
 
-    def test_returns_league_table_sorted_by_ranking(self, db_session):
+    def test_returns_league_table_sorted_by_ranking(self, db_session) -> None:
         """Test that league table is returned sorted by ranking."""
         nation, comp, season = create_basic_season_setup(db_session)
 
@@ -274,7 +274,7 @@ class TestGetLeagueTableForSeason:
         assert table[2].position == 3
         assert table[2].team_name == "Team 3"
 
-    def test_includes_all_team_stats(self, db_session):
+    def test_includes_all_team_stats(self, db_session) -> None:
         """Test that all team stats are included in table entries."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -308,7 +308,7 @@ class TestGetLeagueTableForSeason:
         assert entry.goal_difference == 55
         assert entry.points == 95
 
-    def test_returns_none_when_competition_not_found(self, db_session):
+    def test_returns_none_when_competition_not_found(self, db_session) -> None:
         """Test that None is returned when competition doesn't exist."""
         _, _, season = create_basic_season_setup(db_session)
 
@@ -318,7 +318,7 @@ class TestGetLeagueTableForSeason:
         assert season_info is None
         assert table == []
 
-    def test_returns_none_when_season_not_found(self, db_session):
+    def test_returns_none_when_season_not_found(self, db_session) -> None:
         """Test that league_info is returned but season_info is None when season doesn't exist."""
         nation, comp, _ = create_basic_season_setup(db_session)
 
@@ -330,7 +330,7 @@ class TestGetLeagueTableForSeason:
         assert season_info is None
         assert table == []
 
-    def test_returns_none_when_season_not_for_league(self, db_session):
+    def test_returns_none_when_season_not_for_league(self, db_session) -> None:
         """Test that league_info is returned but season_info is None when season doesn't belong to league."""
         nation = NationFactory()
         comp1 = CompetitionFactory(nation=nation)
@@ -350,7 +350,7 @@ class TestGetLeagueTableForSeason:
         assert season_info is None
         assert table == []
 
-    def test_handles_empty_table(self, db_session):
+    def test_handles_empty_table(self, db_session) -> None:
         """Test that empty table is returned when no team stats exist."""
         nation, comp, season = create_basic_season_setup(db_session)
 
@@ -364,7 +364,7 @@ class TestGetLeagueTableForSeason:
         assert season_info is not None
         assert table == []
 
-    def test_includes_league_info_with_country(self, db_session):
+    def test_includes_league_info_with_country(self, db_session) -> None:
         """Test that league info includes country name."""
         nation = NationFactory(name="England", country_code="ENG")
         comp = CompetitionFactory(name="Premier League", nation=nation)
@@ -378,7 +378,7 @@ class TestGetLeagueTableForSeason:
         assert league_info.name == "Premier League"
         assert league_info.country == "England"
 
-    def test_handles_competition_without_nation(self, db_session):
+    def test_handles_competition_without_nation(self, db_session) -> None:
         """Test that competition without nation shows 'Unknown' country."""
         comp = CompetitionFactory(name="International League", nation=None)
         season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)

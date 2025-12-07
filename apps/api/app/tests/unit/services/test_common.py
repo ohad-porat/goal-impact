@@ -19,17 +19,17 @@ from app.tests.utils.factories import NationFactory, TeamFactory
 class TestFormatSeasonDisplayName:
     """Test format_season_display_name function."""
 
-    def test_format_season_with_different_years(self):
+    def test_format_season_with_different_years(self) -> None:
         """Test formatting season with different start and end years."""
         result = format_season_display_name(2020, 2021)
         assert result == "2020/2021"
 
-    def test_format_season_with_same_years(self):
+    def test_format_season_with_same_years(self) -> None:
         """Test formatting season with same start and end year."""
         result = format_season_display_name(2020, 2020)
         assert result == "2020"
 
-    def test_format_season_with_none_end_year(self):
+    def test_format_season_with_none_end_year(self) -> None:
         """Test formatting season with None end year."""
         result = format_season_display_name(2020, None)
         assert result == "2020"
@@ -38,7 +38,7 @@ class TestFormatSeasonDisplayName:
 class TestBuildNationInfo:
     """Test build_nation_info function."""
 
-    def test_build_nation_info_with_nation(self, db_session):
+    def test_build_nation_info_with_nation(self, db_session) -> None:
         """Test building NationInfo from a Nation model."""
         nation = NationFactory(id=1, name="England", country_code="ENG")
 
@@ -50,7 +50,7 @@ class TestBuildNationInfo:
         assert result.name == "England"
         assert result.country_code == "ENG"
 
-    def test_build_nation_info_with_none(self):
+    def test_build_nation_info_with_none(self) -> None:
         """Test building NationInfo with None input."""
         result = build_nation_info(None)
         assert result is None
@@ -59,12 +59,12 @@ class TestBuildNationInfo:
 class TestNormalizeSeasonYears:
     """Test normalize_season_years function."""
 
-    def test_normalize_european_season(self):
+    def test_normalize_european_season(self) -> None:
         """Test normalizing European season (different years)."""
         result = normalize_season_years(2020, 2021)
         assert result == (2020, 2021)
 
-    def test_normalize_single_year_season(self):
+    def test_normalize_single_year_season(self) -> None:
         """Test normalizing single year season."""
         result = normalize_season_years(2023, 2023)
         assert result == (2022, 2023)
@@ -85,12 +85,12 @@ class TestCalculateGoalValueAvg:
             (None, None, None),
         ],
     )
-    def test_calculate_goal_value_avg(self, total_value, total_goals, expected):
+    def test_calculate_goal_value_avg(self, total_value, total_goals, expected) -> None:
         """Test calculating goal value average with various inputs."""
         result = calculate_goal_value_avg(total_value, total_goals)
         assert result == expected
 
-    def test_calculate_avg_precision(self):
+    def test_calculate_avg_precision(self) -> None:
         """Test that average maintains precision."""
         result = calculate_goal_value_avg(1.0, 3)
         assert abs(result - 0.3333333333333333) < 0.0001
@@ -99,7 +99,7 @@ class TestCalculateGoalValueAvg:
 class TestBuildSeasonFilterForAllLeagues:
     """Test build_season_filter_for_all_leagues function."""
 
-    def test_build_season_filter_creates_or_clause(self):
+    def test_build_season_filter_creates_or_clause(self) -> None:
         """Test that filter creates an OR clause with two conditions."""
         result = build_season_filter_for_all_leagues(2020, 2021)
 
@@ -111,7 +111,7 @@ class TestBuildSeasonFilterForAllLeagues:
 class TestBuildClubInfo:
     """Test build_club_info function."""
 
-    def test_build_club_info_with_team_and_nation(self, db_session):
+    def test_build_club_info_with_team_and_nation(self, db_session) -> None:
         """Test building ClubInfo from Team with nation."""
         nation = NationFactory(id=1, name="England", country_code="ENG")
         team = TeamFactory(id=1, name="Arsenal", nation=nation)
@@ -127,7 +127,7 @@ class TestBuildClubInfo:
         assert result.nation.name == "England"
         assert result.nation.country_code == "ENG"
 
-    def test_build_club_info_with_team_without_nation(self, db_session):
+    def test_build_club_info_with_team_without_nation(self, db_session) -> None:
         """Test building ClubInfo from Team without nation."""
         team = TeamFactory(id=2, name="Unknown Team", nation=None)
         db_session.commit()

@@ -12,7 +12,7 @@ from app.tests.utils.factories import StatsCalculationMetadataFactory
 class TestStatsCalculationMetadataModel:
     """Test StatsCalculationMetadata model functionality."""
 
-    def test_create_stats_metadata(self, db_session):
+    def test_create_stats_metadata(self, db_session) -> None:
         """Test creating stats calculation metadata."""
         test_datetime = datetime(2024, 1, 15, 12, 0, 0)
         metadata = StatsCalculationMetadataFactory(
@@ -25,14 +25,14 @@ class TestStatsCalculationMetadataModel:
         assert metadata.total_goals_processed == 5000
         assert metadata.version == "1.0.0"
 
-    def test_stats_metadata_required_fields(self, db_session):
+    def test_stats_metadata_required_fields(self, db_session) -> None:
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
             metadata = StatsCalculationMetadata(version="1.0.0")
             db_session.add(metadata)
             db_session.commit()
 
-    def test_stats_metadata_default_values(self, db_session):
+    def test_stats_metadata_default_values(self, db_session) -> None:
         """Test creating metadata with factory defaults."""
         metadata = StatsCalculationMetadataFactory()
         db_session.commit()
@@ -43,7 +43,7 @@ class TestStatsCalculationMetadataModel:
         assert metadata.total_goals_processed > 0
         assert metadata.version is not None
 
-    def test_stats_metadata_multiple_entries(self, db_session):
+    def test_stats_metadata_multiple_entries(self, db_session) -> None:
         """Test that multiple metadata entries can be created."""
         metadata1 = StatsCalculationMetadataFactory(
             calculation_date=datetime(2024, 1, 15), version="1.0.0"

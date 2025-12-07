@@ -45,7 +45,7 @@ def create_club_info(id, name, nation_id=1, nation_name="Nation", country_code="
 class TestIsGoalForTeam:
     """Test is_goal_for_team function."""
 
-    def test_goal_for_home_team(self, db_session):
+    def test_goal_for_home_team(self, db_session) -> None:
         """Test identifying goal scored by home team."""
         home_team, _, match = create_match_with_teams(db_session)
         goal_event = create_goal_event(
@@ -57,7 +57,7 @@ class TestIsGoalForTeam:
 
         assert result is True
 
-    def test_goal_for_away_team(self, db_session):
+    def test_goal_for_away_team(self, db_session) -> None:
         """Test identifying goal scored by away team."""
         _, away_team, match = create_match_with_teams(db_session)
         goal_event = create_goal_event(
@@ -69,7 +69,7 @@ class TestIsGoalForTeam:
 
         assert result is True
 
-    def test_goal_returns_false_when_team_not_in_match(self, db_session):
+    def test_goal_returns_false_when_team_not_in_match(self, db_session) -> None:
         """Test that goal returns False when checking a team that wasn't playing in the match."""
         _, _, match = create_match_with_teams(db_session)
         other_team = TeamFactory()
@@ -82,7 +82,7 @@ class TestIsGoalForTeam:
 
         assert result is False
 
-    def test_returns_false_when_goals_pre_event_none(self, db_session):
+    def test_returns_false_when_goals_pre_event_none(self, db_session) -> None:
         """Test returns False when home_team_goals_pre_event is None."""
         home_team, _, match = create_match_with_teams(db_session)
         goal_event = EventFactory(
@@ -99,7 +99,7 @@ class TestIsGoalForTeam:
 
         assert result is False
 
-    def test_returns_false_when_goals_post_event_none(self, db_session):
+    def test_returns_false_when_goals_post_event_none(self, db_session) -> None:
         """Test returns False when home_team_goals_post_event is None."""
         home_team, _, match = create_match_with_teams(db_session)
         goal_event = EventFactory(
@@ -120,7 +120,7 @@ class TestIsGoalForTeam:
 class TestFormatScore:
     """Test format_score function."""
 
-    def test_format_score_with_valid_data(self, db_session):
+    def test_format_score_with_valid_data(self, db_session) -> None:
         """Test formatting score with all valid data."""
         match = MatchFactory()
         goal_event = create_goal_event(
@@ -133,7 +133,7 @@ class TestFormatScore:
         assert score_before == "1-0"
         assert score_after == "2-0"
 
-    def test_format_score_returns_empty_strings_when_none(self, db_session):
+    def test_format_score_returns_empty_strings_when_none(self, db_session) -> None:
         """Test formatting score returns empty strings when data is None."""
         match = MatchFactory()
         goal_event = EventFactory(
@@ -155,7 +155,7 @@ class TestFormatScore:
 class TestGetAssistForGoalFromData:
     """Test get_assist_for_goal_from_data function."""
 
-    def test_get_assist_with_event_and_player_present(self, db_session):
+    def test_get_assist_with_event_and_player_present(self, db_session) -> None:
         """Test getting assist when both assist_event and assist_player are present."""
         assist_player = PlayerFactory(name="Assist Player")
         assist_event = EventFactory(event_type="assist")
@@ -168,7 +168,7 @@ class TestGetAssistForGoalFromData:
         assert result.id == assist_player.id
         assert result.name == "Assist Player"
 
-    def test_get_assist_returns_none_when_event_none(self, db_session):
+    def test_get_assist_returns_none_when_event_none(self, db_session) -> None:
         """Test returns None when assist_event is None."""
         assist_player = PlayerFactory()
         db_session.commit()
@@ -177,7 +177,7 @@ class TestGetAssistForGoalFromData:
 
         assert result is None
 
-    def test_get_assist_returns_none_when_player_none(self, db_session):
+    def test_get_assist_returns_none_when_player_none(self, db_session) -> None:
         """Test returns None when assist_player is None."""
         assist_event = EventFactory()
         db_session.commit()
@@ -186,7 +186,7 @@ class TestGetAssistForGoalFromData:
 
         assert result is None
 
-    def test_get_assist_returns_none_when_both_none(self):
+    def test_get_assist_returns_none_when_both_none(self) -> None:
         """Test returns None when both are None."""
         result = get_assist_for_goal_from_data(None, None)
         assert result is None
@@ -195,7 +195,7 @@ class TestGetAssistForGoalFromData:
 class TestFormatScorerName:
     """Test format_scorer_name function."""
 
-    def test_format_scorer_name_regular_goal(self, db_session):
+    def test_format_scorer_name_regular_goal(self, db_session) -> None:
         """Test formatting scorer name for regular goal."""
         scorer = PlayerFactory(name="Lionel Messi")
         db_session.commit()
@@ -204,7 +204,7 @@ class TestFormatScorerName:
 
         assert result == "Lionel Messi"
 
-    def test_format_scorer_name_own_goal(self, db_session):
+    def test_format_scorer_name_own_goal(self, db_session) -> None:
         """Test formatting scorer name for own goal."""
         scorer = PlayerFactory(name="John Doe")
         db_session.commit()
@@ -217,7 +217,7 @@ class TestFormatScorerName:
 class TestGetVenueForTeam:
     """Test get_venue_for_team function."""
 
-    def test_get_venue_for_home_team(self, db_session):
+    def test_get_venue_for_home_team(self, db_session) -> None:
         """Test getting venue for home team."""
         home_team, _, match = create_match_with_teams(db_session)
 
@@ -225,7 +225,7 @@ class TestGetVenueForTeam:
 
         assert result == "Home"
 
-    def test_get_venue_for_away_team(self, db_session):
+    def test_get_venue_for_away_team(self, db_session) -> None:
         """Test getting venue for away team."""
         _, away_team, match = create_match_with_teams(db_session)
 
@@ -237,7 +237,7 @@ class TestGetVenueForTeam:
 class TestBuildTeamSeasonGoalLogEntryFromData:
     """Test build_team_season_goal_log_entry_from_data function."""
 
-    def test_build_entry_for_team_goal(self, db_session):
+    def test_build_entry_for_team_goal(self, db_session) -> None:
         """Test building goal log entry for team's goal."""
         home_team, away_team, match = create_match_with_teams(
             db_session, home_team_name="Arsenal", away_team_name="Chelsea"
@@ -275,7 +275,7 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
         assert result.xg == 0.3
         assert result.post_shot_xg == 0.4
 
-    def test_build_entry_returns_none_when_goal_not_for_specified_team(self, db_session):
+    def test_build_entry_returns_none_when_goal_not_for_specified_team(self, db_session) -> None:
         """Test returns None when the goal was not scored for the specified team."""
         _, away_team, match = create_match_with_teams(db_session)
         other_team = TeamFactory()
@@ -291,7 +291,7 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
 
         assert result is None
 
-    def test_build_entry_returns_none_when_opponent_none(self, db_session):
+    def test_build_entry_returns_none_when_opponent_none(self, db_session) -> None:
         """Test returns None when opponent_team is None."""
         home_team, _, match = create_match_with_teams(db_session)
         scorer = PlayerFactory()
@@ -306,7 +306,7 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
 
         assert result is None
 
-    def test_build_entry_for_own_goal(self, db_session):
+    def test_build_entry_for_own_goal(self, db_session) -> None:
         """Test building entry for own goal."""
         home_team, away_team, match = create_match_with_teams(db_session)
         scorer = PlayerFactory(name="Unlucky Player")
@@ -330,7 +330,7 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
         assert result is not None
         assert result.scorer.name == "Unlucky Player (OG)"
 
-    def test_build_entry_with_assist(self, db_session):
+    def test_build_entry_with_assist(self, db_session) -> None:
         """Test building entry with assist information."""
         home_team, away_team, match = create_match_with_teams(db_session)
         scorer = PlayerFactory(name="Scorer")
@@ -355,7 +355,7 @@ class TestBuildTeamSeasonGoalLogEntryFromData:
 class TestSortAndFormatTeamSeasonGoalEntries:
     """Test sort_and_format_team_season_goal_entries function."""
 
-    def test_sort_entries_by_date_and_minute(self):
+    def test_sort_entries_by_date_and_minute(self) -> None:
         """Test sorting entries by date and minute."""
         date1 = date(2023, 1, 15)
         date2 = date(2023, 1, 20)
@@ -427,7 +427,7 @@ class TestSortAndFormatTeamSeasonGoalEntries:
 class TestBuildPlayerCareerGoalLogEntryFromData:
     """Test build_player_career_goal_log_entry_from_data function."""
 
-    def test_build_entry_for_player_goal(self, db_session):
+    def test_build_entry_for_player_goal(self, db_session) -> None:
         """Test building goal log entry for player's goal."""
         player_team, opponent_team, match = create_match_with_teams(
             db_session, home_team_name="Arsenal", away_team_name="Chelsea", season_id=1
@@ -463,7 +463,7 @@ class TestBuildPlayerCareerGoalLogEntryFromData:
         assert result.season_id == 1
         assert result.season_display_name == "2023/2024"
 
-    def test_build_entry_returns_none_when_player_team_none(self, db_session):
+    def test_build_entry_returns_none_when_player_team_none(self, db_session) -> None:
         """Test returns None when player_team is None."""
         opponent_team = TeamFactory()
         scorer = PlayerFactory()
@@ -477,7 +477,7 @@ class TestBuildPlayerCareerGoalLogEntryFromData:
 
         assert result is None
 
-    def test_build_entry_returns_none_when_opponent_team_none(self, db_session):
+    def test_build_entry_returns_none_when_opponent_team_none(self, db_session) -> None:
         """Test returns None when opponent_team is None."""
         player_team = TeamFactory()
         scorer = PlayerFactory()
@@ -491,7 +491,7 @@ class TestBuildPlayerCareerGoalLogEntryFromData:
 
         assert result is None
 
-    def test_build_entry_with_assist(self, db_session):
+    def test_build_entry_with_assist(self, db_session) -> None:
         """Test building entry with assist information."""
         player_team, opponent_team, match = create_match_with_teams(db_session, season_id=1)
         scorer = PlayerFactory(name="Scorer")
@@ -523,7 +523,7 @@ class TestBuildPlayerCareerGoalLogEntryFromData:
 class TestSortAndFormatPlayerCareerGoalEntries:
     """Test sort_and_format_player_career_goal_entries function."""
 
-    def test_sort_entries_by_season_date_and_minute(self):
+    def test_sort_entries_by_season_date_and_minute(self) -> None:
         """Test sorting entries by season, date and minute."""
         entry1 = PlayerGoalLogEntry(
             date="",

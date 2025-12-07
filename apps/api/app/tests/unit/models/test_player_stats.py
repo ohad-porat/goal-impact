@@ -9,7 +9,7 @@ from app.tests.utils.factories import PlayerFactory, PlayerStatsFactory, SeasonF
 class TestPlayerStatsModel:
     """Test PlayerStats model functionality."""
 
-    def test_create_player_stats(self, db_session):
+    def test_create_player_stats(self, db_session) -> None:
         """Test creating player stats with all fields."""
         player = PlayerFactory()
         season = SeasonFactory()
@@ -28,7 +28,7 @@ class TestPlayerStatsModel:
         assert stats.goals_scored == 20
         assert stats.assists == 10
 
-    def test_player_stats_unique_constraint(self, db_session):
+    def test_player_stats_unique_constraint(self, db_session) -> None:
         """Test unique constraint on (player_id, season_id, team_id)."""
         player = PlayerFactory()
         season = SeasonFactory()
@@ -41,7 +41,7 @@ class TestPlayerStatsModel:
             PlayerStatsFactory(player=player, season=season, team=team)
             db_session.commit()
 
-    def test_player_stats_different_season_allowed(self, db_session):
+    def test_player_stats_different_season_allowed(self, db_session) -> None:
         """Test that same player and team but different season is allowed."""
         player = PlayerFactory()
         team = TeamFactory()
@@ -57,7 +57,7 @@ class TestPlayerStatsModel:
         assert stats1.id != stats2.id
         assert stats1.season_id != stats2.season_id
 
-    def test_player_stats_foreign_keys(self, db_session):
+    def test_player_stats_foreign_keys(self, db_session) -> None:
         """Test foreign key relationships."""
         player = PlayerFactory()
         season = SeasonFactory()
@@ -69,7 +69,7 @@ class TestPlayerStatsModel:
         assert stats.season == season
         assert stats.team == team
 
-    def test_player_stats_optional_fields(self, db_session):
+    def test_player_stats_optional_fields(self, db_session) -> None:
         """Test that optional fields can be null."""
         stats = PlayerStatsFactory(
             matches_played=10,
@@ -99,7 +99,7 @@ class TestPlayerStatsModel:
         assert stats.goal_value is None
         assert stats.gv_avg is None
 
-    def test_player_stats_same_player_season_different_team(self, db_session):
+    def test_player_stats_same_player_season_different_team(self, db_session) -> None:
         """Test that same player and season but different team is allowed."""
         player = PlayerFactory()
         season = SeasonFactory()
@@ -117,7 +117,7 @@ class TestPlayerStatsModel:
         assert stats1.season_id == stats2.season_id
         assert stats1.team_id != stats2.team_id
 
-    def test_player_stats_different_player_same_season_team(self, db_session):
+    def test_player_stats_different_player_same_season_team(self, db_session) -> None:
         """Test that different player but same season and team is allowed."""
         player1 = PlayerFactory()
         player2 = PlayerFactory()
@@ -135,7 +135,7 @@ class TestPlayerStatsModel:
         assert stats1.season_id == stats2.season_id
         assert stats1.team_id == stats2.team_id
 
-    def test_player_stats_relationships(self, db_session):
+    def test_player_stats_relationships(self, db_session) -> None:
         """Test that reverse relationships work correctly."""
         player = PlayerFactory()
         season = SeasonFactory()
