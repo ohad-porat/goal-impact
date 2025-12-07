@@ -3,6 +3,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.models.player_stats import PlayerStats
 from app.tests.utils.factories import (
     PlayerFactory,
     PlayerStatsFactory,
@@ -20,7 +21,7 @@ class TestGetCareerTotalsLeadersRoute:
     """Tests for GET /api/v1/leaders/career-totals endpoint."""
 
     def test_returns_empty_list_when_no_players(self, client: TestClient, db_session):
-        """Test that empty list is returned when no players exist."""
+        """Test that empty list is returned when no players exist for career totals."""
         assert_empty_list_response(client, "/api/v1/leaders/career-totals", "top_goal_value")
 
     def test_returns_career_totals_successfully(self, client: TestClient, db_session):
@@ -208,7 +209,7 @@ class TestGetCareerTotalsLeadersRoute:
         assert len(data["top_goal_value"]) == 1
 
     def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session):
-        """Test that invalid league_id doesn't cause errors."""
+        """Test that invalid league_id returns empty list without errors."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
         player = PlayerFactory(nation=nation)
@@ -400,11 +401,16 @@ class TestGetBySeasonLeadersRoute:
                 goals_scored=15 if season.competition.name == "Premier League" else 12,
                 matches_played=25 if season.competition.name == "Premier League" else 22,
             )
-            return season
+            return player
 
-        comp1, _comp2, season1, _season2, _nation = create_two_competitions_with_data(
+        comp1, _comp2, player1, _player2, _nation = create_two_competitions_with_data(
             db_session, create_player_data
         )
+        player_stats = (
+            db_session.query(PlayerStats).filter(PlayerStats.player_id == player1.id).first()
+        )
+        assert player_stats is not None, "Player stats should exist"
+        season1 = player_stats.season
 
         response = client.get(
             f"/api/v1/leaders/by-season?season_id={season1.id}&league_id={comp1.id}"
@@ -413,6 +419,7 @@ class TestGetBySeasonLeadersRoute:
         assert response.status_code == 200
         data = response.json()
         assert len(data["top_goal_value"]) == 1
+        assert data["top_goal_value"][0]["player_id"] == player1.id
 
     def test_league_id_parameter_is_optional(self, client: TestClient, db_session):
         """Test that league_id parameter is optional."""
@@ -436,12 +443,74 @@ class TestGetBySeasonLeadersRoute:
         data = response.json()
         assert len(data["top_goal_value"]) == 1
 
-    def test_handles_invalid_season_id_type(self, client: TestClient, db_session):
-        """Test that invalid season_id type returns validation error."""
-        assert_422_validation_error(client, "/api/v1/leaders/by-season?season_id=not-a-number")
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_season_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
+        """Test that various invalid season_id types return validation error."""
+        assert_422_validation_error(client, f"/api/v1/leaders/by-season?season_id={invalid_id}")
+
+    def test_handles_negative_and_zero_season_id(self, client: TestClient, db_session):
+        """Test that negative and zero season_id return 404 or empty results."""
+        response_neg = client.get("/api/v1/leaders/by-season?season_id=-1")
+        response_zero = client.get("/api/v1/leaders/by-season?season_id=0")
+        assert response_neg.status_code in [200, 404]
+        assert response_zero.status_code in [200, 404]
+        if response_neg.status_code == 200:
+            assert response_neg.json()["top_goal_value"] == []
+        if response_zero.status_code == 200:
+            assert response_zero.json()["top_goal_value"] == []
+
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_league_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
+        """Test that various invalid league_id types return validation error."""
+        nation, comp, season = create_basic_season_setup(db_session)
+        team = TeamFactory(nation=nation)
+        player = PlayerFactory(nation=nation)
+        PlayerStatsFactory(
+            player=player,
+            season=season,
+            team=team,
+            goal_value=25.0,
+            goals_scored=10,
+            matches_played=20,
+        )
+        db_session.commit()
+
+        assert_422_validation_error(client, f"/api/v1/leaders/career-totals?league_id={invalid_id}")
+        assert_422_validation_error(
+            client, f"/api/v1/leaders/by-season?season_id={season.id}&league_id={invalid_id}"
+        )
+
+    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session):
+        """Test that negative and zero league_id return validation error or empty results."""
+        nation, comp, season = create_basic_season_setup(db_session)
+        team = TeamFactory(nation=nation)
+        player = PlayerFactory(nation=nation)
+        PlayerStatsFactory(
+            player=player,
+            season=season,
+            team=team,
+            goal_value=25.0,
+            goals_scored=10,
+            matches_played=20,
+        )
+        db_session.commit()
+
+        response_neg1 = client.get("/api/v1/leaders/career-totals?league_id=-1")
+        response_zero1 = client.get("/api/v1/leaders/career-totals?league_id=0")
+        response_neg2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=-1")
+        response_zero2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=0")
+
+        assert response_neg1.status_code in [200, 422]
+        assert response_zero1.status_code in [200, 422]
+        assert response_neg2.status_code in [200, 422]
+        assert response_zero2.status_code in [200, 422]
 
     def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session):
-        """Test that invalid league_id doesn't cause errors."""
+        """Test that invalid league_id returns empty list without errors for by-season endpoint."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
         player = PlayerFactory(nation=nation)

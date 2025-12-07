@@ -4,11 +4,9 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.nations import Nation
 from app.schemas.nations import (
-    CompetitionSummary,
     NationDetails,
     NationDetailsResponse,
     NationsListResponse,
-    PlayerSummary,
 )
 from app.services.clubs import get_top_clubs_for_nation_core
 from app.services.nations import (
@@ -48,7 +46,7 @@ async def get_nation_details(
             country_code=nation.country_code,
             governing_body=nation.governing_body or "N/A",
         ),
-        competitions=[CompetitionSummary(**competition) for competition in competitions_data],
+        competitions=competitions_data,
         clubs=clubs_data,
-        players=[PlayerSummary(**player) for player in players_data],
+        players=players_data,
     )

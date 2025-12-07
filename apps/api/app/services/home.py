@@ -17,7 +17,19 @@ from app.schemas.home import RecentGoalMatch, RecentGoalPlayer, RecentImpactGoal
 def get_recent_impact_goals(
     db: Session, days: int = 7, limit: int = 5, league_id: int | None = None
 ) -> list[RecentImpactGoal]:
-    """Get top goals by goal value from the most recent N days in the database."""
+    """Get top goals by goal value from the most recent N days.
+
+    Finds most recent match date, then gets top goals from last N days before that date.
+
+    Args:
+        db: Database session
+        days: Days to look back (default: 7)
+        limit: Max goals to return (default: 5)
+        league_id: Optional league filter. None = all leagues.
+
+    Returns:
+        List of RecentImpactGoal sorted by date (descending), then goal value.
+    """
     date_query = db.query(func.max(Match.date))
 
     if league_id is not None:
@@ -32,7 +44,7 @@ def get_recent_impact_goals(
     if not most_recent_match_date:
         return []
 
-    cutoff_date = most_recent_match_date - timedelta(days=days)
+    cutoff_date: date = most_recent_match_date - timedelta(days=days)
 
     HomeTeam = aliased(Team)
     AwayTeam = aliased(Team)

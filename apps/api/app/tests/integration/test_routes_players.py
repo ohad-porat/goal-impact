@@ -2,6 +2,7 @@
 
 from datetime import date
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
@@ -86,7 +87,7 @@ class TestGetPlayerDetailsRoute:
         assert data["seasons"] == []
 
     def test_response_structure_is_correct(self, client: TestClient, db_session):
-        """Test that response structure matches the expected schema."""
+        """Test that response structure matches the expected schema with all required fields."""
         nation = NationFactory(name="England", country_code="ENG")
         player = PlayerFactory(name="Test Player", nation=nation)
         db_session.commit()
@@ -104,17 +105,27 @@ class TestGetPlayerDetailsRoute:
 
         assert isinstance(data["seasons"], list)
 
-    def test_handles_invalid_player_id_type(self, client: TestClient, db_session):
-        """Test that invalid player_id type returns validation error."""
-        assert_422_validation_error(client, "/api/v1/players/not-a-number")
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_player_id_types(
+        self, client: TestClient, db_session, invalid_id
+    ):
+        """Test that various invalid player_id types return validation error."""
+        assert_422_validation_error(client, f"/api/v1/players/{invalid_id}")
+
+    def test_handles_negative_and_zero_player_id(self, client: TestClient, db_session):
+        """Test that negative and zero player_id return 404 (valid integers but no resource)."""
+        response_neg = client.get("/api/v1/players/-1")
+        response_zero = client.get("/api/v1/players/0")
+        assert response_neg.status_code == 404
+        assert response_zero.status_code == 404
 
     def test_returns_multiple_seasons_sorted_correctly(self, client: TestClient, db_session):
-        """Test that multiple seasons are returned in correct order."""
+        """Test that multiple seasons are returned sorted by start_year ascending."""
         nation, comp1, season1 = create_basic_season_setup(
             db_session, nation=None, start_year=2022, end_year=2023
         )
-        comp2 = comp1
-        season2 = SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
+        _comp2 = comp1
+        season2 = SeasonFactory(competition=_comp2, start_year=2023, end_year=2024)
         player = PlayerFactory(nation=nation)
         team1 = TeamFactory(nation=nation)
         team2 = TeamFactory(nation=nation)
@@ -128,6 +139,8 @@ class TestGetPlayerDetailsRoute:
         assert response.status_code == 200
         data = response.json()
         assert len(data["seasons"]) == 2
+        assert data["seasons"][0]["season"]["start_year"] == 2022
+        assert data["seasons"][1]["season"]["start_year"] == 2023
 
 
 class TestGetPlayerCareerGoalLogRoute:
@@ -198,7 +211,7 @@ class TestGetPlayerCareerGoalLogRoute:
 
     def test_returns_goals_with_assists(self, client: TestClient, db_session):
         """Test that goals with assists include assist information."""
-        match, player, team, season, assister = create_match_with_goal(
+        _match, player, _team, _season, assister = create_match_with_goal(
             db_session, goal_value=4.0, minute=15, with_assist=True, match_date=date(2024, 1, 1)
         )
 
@@ -214,7 +227,7 @@ class TestGetPlayerCareerGoalLogRoute:
 
     def test_returns_goals_without_assists(self, client: TestClient, db_session):
         """Test that goals without assists have null assisted_by."""
-        match, player, team, season, _ = create_match_with_goal(
+        _match, player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=3.0, minute=20, match_date=date(2024, 1, 1)
         )
 
@@ -226,12 +239,22 @@ class TestGetPlayerCareerGoalLogRoute:
         goal = data["goals"][0]
         assert goal.get("assisted_by") is None
 
-    def test_handles_invalid_player_id_type(self, client: TestClient, db_session):
-        """Test that invalid player_id type returns validation error."""
-        assert_422_validation_error(client, "/api/v1/players/not-a-number/goals")
+    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
+    def test_handles_various_invalid_player_id_types_for_goals(
+        self, client: TestClient, db_session, invalid_id
+    ):
+        """Test that various invalid player_id types return validation error for goals endpoint."""
+        assert_422_validation_error(client, f"/api/v1/players/{invalid_id}/goals")
+
+    def test_handles_negative_and_zero_player_id_for_goals(self, client: TestClient, db_session):
+        """Test that negative and zero player_id return 404 for goals endpoint."""
+        response_neg = client.get("/api/v1/players/-1/goals")
+        response_zero = client.get("/api/v1/players/0/goals")
+        assert response_neg.status_code == 404
+        assert response_zero.status_code == 404
 
     def test_returns_goals_sorted_by_date(self, client: TestClient, db_session):
-        """Test that goals are returned sorted by date (most recent first)."""
+        """Test that goals are returned sorted by date (earliest first, then by minute)."""
         nation, comp, season = create_basic_season_setup(db_session)
         player = PlayerFactory(nation=nation)
         team = TeamFactory(nation=nation)
@@ -278,3 +301,7 @@ class TestGetPlayerCareerGoalLogRoute:
         assert response.status_code == 200
         data = response.json()
         assert len(data["goals"]) == 2
+        assert data["goals"][0]["date"] == "01/01/2024"
+        assert data["goals"][0]["minute"] == 10
+        assert data["goals"][1]["date"] == "15/03/2024"
+        assert data["goals"][1]["minute"] == 20

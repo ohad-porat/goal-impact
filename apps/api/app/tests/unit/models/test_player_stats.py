@@ -98,3 +98,51 @@ class TestPlayerStatsModel:
 
         assert stats.goal_value is None
         assert stats.gv_avg is None
+
+    def test_player_stats_same_player_season_different_team(self, db_session):
+        """Test that same player and season but different team is allowed."""
+        player = PlayerFactory()
+        season = SeasonFactory()
+        team1 = TeamFactory()
+        team2 = TeamFactory()
+
+        stats1 = PlayerStatsFactory(player=player, season=season, team=team1)
+        db_session.commit()
+
+        stats2 = PlayerStatsFactory(player=player, season=season, team=team2)
+        db_session.commit()
+
+        assert stats1.id != stats2.id
+        assert stats1.player_id == stats2.player_id
+        assert stats1.season_id == stats2.season_id
+        assert stats1.team_id != stats2.team_id
+
+    def test_player_stats_different_player_same_season_team(self, db_session):
+        """Test that different player but same season and team is allowed."""
+        player1 = PlayerFactory()
+        player2 = PlayerFactory()
+        season = SeasonFactory()
+        team = TeamFactory()
+
+        stats1 = PlayerStatsFactory(player=player1, season=season, team=team)
+        db_session.commit()
+
+        stats2 = PlayerStatsFactory(player=player2, season=season, team=team)
+        db_session.commit()
+
+        assert stats1.id != stats2.id
+        assert stats1.player_id != stats2.player_id
+        assert stats1.season_id == stats2.season_id
+        assert stats1.team_id == stats2.team_id
+
+    def test_player_stats_relationships(self, db_session):
+        """Test that reverse relationships work correctly."""
+        player = PlayerFactory()
+        season = SeasonFactory()
+        team = TeamFactory()
+        stats = PlayerStatsFactory(player=player, season=season, team=team)
+        db_session.commit()
+
+        assert stats in player.player_stats
+        assert stats in season.player_stats
+        assert stats in team.player_stats

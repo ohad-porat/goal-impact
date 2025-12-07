@@ -21,5 +21,9 @@ class Team(Base):
 
     nation = relationship("Nation", back_populates="teams")
     team_stats = relationship("TeamStats", back_populates="team")
+    player_stats = relationship("PlayerStats", back_populates="team")
 
     __table_args__ = (UniqueConstraint("fbref_url", name="unique_non_null_fbref_url"),)
+
+    def __repr__(self):
+        return f"<Team(id={self.id}, name={self.name!r}, fbref_id={self.fbref_id!r}, gender={self.gender!r})>"

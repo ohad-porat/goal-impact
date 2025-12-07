@@ -36,3 +36,10 @@ class TeamStats(Base):
 
     team = relationship("Team", back_populates="team_stats")
     season = relationship("Season", back_populates="team_stats")
+
+    def __repr__(self):
+        return (
+            f"<TeamStats(id={self.id}, team_id={self.team_id}, season_id={self.season_id}, "
+            f"ranking={self.ranking}, matches_played={self.matches_played}, "
+            f"wins={self.wins}, draws={self.draws}, losses={self.losses})>"
+        )

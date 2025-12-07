@@ -56,8 +56,8 @@ class TestGetCompetitionsForNation:
         result = get_competitions_for_nation(db_session, nation.id)
 
         assert len(result) == 2
-        assert any(c["name"] == "Premier League" for c in result)
-        assert any(c["name"] == "Championship" for c in result)
+        assert any(c.name == "Premier League" for c in result)
+        assert any(c.name == "Championship" for c in result)
 
     def test_includes_season_count(self, db_session):
         """Test that season_count is included in results."""
@@ -69,7 +69,7 @@ class TestGetCompetitionsForNation:
         result = get_competitions_for_nation(db_session, nation.id)
 
         assert len(result) == 1
-        assert result[0]["season_count"] == 2
+        assert result[0].season_count == 2
 
     def test_sets_has_seasons_true_when_seasons_exist(self, db_session):
         """Test that has_seasons is True when seasons exist."""
@@ -80,7 +80,7 @@ class TestGetCompetitionsForNation:
         result = get_competitions_for_nation(db_session, nation.id)
 
         assert len(result) == 1
-        assert result[0]["has_seasons"] is True
+        assert result[0].has_seasons is True
 
     def test_sets_has_seasons_false_when_no_seasons(self, db_session):
         """Test that has_seasons is False when no seasons exist."""
@@ -92,8 +92,8 @@ class TestGetCompetitionsForNation:
         result = get_competitions_for_nation(db_session, nation.id)
 
         assert len(result) == 1
-        assert result[0]["has_seasons"] is False
-        assert result[0]["season_count"] == 0
+        assert result[0].has_seasons is False
+        assert result[0].season_count == 0
 
     def test_sorts_by_tier_then_name(self, db_session):
         """Test that competitions are sorted by tier then name."""
@@ -107,12 +107,12 @@ class TestGetCompetitionsForNation:
         result = get_competitions_for_nation(db_session, nation.id)
 
         assert len(result) == 3
-        assert result[0]["name"] == "Premier League"
-        assert result[0]["tier"] == "1st"
-        assert result[1]["name"] == "Championship"
-        assert result[1]["tier"] == "2nd"
-        assert result[2]["name"] == "League One"
-        assert result[2]["tier"] == "3rd"
+        assert result[0].name == "Premier League"
+        assert result[0].tier == "1st"
+        assert result[1].name == "Championship"
+        assert result[1].tier == "2nd"
+        assert result[2].name == "League One"
+        assert result[2].tier == "3rd"
 
     def test_handles_competitions_without_tier(self, db_session):
         """Test that competitions without tier are sorted last."""
@@ -125,9 +125,9 @@ class TestGetCompetitionsForNation:
         result = get_competitions_for_nation(db_session, nation.id)
 
         assert len(result) == 2
-        assert result[0]["name"] == "Premier League"
-        assert result[1]["name"] == "Unknown League"
-        assert result[1]["tier"] is None
+        assert result[0].name == "Premier League"
+        assert result[1].name == "Unknown League"
+        assert result[1].tier is None
 
     def test_returns_empty_list_when_no_competitions(self, db_session):
         """Test that empty list is returned when nation has no competitions."""
@@ -246,12 +246,12 @@ class TestGetTopPlayersForNation:
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
 
         assert len(result) == 3
-        assert result[0]["name"] == "Player 3"
-        assert result[0]["total_goal_value"] == 75.8
-        assert result[1]["name"] == "Player 1"
-        assert result[1]["total_goal_value"] == 50.5
-        assert result[2]["name"] == "Player 2"
-        assert result[2]["total_goal_value"] == 30.2
+        assert result[0].name == "Player 3"
+        assert result[0].total_goal_value == 75.8
+        assert result[1].name == "Player 1"
+        assert result[1].total_goal_value == 50.5
+        assert result[2].name == "Player 2"
+        assert result[2].total_goal_value == 30.2
 
     def test_respects_limit_parameter(self, db_session):
         """Test that limit parameter is respected."""
@@ -283,7 +283,7 @@ class TestGetTopPlayersForNation:
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
 
         assert len(result) == 1
-        assert result[0]["total_goal_value"] == 55.7
+        assert result[0].total_goal_value == 55.7
 
     def test_returns_zero_goal_value_when_none(self, db_session):
         """Test that zero is returned when player has no goal value."""
@@ -298,7 +298,7 @@ class TestGetTopPlayersForNation:
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
 
         assert len(result) == 1
-        assert result[0]["total_goal_value"] == 0.0
+        assert result[0].total_goal_value == 0.0
 
     def test_sorts_by_name_when_goal_value_tied(self, db_session):
         """Test that players are sorted by name when goal value is tied."""
@@ -318,9 +318,9 @@ class TestGetTopPlayersForNation:
         result = get_top_players_for_nation(db_session, nation.id, limit=10)
 
         assert len(result) == 3
-        assert result[0]["name"] == "Alice"
-        assert result[1]["name"] == "Bob"
-        assert result[2]["name"] == "Charlie"
+        assert result[0].name == "Alice"
+        assert result[1].name == "Bob"
+        assert result[2].name == "Charlie"
 
     def test_only_returns_players_for_specified_nation(self, db_session):
         """Test that only players for the specified nation are returned."""
@@ -345,7 +345,7 @@ class TestGetTopPlayersForNation:
         result = get_top_players_for_nation(db_session, nation1.id, limit=10)
 
         assert len(result) == 1
-        assert result[0]["name"] == player1.name
+        assert result[0].name == player1.name
 
     def test_returns_empty_list_when_no_players(self, db_session):
         """Test that empty list is returned when nation has no players."""

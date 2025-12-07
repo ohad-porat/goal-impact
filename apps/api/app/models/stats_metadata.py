@@ -1,6 +1,6 @@
 """StatsCalculationMetadata model definition."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Integer, String
 
@@ -13,7 +13,7 @@ class StatsCalculationMetadata(Base):
     __tablename__ = "stats_calculation_metadata"
 
     id = Column(Integer, primary_key=True)
-    calculation_date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    calculation_date = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     total_goals_processed = Column(Integer, nullable=False)
     version = Column(String, nullable=False, default="1.0")
 

@@ -24,7 +24,17 @@ from app.services.goal_log import (
 
 
 def transform_player_stats(stats: PlayerStatsModel) -> PlayerStats:
-    """Transform PlayerStats model to PlayerStats schema with rounding."""
+    """Transform PlayerStats model to PlayerStats schema with rounding.
+
+    Converts database model to API schema, rounding floating-point values
+    to 2 decimal places for display consistency.
+
+    Args:
+        stats: The PlayerStatsModel database object
+
+    Returns:
+        PlayerStats schema object with rounded values
+    """
     return PlayerStats(
         matches_played=stats.matches_played,
         matches_started=stats.matches_started,
@@ -57,7 +67,18 @@ def transform_player_stats(stats: PlayerStatsModel) -> PlayerStats:
 def get_player_seasons_stats(
     db: Session, player_id: int
 ) -> tuple[PlayerInfo | None, list[SeasonData]]:
-    """Get player information with statistics across all seasons."""
+    """Get player information with statistics across all seasons.
+
+    Uses subquery to find earliest goal date per team/season for sorting when
+    player played for multiple teams in same season.
+
+    Args:
+        db: Database session
+        player_id: ID of the player
+
+    Returns:
+        Tuple of (PlayerInfo, list[SeasonData]). Sorted by start_year and earliest goal date.
+    """
     player = (
         db.query(Player).options(joinedload(Player.nation)).filter(Player.id == player_id).first()
     )
@@ -144,7 +165,18 @@ def get_player_seasons_stats(
 def get_player_career_goal_log(
     db: Session, player_id: int
 ) -> tuple[PlayerBasic | None, list[PlayerGoalLogEntry]]:
-    """Get goal log for a player across their entire career."""
+    """Get goal log for a player across their entire career.
+
+    Includes match details, season, assist info, goal value, xG, and opponent.
+    Goals matched to assists by match_id and minute.
+
+    Args:
+        db: Database session
+        player_id: ID of the player
+
+    Returns:
+        Tuple of (PlayerBasic, list[PlayerGoalLogEntry]). Sorted by season, date, minute.
+    """
     player = db.query(Player).filter(Player.id == player_id).first()
     if not player:
         return None, []

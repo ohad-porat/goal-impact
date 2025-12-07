@@ -14,7 +14,20 @@ from app.services.common import (
 
 
 def _build_season_filter(ref_season: Season, league_id: int | None):
-    """Build season filter for query."""
+    """Build season filter for query.
+
+    When league_id is None (all leagues), we normalize season years to handle
+    Brazilian single-year seasons (e.g., 2023 -> 2022/2023) to match with
+    European seasons. When filtering by a specific league, we use the exact
+    season years since each league's seasons are already properly structured.
+
+    Args:
+        ref_season: Reference season to build filter from
+        league_id: Optional league ID to filter by
+
+    Returns:
+        SQLAlchemy filter expression
+    """
     if league_id is None:
         normalized_start, normalized_end = normalize_season_years(
             ref_season.start_year, ref_season.end_year
@@ -29,7 +42,19 @@ def _build_season_filter(ref_season: Season, league_id: int | None):
 def get_career_totals(
     db: Session, limit: int = 50, league_id: int | None = None
 ) -> list[CareerTotalsPlayer]:
-    """Get top players by career goal value totals."""
+    """Get top players by career goal value totals.
+
+    Aggregates statistics across all seasons (or filtered by league).
+    Only includes players with goal_value > 0.
+
+    Args:
+        db: Database session
+        limit: Max players to return (default: 50)
+        league_id: Optional league filter. None = all leagues.
+
+    Returns:
+        List of CareerTotalsPlayer sorted by total goal value descending.
+    """
     query = (
         db.query(
             Player.id,
@@ -88,7 +113,21 @@ def get_career_totals(
 def get_by_season(
     db: Session, season_id: int, limit: int = 50, league_id: int | None = None
 ) -> list[BySeasonPlayer]:
-    """Get top players by goal value for a specific season."""
+    """Get top players by goal value for a specific season.
+
+    When league_id is None, normalizes Brazilian seasons (2023 -> 2022/2023) to
+    match European seasons across all leagues. Aggregates stats across all teams
+    per player, including comma-separated club list.
+
+    Args:
+        db: Database session
+        season_id: Reference season ID
+        limit: Max players to return (default: 50)
+        league_id: Optional league filter. None = cross-league with normalization.
+
+    Returns:
+        List of BySeasonPlayer sorted by total goal value descending.
+    """
     ref_season = db.query(Season).filter(Season.id == season_id).first()
     if not ref_season:
         return []

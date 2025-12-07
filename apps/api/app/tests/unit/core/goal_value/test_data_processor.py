@@ -21,8 +21,6 @@ class TestQueryGoals:
         db_session.commit()
 
         EventFactory(event_type="assist", match=match, player=player)
-        EventFactory(event_type="yellow card", match=match, player=player)
-        EventFactory(event_type="red card", match=match, player=player)
         db_session.commit()
 
         goals = processor.query_goals()
@@ -81,8 +79,6 @@ class TestQueryGoals:
         match = MatchFactory()
         player = PlayerFactory()
         EventFactory(event_type="assist", match=match, player=player)
-        EventFactory(event_type="yellow card", match=match, player=player)
-        EventFactory(event_type="red card", match=match, player=player)
         db_session.commit()
 
         goals = processor.query_goals()

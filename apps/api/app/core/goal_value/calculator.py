@@ -24,7 +24,15 @@ class GoalValueCalculator:
         self.goal_value_dict = defaultdict(dict)
 
     def run(self):
-        """Main execution method."""
+        """Main execution method.
+
+        Orchestrates the complete goal value calculation process:
+        1. Query all goals from database
+        2. Aggregate goal data by minute and score difference
+        3. Calculate goal values using window-based approach
+        4. Persist results to database
+        5. Save calculation metadata
+        """
         print("Starting goal value calculation...")
 
         goals = self.data_processor.query_goals()
@@ -45,7 +53,14 @@ class GoalValueCalculator:
         print("Goal value calculation completed successfully!")
 
     def _calculate_goal_value(self, aggregated_data):
-        """Calculate goal_value for all minutes 1-95."""
+        """Calculate goal_value for all minutes 1-95.
+
+        Uses a sliding window approach: for each minute/score_diff combination,
+        calculates goal value based on outcomes in a 5-minute window around that minute.
+
+        Args:
+            aggregated_data: Dictionary keyed by (minute, score_diff) with outcome counts
+        """
         for minute in get_minute_range():
             for score_diff in get_score_diff_range():
                 key = (minute, score_diff)
@@ -66,17 +81,41 @@ class GoalValueCalculator:
         self._enforce_minimal_monotonicity()
 
     def _get_calculation_window(self, minute):
-        """Get calculation window for a specific minute."""
+        """Get calculation window for a specific minute.
+
+        Uses a 5-minute window (±2 minutes) around the target minute, clamped to valid range.
+
+        Args:
+            minute: Target minute
+
+        Returns:
+            Tuple of (window_start, window_end)
+        """
         window_start = max(MIN_MINUTE, minute - 2)
         window_end = min(MAX_MINUTE, minute + 2)
         return window_start, window_end
 
     def _calculate_goal_value_for_score_diff(self, score_diff_data):
-        """Calculate goal value for a specific score difference."""
+        """Calculate goal value for a specific score difference.
+
+        Formula: (wins + draws/3) / total_goals
+        Draws are weighted as 1/3 of a win since they're worth 1/3 of the points.
+
+        Args:
+            score_diff_data: Dictionary with "win", "draw", and "total" counts
+
+        Returns:
+            Goal value as float
+        """
         return (score_diff_data["win"] + score_diff_data["draw"] / 3) / score_diff_data["total"]
 
     def _enforce_minimal_monotonicity(self):
-        """Fix small negative margins by rounding up to 0 for noise tolerance."""
+        """Fix small negative margins by rounding up to 0 for noise tolerance.
+
+        Ensures goal values are monotonically increasing with score difference.
+        If a small negative margin exists (within NOISE_THRESHOLD), adjusts the
+        higher score_diff value to match the lower one.
+        """
         for minute in get_minute_range():
             if minute in self.goal_value_dict:
                 for score_diff in range(MIN_SCORE_DIFF, MAX_SCORE_DIFF):

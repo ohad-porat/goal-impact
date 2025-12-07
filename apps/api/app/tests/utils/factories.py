@@ -156,7 +156,7 @@ class EventFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = Event
         sqlalchemy_session_persistence = "commit"
 
-    event_type = fuzzy.FuzzyChoice(["goal", "assist", "own goal", "yellow card", "red card"])
+    event_type = fuzzy.FuzzyChoice(["goal", "assist", "own goal"])
     minute = fuzzy.FuzzyInteger(1, 90)
     home_team_goals_pre_event = fuzzy.FuzzyInteger(0, 3)
     away_team_goals_pre_event = fuzzy.FuzzyInteger(0, 3)

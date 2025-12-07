@@ -18,7 +18,19 @@ from app.services.nations import tier_order
 
 
 def format_season_range(seasons: list[Season]) -> str:
-    """Format season range string."""
+    """Format season range string for display.
+
+    Creates a human-readable range string from a list of seasons, showing
+    the first and last season years. Handles both single-year and multi-year
+    season formats.
+
+    Args:
+        seasons: List of Season objects to format
+
+    Returns:
+        Formatted string like "2020/2021 - 2023/2024" or "2020 - 2023" for
+        single-year seasons. Returns "No seasons available" if list is empty.
+    """
     if not seasons:
         return "No seasons available"
 
@@ -38,7 +50,14 @@ def format_season_range(seasons: list[Season]) -> str:
 
 
 def get_all_leagues_with_season_ranges(db: Session) -> list[LeagueSummary]:
-    """Get all leagues with season ranges."""
+    """Get all leagues with season ranges.
+
+    Args:
+        db: Database session
+
+    Returns:
+        List of LeagueSummary sorted by country and tier.
+    """
     competitions = (
         db.query(Competition)
         .join(Nation)
@@ -67,7 +86,15 @@ def get_all_leagues_with_season_ranges(db: Session) -> list[LeagueSummary]:
 
 
 def get_league_seasons(db: Session, league_id: int) -> list[SeasonDisplay]:
-    """Get seasons for a league, sorted by start_year descending."""
+    """Get seasons for a league, sorted by start_year descending.
+
+    Args:
+        db: Database session
+        league_id: ID of the league/competition
+
+    Returns:
+        List of SeasonDisplay objects, sorted by start_year descending (most recent first)
+    """
     seasons = db.query(Season).filter(Season.competition_id == league_id).all()
 
     seasons_data = [
@@ -85,7 +112,18 @@ def get_league_seasons(db: Session, league_id: int) -> list[SeasonDisplay]:
 
 
 def get_all_unique_seasons(db: Session) -> list[SeasonDisplay]:
-    """Get all unique seasons grouped by logical period."""
+    """Get all unique seasons grouped by logical period.
+
+    Normalizes Brazilian single-year seasons (2023) to European format (2022/2023)
+    for grouping. Uses window functions to select one season per normalized period,
+    preferring multi-year over single-year seasons.
+
+    Args:
+        db: Database session
+
+    Returns:
+        List of SeasonDisplay objects, sorted by start year descending.
+    """
     normalized_start = case(
         (Season.start_year == Season.end_year, Season.start_year - 1), else_=Season.start_year
     ).label("normalized_start")
@@ -142,7 +180,22 @@ def get_all_unique_seasons(db: Session) -> list[SeasonDisplay]:
 def get_league_table_for_season(
     db: Session, league_id: int, season_id: int
 ) -> tuple[LeagueInfo | None, SeasonDisplay | None, list[LeagueTableEntry]]:
-    """Get league table for a league and season."""
+    """Get league table for a league and season.
+
+    Retrieves the complete league standings (table) for a specific league and season,
+    including all team statistics: matches played, wins, draws, losses, goals, points, etc.
+
+    Args:
+        db: Database session
+        league_id: ID of the league/competition
+        season_id: ID of the season
+
+    Returns:
+        Tuple containing:
+        - LeagueInfo or None if league not found
+        - SeasonDisplay or None if season not found or doesn't belong to league
+        - List of LeagueTableEntry objects, sorted by ranking (position)
+    """
     competition = (
         db.query(Competition)
         .options(joinedload(Competition.nation))

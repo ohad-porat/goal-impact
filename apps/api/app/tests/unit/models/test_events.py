@@ -86,3 +86,88 @@ class TestEventModel:
 
         assert event in match.events
         assert event in player.events
+
+    def test_event_minute_validation_valid_range(self, db_session):
+        """Test that minute can be between 0 and 120 (including stoppage time)."""
+        match = MatchFactory()
+        player = PlayerFactory()
+
+        event1 = EventFactory(match=match, player=player, minute=0)
+        event2 = EventFactory(match=match, player=player, minute=45)
+        event3 = EventFactory(match=match, player=player, minute=90)
+        event4 = EventFactory(match=match, player=player, minute=120)
+        db_session.commit()
+
+        assert event1.minute == 0
+        assert event2.minute == 45
+        assert event3.minute == 90
+        assert event4.minute == 120
+
+    def test_event_minute_validation_invalid_range(self, db_session):
+        """Test that minute outside 0-120 range raises ValueError."""
+        from app.models import Event
+
+        match = MatchFactory()
+        player = PlayerFactory()
+
+        with pytest.raises(ValueError, match="Minute must be between 0 and 120"):
+            Event(
+                event_type="goal",
+                minute=121,
+                match_id=match.id,
+                player_id=player.id,
+            )
+
+    def test_event_minute_validation_negative(self, db_session):
+        """Test that negative minute raises ValueError."""
+        from app.models import Event
+
+        match = MatchFactory()
+        player = PlayerFactory()
+
+        with pytest.raises(ValueError, match="Minute must be between 0 and 120"):
+            Event(
+                event_type="goal",
+                minute=-1,
+                match_id=match.id,
+                player_id=player.id,
+            )
+
+    def test_event_type_validation_valid_types(self, db_session):
+        """Test that valid event types are accepted."""
+        match = MatchFactory()
+        player = PlayerFactory()
+
+        goal = EventFactory(match=match, player=player, event_type="goal")
+        own_goal = EventFactory(match=match, player=player, event_type="own goal")
+        assist = EventFactory(match=match, player=player, event_type="assist")
+        db_session.commit()
+
+        assert goal.event_type == "goal"
+        assert own_goal.event_type == "own goal"
+        assert assist.event_type == "assist"
+
+    def test_event_type_validation_invalid_type(self, db_session):
+        """Test that invalid event types raise ValueError."""
+        from app.models import Event
+
+        match = MatchFactory()
+        player = PlayerFactory()
+
+        with pytest.raises(ValueError, match="Invalid event_type"):
+            Event(
+                event_type="yellow card",
+                minute=10,
+                match_id=match.id,
+                player_id=player.id,
+            )
+
+    def test_event_type_validation_allows_none(self, db_session):
+        """Test that event_type can be None."""
+        match = MatchFactory()
+        player = PlayerFactory()
+
+        event = EventFactory(match=match, player=player, event_type=None)
+        db_session.commit()
+
+        assert event.event_type is None

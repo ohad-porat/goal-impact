@@ -49,9 +49,16 @@ class PlayerStats(Base):
     team_id = Column(Integer, ForeignKey("teams.id"))
 
     player = relationship("Player", back_populates="player_stats")
-    season = relationship("Season")
-    team = relationship("Team")
+    season = relationship("Season", back_populates="player_stats")
+    team = relationship("Team", back_populates="player_stats")
 
     __table_args__ = (
         UniqueConstraint("player_id", "season_id", "team_id", name="unique_player_season_team"),
     )
+
+    def __repr__(self):
+        return (
+            f"<PlayerStats(id={self.id}, player_id={self.player_id}, "
+            f"season_id={self.season_id}, team_id={self.team_id}, "
+            f"goals={self.goals_scored}, assists={self.assists})>"
+        )
