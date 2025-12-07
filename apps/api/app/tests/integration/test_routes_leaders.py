@@ -20,11 +20,11 @@ from app.tests.utils.helpers import (
 class TestGetCareerTotalsLeadersRoute:
     """Tests for GET /api/v1/leaders/career-totals endpoint."""
 
-    def test_returns_empty_list_when_no_players(self, client: TestClient, db_session):
+    def test_returns_empty_list_when_no_players(self, client: TestClient, db_session) -> None:
         """Test that empty list is returned when no players exist for career totals."""
         assert_empty_list_response(client, "/api/v1/leaders/career-totals", "top_goal_value")
 
-    def test_returns_career_totals_successfully(self, client: TestClient, db_session):
+    def test_returns_career_totals_successfully(self, client: TestClient, db_session) -> None:
         """Test that career totals are returned with correct structure."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -48,7 +48,7 @@ class TestGetCareerTotalsLeadersRoute:
         assert data["top_goal_value"][0]["player_name"] == "Top Player"
         assert data["top_goal_value"][0]["total_goal_value"] == 50.5
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session):
+    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
         """Test that response structure matches the expected schema."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -83,7 +83,7 @@ class TestGetCareerTotalsLeadersRoute:
             assert isinstance(player_data["player_id"], int)
             assert isinstance(player_data["total_goal_value"], float)
 
-    def test_uses_default_limit_of_50(self, client: TestClient, db_session):
+    def test_uses_default_limit_of_50(self, client: TestClient, db_session) -> None:
         """Test that default limit of 50 is used when not specified."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -106,7 +106,7 @@ class TestGetCareerTotalsLeadersRoute:
         data = response.json()
         assert len(data["top_goal_value"]) == 50
 
-    def test_respects_limit_parameter(self, client: TestClient, db_session):
+    def test_respects_limit_parameter(self, client: TestClient, db_session) -> None:
         """Test that limit parameter is respected."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -138,7 +138,7 @@ class TestGetCareerTotalsLeadersRoute:
             (100, 200),
         ],
     )
-    def test_validates_limit(self, client: TestClient, db_session, limit, expected_status):
+    def test_validates_limit(self, client: TestClient, db_session, limit, expected_status) -> None:
         """Test that limit validation works correctly."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -159,7 +159,7 @@ class TestGetCareerTotalsLeadersRoute:
             data = response.json()
             assert "top_goal_value" in data
 
-    def test_filters_by_league_id(self, client: TestClient, db_session):
+    def test_filters_by_league_id(self, client: TestClient, db_session) -> None:
         """Test that league_id query parameter filters results correctly."""
 
         def create_player_data(season, nation):
@@ -186,7 +186,7 @@ class TestGetCareerTotalsLeadersRoute:
         assert len(data["top_goal_value"]) == 1
         assert data["top_goal_value"][0]["player_id"] == player1.id
 
-    def test_league_id_parameter_is_optional(self, client: TestClient, db_session):
+    def test_league_id_parameter_is_optional(self, client: TestClient, db_session) -> None:
         """Test that league_id parameter is optional."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -208,7 +208,7 @@ class TestGetCareerTotalsLeadersRoute:
         data = response.json()
         assert len(data["top_goal_value"]) == 1
 
-    def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session):
+    def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session) -> None:
         """Test that invalid league_id returns empty list without errors."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -233,7 +233,7 @@ class TestGetCareerTotalsLeadersRoute:
 class TestGetBySeasonLeadersRoute:
     """Tests for GET /api/v1/leaders/by-season endpoint."""
 
-    def test_requires_season_id_parameter(self, client: TestClient, db_session):
+    def test_requires_season_id_parameter(self, client: TestClient, db_session) -> None:
         """Test that season_id parameter is required."""
         response = client.get("/api/v1/leaders/by-season")
 
@@ -241,7 +241,7 @@ class TestGetBySeasonLeadersRoute:
         data = response.json()
         assert "detail" in data
 
-    def test_returns_empty_list_when_no_players(self, client: TestClient, db_session):
+    def test_returns_empty_list_when_no_players(self, client: TestClient, db_session) -> None:
         """Test that empty list is returned when no players exist for season."""
         nation, comp, season = create_basic_season_setup(db_session)
         db_session.commit()
@@ -251,7 +251,7 @@ class TestGetBySeasonLeadersRoute:
         data = response.json()
         assert data["top_goal_value"] == []
 
-    def test_returns_by_season_leaders_successfully(self, client: TestClient, db_session):
+    def test_returns_by_season_leaders_successfully(self, client: TestClient, db_session) -> None:
         """Test that by-season leaders are returned with correct structure."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -275,7 +275,7 @@ class TestGetBySeasonLeadersRoute:
         assert data["top_goal_value"][0]["player_name"] == "Season Leader"
         assert data["top_goal_value"][0]["total_goal_value"] == 45.5
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session):
+    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
         """Test that response structure matches the expected schema."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -311,7 +311,7 @@ class TestGetBySeasonLeadersRoute:
             assert isinstance(player_data["total_goal_value"], float)
             assert isinstance(player_data["clubs"], str)
 
-    def test_uses_default_limit_of_50(self, client: TestClient, db_session):
+    def test_uses_default_limit_of_50(self, client: TestClient, db_session) -> None:
         """Test that default limit of 50 is used when not specified."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -334,7 +334,7 @@ class TestGetBySeasonLeadersRoute:
         data = response.json()
         assert len(data["top_goal_value"]) == 50
 
-    def test_respects_limit_parameter(self, client: TestClient, db_session):
+    def test_respects_limit_parameter(self, client: TestClient, db_session) -> None:
         """Test that limit parameter is respected."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -366,7 +366,7 @@ class TestGetBySeasonLeadersRoute:
             (100, 200),
         ],
     )
-    def test_validates_limit(self, client: TestClient, db_session, limit, expected_status):
+    def test_validates_limit(self, client: TestClient, db_session, limit, expected_status) -> None:
         """Test that limit validation works correctly."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -387,7 +387,7 @@ class TestGetBySeasonLeadersRoute:
             data = response.json()
             assert "top_goal_value" in data
 
-    def test_filters_by_league_id(self, client: TestClient, db_session):
+    def test_filters_by_league_id(self, client: TestClient, db_session) -> None:
         """Test that league_id query parameter filters results correctly."""
 
         def create_player_data(season, nation):
@@ -421,7 +421,7 @@ class TestGetBySeasonLeadersRoute:
         assert len(data["top_goal_value"]) == 1
         assert data["top_goal_value"][0]["player_id"] == player1.id
 
-    def test_league_id_parameter_is_optional(self, client: TestClient, db_session):
+    def test_league_id_parameter_is_optional(self, client: TestClient, db_session) -> None:
         """Test that league_id parameter is optional."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -446,11 +446,11 @@ class TestGetBySeasonLeadersRoute:
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_season_id_types(
         self, client: TestClient, db_session, invalid_id
-    ):
+    ) -> None:
         """Test that various invalid season_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/leaders/by-season?season_id={invalid_id}")
 
-    def test_handles_negative_and_zero_season_id(self, client: TestClient, db_session):
+    def test_handles_negative_and_zero_season_id(self, client: TestClient, db_session) -> None:
         """Test that negative and zero season_id return 404 or empty results."""
         response_neg = client.get("/api/v1/leaders/by-season?season_id=-1")
         response_zero = client.get("/api/v1/leaders/by-season?season_id=0")
@@ -464,7 +464,7 @@ class TestGetBySeasonLeadersRoute:
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_league_id_types(
         self, client: TestClient, db_session, invalid_id
-    ):
+    ) -> None:
         """Test that various invalid league_id types return validation error."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -484,7 +484,7 @@ class TestGetBySeasonLeadersRoute:
             client, f"/api/v1/leaders/by-season?season_id={season.id}&league_id={invalid_id}"
         )
 
-    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session):
+    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session) -> None:
         """Test that negative and zero league_id return validation error or empty results."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -509,7 +509,7 @@ class TestGetBySeasonLeadersRoute:
         assert response_neg2.status_code in [200, 422]
         assert response_zero2.status_code in [200, 422]
 
-    def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session):
+    def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session) -> None:
         """Test that invalid league_id returns empty list without errors for by-season endpoint."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)

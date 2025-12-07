@@ -9,7 +9,7 @@ from app.tests.utils.factories import EventFactory, MatchFactory, PlayerFactory
 class TestEventModel:
     """Test Event model functionality."""
 
-    def test_create_event(self, db_session):
+    def test_create_event(self, db_session) -> None:
         """Test creating an event with all fields."""
         match = MatchFactory()
         player = PlayerFactory()
@@ -32,7 +32,7 @@ class TestEventModel:
         assert event.match_id == match.id
         assert event.player_id == player.id
 
-    def test_event_unique_constraint(self, db_session):
+    def test_event_unique_constraint(self, db_session) -> None:
         """Test unique constraint on (match_id, player_id, minute, event_type)."""
         match = MatchFactory()
         player = PlayerFactory()
@@ -44,7 +44,7 @@ class TestEventModel:
             EventFactory(match=match, player=player, minute=10, event_type="goal")
             db_session.commit()
 
-    def test_event_same_minute_different_type(self, db_session):
+    def test_event_same_minute_different_type(self, db_session) -> None:
         """Test that same minute but different event_type is allowed."""
         match = MatchFactory()
         player = PlayerFactory()
@@ -57,7 +57,7 @@ class TestEventModel:
 
         assert event2.id is not None
 
-    def test_event_foreign_keys(self, db_session):
+    def test_event_foreign_keys(self, db_session) -> None:
         """Test foreign key relationships."""
         match = MatchFactory()
         player = PlayerFactory()
@@ -67,7 +67,7 @@ class TestEventModel:
         assert event.match == match
         assert event.player == player
 
-    def test_event_optional_fields(self, db_session):
+    def test_event_optional_fields(self, db_session) -> None:
         """Test that optional fields can be null."""
         event = EventFactory(xg=None, post_shot_xg=None, xg_difference=None, goal_value=None)
         db_session.commit()
@@ -77,7 +77,7 @@ class TestEventModel:
         assert event.xg_difference is None
         assert event.goal_value is None
 
-    def test_event_relationships(self, db_session):
+    def test_event_relationships(self, db_session) -> None:
         """Test that reverse relationships work correctly."""
         match = MatchFactory()
         player = PlayerFactory()
@@ -87,7 +87,7 @@ class TestEventModel:
         assert event in match.events
         assert event in player.events
 
-    def test_event_minute_validation_valid_range(self, db_session):
+    def test_event_minute_validation_valid_range(self, db_session) -> None:
         """Test that minute can be between 0 and 120 (including stoppage time)."""
         match = MatchFactory()
         player = PlayerFactory()
@@ -103,7 +103,7 @@ class TestEventModel:
         assert event3.minute == 90
         assert event4.minute == 120
 
-    def test_event_minute_validation_invalid_range(self, db_session):
+    def test_event_minute_validation_invalid_range(self, db_session) -> None:
         """Test that minute outside 0-120 range raises ValueError."""
         from app.models import Event
 
@@ -118,7 +118,7 @@ class TestEventModel:
                 player_id=player.id,
             )
 
-    def test_event_minute_validation_negative(self, db_session):
+    def test_event_minute_validation_negative(self, db_session) -> None:
         """Test that negative minute raises ValueError."""
         from app.models import Event
 
@@ -133,7 +133,7 @@ class TestEventModel:
                 player_id=player.id,
             )
 
-    def test_event_type_validation_valid_types(self, db_session):
+    def test_event_type_validation_valid_types(self, db_session) -> None:
         """Test that valid event types are accepted."""
         match = MatchFactory()
         player = PlayerFactory()
@@ -147,7 +147,7 @@ class TestEventModel:
         assert own_goal.event_type == "own goal"
         assert assist.event_type == "assist"
 
-    def test_event_type_validation_invalid_type(self, db_session):
+    def test_event_type_validation_invalid_type(self, db_session) -> None:
         """Test that invalid event types raise ValueError."""
         from app.models import Event
 
@@ -162,7 +162,7 @@ class TestEventModel:
                 player_id=player.id,
             )
 
-    def test_event_type_validation_allows_none(self, db_session):
+    def test_event_type_validation_allows_none(self, db_session) -> None:
         """Test that event_type can be None."""
         match = MatchFactory()
         player = PlayerFactory()

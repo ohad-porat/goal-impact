@@ -24,7 +24,7 @@ from app.tests.utils.helpers import (
 class TestTransformPlayerStats:
     """Tests for transform_player_stats helper."""
 
-    def test_rounds_decimal_fields(self):
+    def test_rounds_decimal_fields(self) -> None:
         """Test that decimal fields are rounded to two decimals."""
         stats = PlayerStatsFactory.build(
             matches_played=30,
@@ -59,7 +59,7 @@ class TestTransformPlayerStats:
         assert result.non_pk_goals_per_90 == 0.46
         assert result.non_pk_goal_and_assists_per_90 == 1.43
 
-    def test_handles_none_and_zero_values(self):
+    def test_handles_none_and_zero_values(self) -> None:
         """Test that None/zero values remain None after transformation."""
         stats = PlayerStatsFactory.build(
             matches_played=None,
@@ -98,14 +98,14 @@ class TestTransformPlayerStats:
 class TestGetPlayerSeasonsStats:
     """Tests for get_player_seasons_stats."""
 
-    def test_returns_none_when_player_not_found(self, db_session):
+    def test_returns_none_when_player_not_found(self, db_session) -> None:
         """Test that None and empty list are returned when player is missing."""
         player_info, seasons = get_player_seasons_stats(db_session, 999999)
 
         assert player_info is None
         assert seasons == []
 
-    def test_returns_player_info_with_sorted_seasons(self, db_session):
+    def test_returns_player_info_with_sorted_seasons(self, db_session) -> None:
         """Test that player info and seasons are returned in sorted order."""
         player = PlayerFactory(name="Star Player")
         nation = player.nation
@@ -212,7 +212,7 @@ class TestGetPlayerSeasonsStats:
         assert seasons[2].stats.goal_value is None
         assert seasons[0].season.display_name == "2022/2023"
 
-    def test_returns_player_info_without_stats(self, db_session):
+    def test_returns_player_info_without_stats(self, db_session) -> None:
         """Test that player info is returned even when stats are missing."""
         player = PlayerFactory(name="No Stats Player")
 
@@ -226,14 +226,14 @@ class TestGetPlayerSeasonsStats:
 class TestGetPlayerCareerGoalLog:
     """Tests for get_player_career_goal_log."""
 
-    def test_returns_none_when_player_not_found(self, db_session):
+    def test_returns_none_when_player_not_found(self, db_session) -> None:
         """Test that None and empty list are returned when player is missing."""
         player_basic, goal_entries = get_player_career_goal_log(db_session, 999999)
 
         assert player_basic is None
         assert goal_entries == []
 
-    def test_returns_empty_goals_when_player_has_no_events(self, db_session):
+    def test_returns_empty_goals_when_player_has_no_events(self, db_session) -> None:
         """Test that empty goal list is returned when player has no goal events."""
         player = PlayerFactory(name="No Goal Player")
 
@@ -243,7 +243,7 @@ class TestGetPlayerCareerGoalLog:
         assert player_basic.name == "No Goal Player"
         assert goal_entries == []
 
-    def test_returns_sorted_goal_entries_with_assists(self, db_session):
+    def test_returns_sorted_goal_entries_with_assists(self, db_session) -> None:
         """Test that goal log entries are returned with proper sorting and assists."""
         player = PlayerFactory(name="Clutch Scorer")
         nation = player.nation

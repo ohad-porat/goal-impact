@@ -10,7 +10,7 @@ from app.tests.utils.helpers import create_goal_event
 class TestQueryGoals:
     """Tests for query_goals method."""
 
-    def test_returns_goals_only(self, db_session):
+    def test_returns_goals_only(self, db_session) -> None:
         """Test that method returns only goal events."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -29,7 +29,7 @@ class TestQueryGoals:
         assert goals[0].event_type == "goal"
         assert goals[0].id == goal.id
 
-    def test_returns_own_goals(self, db_session):
+    def test_returns_own_goals(self, db_session) -> None:
         """Test that method returns own goal events."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -45,7 +45,7 @@ class TestQueryGoals:
         assert goals[0].event_type == "own goal"
         assert goals[0].id == own_goal.id
 
-    def test_returns_both_goals_and_own_goals(self, db_session):
+    def test_returns_both_goals_and_own_goals(self, db_session) -> None:
         """Test that method returns both goal and own goal events."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -62,7 +62,7 @@ class TestQueryGoals:
         goal_types = {g.event_type for g in goals}
         assert goal_types == {"goal", "own goal"}
 
-    def test_returns_empty_list_when_no_goals(self, db_session):
+    def test_returns_empty_list_when_no_goals(self, db_session) -> None:
         """Test that method returns empty list when no goals exist."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -71,7 +71,7 @@ class TestQueryGoals:
 
         assert goals == []
 
-    def test_excludes_other_event_types(self, db_session):
+    def test_excludes_other_event_types(self, db_session) -> None:
         """Test that method excludes non-goal event types."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -89,7 +89,7 @@ class TestQueryGoals:
 class TestProcessGoalData:
     """Tests for process_goal_data method."""
 
-    def test_aggregates_goals_by_minute_and_score_diff(self, db_session):
+    def test_aggregates_goals_by_minute_and_score_diff(self, db_session) -> None:
         """Test that goals are aggregated by (minute, score_diff) combination."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -116,7 +116,7 @@ class TestProcessGoalData:
         assert aggregated_data[key]["draw"] == 0
         assert aggregated_data[key]["loss"] == 0
 
-    def test_aggregates_different_outcomes(self, db_session):
+    def test_aggregates_different_outcomes(self, db_session) -> None:
         """Test that different outcomes (win/draw/loss) are counted separately."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -150,7 +150,7 @@ class TestProcessGoalData:
         assert aggregated_data[key]["draw"] == 1
         assert aggregated_data[key]["loss"] == 1
 
-    def test_handles_home_team_goals(self, db_session):
+    def test_handles_home_team_goals(self, db_session) -> None:
         """Test that home team goals are processed correctly."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -170,7 +170,7 @@ class TestProcessGoalData:
         assert aggregated_data[key]["total"] == 1
         assert aggregated_data[key]["win"] == 1
 
-    def test_handles_away_team_goals(self, db_session):
+    def test_handles_away_team_goals(self, db_session) -> None:
         """Test that away team goals are processed correctly."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -190,7 +190,7 @@ class TestProcessGoalData:
         assert aggregated_data[key]["total"] == 1
         assert aggregated_data[key]["win"] == 1
 
-    def test_filters_by_score_diff_range(self, db_session):
+    def test_filters_by_score_diff_range(self, db_session) -> None:
         """Test that goals outside score_diff range are excluded."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -209,7 +209,7 @@ class TestProcessGoalData:
         key = (30, 10)
         assert key not in aggregated_data
 
-    def test_includes_score_diff_at_boundaries(self, db_session):
+    def test_includes_score_diff_at_boundaries(self, db_session) -> None:
         """Test that goals at score_diff boundaries are included."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -234,7 +234,7 @@ class TestProcessGoalData:
         assert (30, 3) in aggregated_data
         assert (30, 5) in aggregated_data
 
-    def test_skips_invalid_goals(self, db_session):
+    def test_skips_invalid_goals(self, db_session) -> None:
         """Test that invalid goals are skipped."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -267,7 +267,7 @@ class TestProcessGoalData:
         assert key in aggregated_data
         assert aggregated_data[key]["total"] == 1
 
-    def test_returns_empty_dict_when_no_goals(self, db_session):
+    def test_returns_empty_dict_when_no_goals(self, db_session) -> None:
         """Test that method returns empty defaultdict when no goals provided."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -277,7 +277,7 @@ class TestProcessGoalData:
         assert isinstance(aggregated_data, defaultdict)
         assert len(aggregated_data) == 0
 
-    def test_handles_goals_at_different_minutes(self, db_session):
+    def test_handles_goals_at_different_minutes(self, db_session) -> None:
         """Test that goals at different minutes are aggregated separately."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -301,7 +301,7 @@ class TestProcessGoalData:
         assert aggregated_data[(10, 1)]["total"] == 1
         assert aggregated_data[(90, 2)]["total"] == 1
 
-    def test_handles_own_goals(self, db_session):
+    def test_handles_own_goals(self, db_session) -> None:
         """Test that own goals are processed correctly."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -332,7 +332,7 @@ class TestProcessGoalData:
 class TestGetSampleSizeForMinute:
     """Tests for get_sample_size_for_minute method."""
 
-    def test_returns_total_for_minute(self, db_session):
+    def test_returns_total_for_minute(self, db_session) -> None:
         """Test that method returns total sample size for a minute."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -348,7 +348,7 @@ class TestGetSampleSizeForMinute:
 
         assert sample_size == 30
 
-    def test_returns_zero_when_no_data(self, db_session):
+    def test_returns_zero_when_no_data(self, db_session) -> None:
         """Test that method returns 0 when minute has no data."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -362,7 +362,7 @@ class TestGetSampleSizeForMinute:
 
         assert sample_size == 0
 
-    def test_returns_zero_for_empty_data(self, db_session):
+    def test_returns_zero_for_empty_data(self, db_session) -> None:
         """Test that method returns 0 for empty aggregated_data."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -373,7 +373,7 @@ class TestGetSampleSizeForMinute:
 
         assert sample_size == 0
 
-    def test_sums_all_score_diffs(self, db_session):
+    def test_sums_all_score_diffs(self, db_session) -> None:
         """Test that method sums across all score_diffs for the minute."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -398,7 +398,7 @@ class TestGetSampleSizeForMinute:
 class TestGetWindowData:
     """Tests for get_window_data method."""
 
-    def test_aggregates_single_minute(self, db_session):
+    def test_aggregates_single_minute(self, db_session) -> None:
         """Test that method aggregates data for a single minute window."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -414,7 +414,7 @@ class TestGetWindowData:
         assert window_data[1]["loss"] == 3
         assert window_data[1]["total"] == 10
 
-    def test_aggregates_multiple_minutes(self, db_session):
+    def test_aggregates_multiple_minutes(self, db_session) -> None:
         """Test that method aggregates data across multiple minutes."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -434,7 +434,7 @@ class TestGetWindowData:
         assert window_data[1]["loss"] == 6
         assert window_data[1]["total"] == 24
 
-    def test_handles_partial_window(self, db_session):
+    def test_handles_partial_window(self, db_session) -> None:
         """Test that method handles windows with missing minutes."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -452,7 +452,7 @@ class TestGetWindowData:
         assert window_data[1]["loss"] == 4
         assert window_data[1]["total"] == 17
 
-    def test_handles_empty_window(self, db_session):
+    def test_handles_empty_window(self, db_session) -> None:
         """Test that method returns zeros for empty window."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -468,7 +468,7 @@ class TestGetWindowData:
         assert window_data[1]["loss"] == 0
         assert window_data[1]["total"] == 0
 
-    def test_aggregates_all_score_diffs(self, db_session):
+    def test_aggregates_all_score_diffs(self, db_session) -> None:
         """Test that method aggregates data for all score_diffs."""
         processor = GoalDataProcessor()
         processor.session = db_session
@@ -485,7 +485,7 @@ class TestGetWindowData:
         assert window_data[0]["total"] == 6
         assert window_data[1]["total"] == 9
 
-    def test_handles_boundary_minutes(self, db_session):
+    def test_handles_boundary_minutes(self, db_session) -> None:
         """Test that method handles boundary minutes correctly."""
         processor = GoalDataProcessor()
         processor.session = db_session

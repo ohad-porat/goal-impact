@@ -11,7 +11,7 @@ from app.core.goal_value.utils import DEFAULT_WINDOW_SIZE, get_minute_range, get
 class TestInit:
     """Tests for __init__ method."""
 
-    def test_initializes_with_dependencies(self, mocker):
+    def test_initializes_with_dependencies(self, mocker) -> None:
         """Test that analyzer initializes with data processor and repository."""
         mocker.patch("app.core.goal_value.analyzer.GoalDataProcessor")
         mocker.patch("app.core.goal_value.analyzer.GoalValueRepository")
@@ -26,7 +26,7 @@ class TestInit:
 class TestEnsureDataLoaded:
     """Tests for _ensure_data_loaded method."""
 
-    def test_loads_data_on_first_call(self, mocker):
+    def test_loads_data_on_first_call(self, mocker) -> None:
         """Test that method loads data on first call."""
         analyzer = GoalValueAnalyzer()
         analyzer.repository = mocker.Mock()
@@ -37,7 +37,7 @@ class TestEnsureDataLoaded:
         assert analyzer.goal_value_dict[45][1] == 0.75
         analyzer.repository.load_goal_values.assert_called_once()
 
-    def test_uses_cached_data_on_subsequent_calls(self, mocker):
+    def test_uses_cached_data_on_subsequent_calls(self, mocker) -> None:
         """Test that method uses cached data on subsequent calls."""
         analyzer = GoalValueAnalyzer()
         analyzer.repository = mocker.Mock()
@@ -52,7 +52,7 @@ class TestEnsureDataLoaded:
 class TestExportToDataframe:
     """Tests for export_to_dataframe method."""
 
-    def test_exports_to_dataframe(self):
+    def test_exports_to_dataframe(self) -> None:
         """Test that method exports goal values to DataFrame."""
         analyzer = GoalValueAnalyzer()
         analyzer.goal_value_dict = defaultdict(
@@ -73,7 +73,7 @@ class TestExportToDataframe:
         assert df.loc[45, 0] == 0.5
         assert df.loc[90, 1] == 0.8
 
-    def test_includes_all_minutes_and_score_diffs(self):
+    def test_includes_all_minutes_and_score_diffs(self) -> None:
         """Test that DataFrame includes all minutes and score_diffs."""
         analyzer = GoalValueAnalyzer()
         analyzer.goal_value_dict = defaultdict(dict, {45: {1: 0.75}})
@@ -83,7 +83,7 @@ class TestExportToDataframe:
         assert len(df.index) == len(list(get_minute_range()))
         assert len(df.columns) == len(list(get_score_diff_range()))
 
-    def test_handles_missing_values(self):
+    def test_handles_missing_values(self) -> None:
         """Test that method handles missing values correctly."""
         analyzer = GoalValueAnalyzer()
         analyzer.goal_value_dict = defaultdict(dict, {45: {1: 0.75}})
@@ -94,7 +94,7 @@ class TestExportToDataframe:
         assert df.loc[45, 1] == 0.75
         assert pd.isna(df.loc[90, 1])
 
-    def test_calls_ensure_data_loaded(self, mocker):
+    def test_calls_ensure_data_loaded(self, mocker) -> None:
         """Test that method calls _ensure_data_loaded."""
         analyzer = GoalValueAnalyzer()
         analyzer.repository = mocker.Mock()
@@ -113,7 +113,7 @@ class TestExportToDataframe:
 class TestShowSampleSizes:
     """Tests for show_sample_sizes method."""
 
-    def test_calls_overview_when_no_parameters(self, mocker):
+    def test_calls_overview_when_no_parameters(self, mocker) -> None:
         """Test that method calls overview when no parameters provided."""
         mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -128,7 +128,7 @@ class TestShowSampleSizes:
 
         analyzer._show_sample_sizes_overview.assert_called_once()
 
-    def test_calls_minute_score_diff_when_both_provided(self, mocker):
+    def test_calls_minute_score_diff_when_both_provided(self, mocker) -> None:
         """Test that method calls minute_score_diff when both parameters provided."""
         mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -143,7 +143,7 @@ class TestShowSampleSizes:
 
         analyzer._show_sample_sizes_for_minute_score_diff.assert_called_once()
 
-    def test_calls_minute_when_only_minute_provided(self, mocker):
+    def test_calls_minute_when_only_minute_provided(self, mocker) -> None:
         """Test that method calls minute when only minute provided."""
         mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -162,7 +162,7 @@ class TestShowSampleSizes:
 class TestShowSampleSizesForMinuteScoreDiff:
     """Tests for _show_sample_sizes_for_minute_score_diff method."""
 
-    def test_shows_sample_sizes_for_minute_score_diff(self, mocker):
+    def test_shows_sample_sizes_for_minute_score_diff(self, mocker) -> None:
         """Test that method shows sample sizes for specific minute and score_diff."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -184,7 +184,7 @@ class TestShowSampleSizesForMinuteScoreDiff:
         assert "1" in print_output
         assert "minute 45" in print_output.lower() or "45" in print_output
 
-    def test_shows_breakdown_when_window_has_multiple_minutes(self, mocker):
+    def test_shows_breakdown_when_window_has_multiple_minutes(self, mocker) -> None:
         """Test that method shows breakdown when window has multiple minutes."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -207,7 +207,7 @@ class TestShowSampleSizesForMinuteScoreDiff:
 class TestShowSampleSizesForMinute:
     """Tests for _show_sample_sizes_for_minute method."""
 
-    def test_uses_single_minute_when_sample_size_sufficient(self, mocker):
+    def test_uses_single_minute_when_sample_size_sufficient(self, mocker) -> None:
         """Test that method uses single minute when sample size is sufficient."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -225,7 +225,7 @@ class TestShowSampleSizesForMinute:
         print_output = " ".join(str(call.args) for call in mock_print.call_args_list).lower()
         assert "single minute" in print_output or "45" in print_output
 
-    def test_uses_window_when_sample_size_insufficient(self, mocker):
+    def test_uses_window_when_sample_size_insufficient(self, mocker) -> None:
         """Test that method uses window when sample size is insufficient."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -248,7 +248,7 @@ class TestShowSampleSizesForMinute:
 class TestShowSampleSizesOverview:
     """Tests for _show_sample_sizes_overview method."""
 
-    def test_shows_overview_for_all_minutes(self, mocker):
+    def test_shows_overview_for_all_minutes(self, mocker) -> None:
         """Test that method shows overview for all minutes with data."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -266,7 +266,7 @@ class TestShowSampleSizesOverview:
         assert "45" in print_output
         assert "90" in print_output
 
-    def test_skips_minutes_without_data(self, mocker):
+    def test_skips_minutes_without_data(self, mocker) -> None:
         """Test that method skips minutes without data."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -285,7 +285,7 @@ class TestShowSampleSizesOverview:
 class TestShowGoalDetails:
     """Tests for show_goal_details method."""
 
-    def test_requires_both_minute_and_score_diff(self, mocker):
+    def test_requires_both_minute_and_score_diff(self, mocker) -> None:
         """Test that method requires both minute and score_diff."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -299,7 +299,7 @@ class TestShowGoalDetails:
         print_output = " ".join(str(call.args) for call in mock_print.call_args_list).lower()
         assert "specify both" in print_output or "minute" in print_output
 
-    def test_calls_goal_details_when_both_provided(self, mocker):
+    def test_calls_goal_details_when_both_provided(self, mocker) -> None:
         """Test that method calls goal details when both parameters provided."""
         mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -317,7 +317,7 @@ class TestShowGoalDetails:
 class TestShowGoalDetailsForMinuteScoreDiff:
     """Tests for _show_goal_details_for_minute_score_diff method."""
 
-    def test_shows_goal_details(self, mocker):
+    def test_shows_goal_details(self, mocker) -> None:
         """Test that method shows goal details for matching goals."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -347,7 +347,7 @@ class TestShowGoalDetailsForMinuteScoreDiff:
         assert "45" in print_output
         assert "Test Player" in print_output or "Player" in print_output
 
-    def test_filters_by_window_minutes(self, mocker):
+    def test_filters_by_window_minutes(self, mocker) -> None:
         """Test that method filters goals by window minutes."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -378,7 +378,7 @@ class TestShowGoalDetailsForMinuteScoreDiff:
         print_output = " ".join(str(call.args) for call in mock_print.call_args_list)
         assert "Player 1" in print_output or "Total goals found: 1" in print_output
 
-    def test_filters_by_score_diff(self, mocker):
+    def test_filters_by_score_diff(self, mocker) -> None:
         """Test that method filters goals by score_diff."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -421,7 +421,7 @@ class TestShowGoalDetailsForMinuteScoreDiff:
         print_output = " ".join(str(call.args) for call in mock_print.call_args_list)
         assert "Total goals found: 1" in print_output
 
-    def test_skips_invalid_goals(self, mocker):
+    def test_skips_invalid_goals(self, mocker) -> None:
         """Test that method skips invalid goals."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()
@@ -456,7 +456,7 @@ class TestShowGoalDetailsForMinuteScoreDiff:
         print_output = " ".join(str(call.args) for call in mock_print.call_args_list)
         assert "Total goals found: 1" in print_output
 
-    def test_handles_missing_player(self, mocker):
+    def test_handles_missing_player(self, mocker) -> None:
         """Test that method handles goals with missing player."""
         mock_print = mocker.patch("builtins.print")
         analyzer = GoalValueAnalyzer()

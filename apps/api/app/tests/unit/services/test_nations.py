@@ -20,24 +20,24 @@ from app.tests.utils.helpers import create_basic_season_setup
 class TestTierOrder:
     """Tests for tier_order function."""
 
-    def test_returns_1_for_first_tier(self):
+    def test_returns_1_for_first_tier(self) -> None:
         """Test that '1st' tier returns 1."""
         assert tier_order("1st") == 1
 
-    def test_returns_2_for_second_tier(self):
+    def test_returns_2_for_second_tier(self) -> None:
         """Test that '2nd' tier returns 2."""
         assert tier_order("2nd") == 2
 
-    def test_returns_3_for_third_tier(self):
+    def test_returns_3_for_third_tier(self) -> None:
         """Test that '3rd' tier returns 3."""
         assert tier_order("3rd") == 3
 
-    def test_returns_50_for_unknown_tier(self):
+    def test_returns_50_for_unknown_tier(self) -> None:
         """Test that unknown tier returns 50."""
         assert tier_order("4th") == 50
         assert tier_order("Unknown") == 50
 
-    def test_returns_99_for_none(self):
+    def test_returns_99_for_none(self) -> None:
         """Test that None tier returns 99."""
         assert tier_order(None) == 99
 
@@ -45,7 +45,7 @@ class TestTierOrder:
 class TestGetCompetitionsForNation:
     """Tests for get_competitions_for_nation function."""
 
-    def test_returns_competitions_for_nation(self, db_session):
+    def test_returns_competitions_for_nation(self, db_session) -> None:
         """Test that competitions are returned for a nation."""
         nation = NationFactory()
         CompetitionFactory(name="Premier League", nation=nation, tier="1st")
@@ -59,7 +59,7 @@ class TestGetCompetitionsForNation:
         assert any(c.name == "Premier League" for c in result)
         assert any(c.name == "Championship" for c in result)
 
-    def test_includes_season_count(self, db_session):
+    def test_includes_season_count(self, db_session) -> None:
         """Test that season_count is included in results."""
         nation, comp, _ = create_basic_season_setup(db_session)
         SeasonFactory(competition=comp, start_year=2022, end_year=2023)
@@ -71,7 +71,7 @@ class TestGetCompetitionsForNation:
         assert len(result) == 1
         assert result[0].season_count == 2
 
-    def test_sets_has_seasons_true_when_seasons_exist(self, db_session):
+    def test_sets_has_seasons_true_when_seasons_exist(self, db_session) -> None:
         """Test that has_seasons is True when seasons exist."""
         nation, comp, _ = create_basic_season_setup(db_session)
 
@@ -82,7 +82,7 @@ class TestGetCompetitionsForNation:
         assert len(result) == 1
         assert result[0].has_seasons is True
 
-    def test_sets_has_seasons_false_when_no_seasons(self, db_session):
+    def test_sets_has_seasons_false_when_no_seasons(self, db_session) -> None:
         """Test that has_seasons is False when no seasons exist."""
         nation = NationFactory()
         CompetitionFactory(nation=nation)
@@ -95,7 +95,7 @@ class TestGetCompetitionsForNation:
         assert result[0].has_seasons is False
         assert result[0].season_count == 0
 
-    def test_sorts_by_tier_then_name(self, db_session):
+    def test_sorts_by_tier_then_name(self, db_session) -> None:
         """Test that competitions are sorted by tier then name."""
         nation = NationFactory()
         CompetitionFactory(name="Championship", nation=nation, tier="2nd")
@@ -114,7 +114,7 @@ class TestGetCompetitionsForNation:
         assert result[2].name == "League One"
         assert result[2].tier == "3rd"
 
-    def test_handles_competitions_without_tier(self, db_session):
+    def test_handles_competitions_without_tier(self, db_session) -> None:
         """Test that competitions without tier are sorted last."""
         nation = NationFactory()
         CompetitionFactory(name="Premier League", nation=nation, tier="1st")
@@ -129,7 +129,7 @@ class TestGetCompetitionsForNation:
         assert result[1].name == "Unknown League"
         assert result[1].tier is None
 
-    def test_returns_empty_list_when_no_competitions(self, db_session):
+    def test_returns_empty_list_when_no_competitions(self, db_session) -> None:
         """Test that empty list is returned when nation has no competitions."""
         nation = NationFactory()
 
@@ -143,7 +143,7 @@ class TestGetCompetitionsForNation:
 class TestGetAllNationsWithPlayerCount:
     """Tests for get_all_nations_with_player_count function."""
 
-    def test_returns_all_nations_with_player_count(self, db_session):
+    def test_returns_all_nations_with_player_count(self, db_session) -> None:
         """Test that all nations are returned with player counts."""
         nation1 = NationFactory(name="England", country_code="ENG")
         nation2 = NationFactory(name="Spain", country_code="ESP")
@@ -164,7 +164,7 @@ class TestGetAllNationsWithPlayerCount:
         assert spain is not None
         assert spain.player_count == 1
 
-    def test_sets_player_count_to_zero_when_no_players(self, db_session):
+    def test_sets_player_count_to_zero_when_no_players(self, db_session) -> None:
         """Test that player_count is 0 when nation has no players."""
         NationFactory(name="New Nation", country_code="NEW")
 
@@ -176,7 +176,7 @@ class TestGetAllNationsWithPlayerCount:
         assert new_nation is not None
         assert new_nation.player_count == 0
 
-    def test_sorts_by_name(self, db_session):
+    def test_sorts_by_name(self, db_session) -> None:
         """Test that nations are sorted by name."""
         NationFactory(name="Zimbabwe", country_code="ZWE")
         NationFactory(name="Argentina", country_code="ARG")
@@ -200,7 +200,7 @@ class TestGetAllNationsWithPlayerCount:
 
         assert arg_idx < bra_idx < zwe_idx
 
-    def test_includes_governing_body(self, db_session):
+    def test_includes_governing_body(self, db_session) -> None:
         """Test that governing_body is included in results."""
         NationFactory(name="England", country_code="ENG", governing_body="UEFA")
 
@@ -212,7 +212,7 @@ class TestGetAllNationsWithPlayerCount:
         assert england is not None
         assert england.governing_body == "UEFA"
 
-    def test_sets_governing_body_to_na_when_none(self, db_session):
+    def test_sets_governing_body_to_na_when_none(self, db_session) -> None:
         """Test that governing_body is 'N/A' when None."""
         NationFactory(name="New Nation", country_code="NEW", governing_body=None)
 
@@ -228,7 +228,7 @@ class TestGetAllNationsWithPlayerCount:
 class TestGetTopPlayersForNation:
     """Tests for get_top_players_for_nation function."""
 
-    def test_returns_top_players_by_goal_value(self, db_session):
+    def test_returns_top_players_by_goal_value(self, db_session) -> None:
         """Test that top players are returned sorted by goal value."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -253,7 +253,7 @@ class TestGetTopPlayersForNation:
         assert result[2].name == "Player 2"
         assert result[2].total_goal_value == 30.2
 
-    def test_respects_limit_parameter(self, db_session):
+    def test_respects_limit_parameter(self, db_session) -> None:
         """Test that limit parameter is respected."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -268,7 +268,7 @@ class TestGetTopPlayersForNation:
 
         assert len(result) == 5
 
-    def test_sums_goal_value_across_multiple_seasons(self, db_session):
+    def test_sums_goal_value_across_multiple_seasons(self, db_session) -> None:
         """Test that goal values are summed across multiple seasons."""
         nation, comp, season1 = create_basic_season_setup(db_session)
         season2 = SeasonFactory(competition=comp, start_year=2024, end_year=2025)
@@ -285,7 +285,7 @@ class TestGetTopPlayersForNation:
         assert len(result) == 1
         assert result[0].total_goal_value == 55.7
 
-    def test_returns_zero_goal_value_when_none(self, db_session):
+    def test_returns_zero_goal_value_when_none(self, db_session) -> None:
         """Test that zero is returned when player has no goal value."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -300,7 +300,7 @@ class TestGetTopPlayersForNation:
         assert len(result) == 1
         assert result[0].total_goal_value == 0.0
 
-    def test_sorts_by_name_when_goal_value_tied(self, db_session):
+    def test_sorts_by_name_when_goal_value_tied(self, db_session) -> None:
         """Test that players are sorted by name when goal value is tied."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -322,7 +322,7 @@ class TestGetTopPlayersForNation:
         assert result[1].name == "Bob"
         assert result[2].name == "Charlie"
 
-    def test_only_returns_players_for_specified_nation(self, db_session):
+    def test_only_returns_players_for_specified_nation(self, db_session) -> None:
         """Test that only players for the specified nation are returned."""
         nation1, comp1, season1 = create_basic_season_setup(
             db_session, nation=None, comp_name="League 1"
@@ -347,7 +347,7 @@ class TestGetTopPlayersForNation:
         assert len(result) == 1
         assert result[0].name == player1.name
 
-    def test_returns_empty_list_when_no_players(self, db_session):
+    def test_returns_empty_list_when_no_players(self, db_session) -> None:
         """Test that empty list is returned when nation has no players."""
         nation = NationFactory()
 
@@ -357,7 +357,7 @@ class TestGetTopPlayersForNation:
 
         assert result == []
 
-    def test_only_includes_players_with_stats(self, db_session):
+    def test_only_includes_players_with_stats(self, db_session) -> None:
         """Test that only players with stats are included."""
         nation = NationFactory()
         PlayerFactory(nation=nation)

@@ -30,7 +30,7 @@ from app.tests.utils.helpers import (
 class TestGetTopClubsForNationCore:
     """Test get_top_clubs_for_nation_core function."""
 
-    def test_returns_top_clubs_sorted_by_avg_position(self, db_session):
+    def test_returns_top_clubs_sorted_by_avg_position(self, db_session) -> None:
         """Test that clubs are returned sorted by average position."""
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
@@ -61,7 +61,7 @@ class TestGetTopClubsForNationCore:
         assert result[2].name == "Chelsea"
         assert result[2].avg_position == 2.5
 
-    def test_respects_limit_parameter(self, db_session):
+    def test_respects_limit_parameter(self, db_session) -> None:
         """Test that limit parameter is respected."""
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
@@ -77,7 +77,7 @@ class TestGetTopClubsForNationCore:
 
         assert len(result) == 3
 
-    def test_filters_by_tier(self, db_session):
+    def test_filters_by_tier(self, db_session) -> None:
         """Test that only teams from specified tier are included."""
         nation = NationFactory()
         tier1_competition = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
@@ -99,7 +99,7 @@ class TestGetTopClubsForNationCore:
         assert len(result) == 1
         assert result[0].name == "Premier League Team"
 
-    def test_excludes_teams_without_ranking(self, db_session):
+    def test_excludes_teams_without_ranking(self, db_session) -> None:
         """Test that teams without ranking are excluded."""
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
@@ -118,7 +118,7 @@ class TestGetTopClubsForNationCore:
         assert len(result) == 1
         assert result[0].name == "Team With Ranking"
 
-    def test_sorts_by_name_when_avg_position_ties(self, db_session):
+    def test_sorts_by_name_when_avg_position_ties(self, db_session) -> None:
         """Test that teams with same avg position are sorted by name."""
         nation = NationFactory()
         comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
@@ -145,7 +145,7 @@ class TestGetTopClubsForNationCore:
 class TestGetClubsByNation:
     """Test get_clubs_by_nation function."""
 
-    def test_returns_top_clubs_per_nation(self, db_session):
+    def test_returns_top_clubs_per_nation(self, db_session) -> None:
         """Test that top clubs per nation are returned."""
         nation1 = NationFactory(name="England", country_code="ENG")
         nation2 = NationFactory(name="Spain", country_code="ESP")
@@ -185,7 +185,7 @@ class TestGetClubsByNation:
         assert esp_result.clubs[0].name == "Real Madrid"
         assert esp_result.clubs[1].name == "Barcelona"
 
-    def test_respects_limit_per_nation(self, db_session):
+    def test_respects_limit_per_nation(self, db_session) -> None:
         """Test that limit_per_nation parameter is respected."""
         nation, _, season = create_basic_season_setup(db_session)
 
@@ -200,7 +200,7 @@ class TestGetClubsByNation:
         assert len(result) == 1
         assert len(result[0].clubs) == 2
 
-    def test_only_includes_tier_1_teams(self, db_session):
+    def test_only_includes_tier_1_teams(self, db_session) -> None:
         """Test that only tier 1 teams are included."""
         nation = NationFactory()
         tier1_comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
@@ -223,7 +223,7 @@ class TestGetClubsByNation:
         assert len(result[0].clubs) == 1
         assert result[0].clubs[0].name == "Premier League Team"
 
-    def test_excludes_teams_without_ranking(self, db_session):
+    def test_excludes_teams_without_ranking(self, db_session) -> None:
         """Test that teams without ranking are excluded."""
         nation, _, season = create_basic_season_setup(db_session)
 
@@ -245,7 +245,7 @@ class TestGetClubsByNation:
 class TestGetClubWithSeasons:
     """Test get_club_with_seasons function."""
 
-    def test_returns_club_with_all_seasons(self, db_session):
+    def test_returns_club_with_all_seasons(self, db_session) -> None:
         """Test that club with all season stats is returned."""
         nation = NationFactory(name="England", country_code="ENG")
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -278,14 +278,14 @@ class TestGetClubWithSeasons:
         assert seasons_data[2].season.start_year == 2022
         assert seasons_data[2].competition.name == "Premier League"
 
-    def test_returns_none_when_club_not_found(self, db_session):
+    def test_returns_none_when_club_not_found(self, db_session) -> None:
         """Test that None is returned when club doesn't exist."""
         club_info, seasons_data = get_club_with_seasons(db_session, 99999)
 
         assert club_info is None
         assert seasons_data == []
 
-    def test_returns_empty_seasons_when_no_stats(self, db_session):
+    def test_returns_empty_seasons_when_no_stats(self, db_session) -> None:
         """Test that empty seasons list is returned when club has no stats."""
         nation = NationFactory()
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -297,7 +297,7 @@ class TestGetClubWithSeasons:
         assert club_info.id == team.id
         assert seasons_data == []
 
-    def test_includes_all_team_stats_fields(self, db_session):
+    def test_includes_all_team_stats_fields(self, db_session) -> None:
         """Test that all team stats fields are included."""
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -340,7 +340,7 @@ class TestGetClubWithSeasons:
 class TestGetTeamSeasonSquadStats:
     """Test get_team_season_squad_stats function."""
 
-    def test_returns_squad_with_player_stats(self, db_session):
+    def test_returns_squad_with_player_stats(self, db_session) -> None:
         """Test that squad with player stats is returned."""
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -380,7 +380,7 @@ class TestGetTeamSeasonSquadStats:
         assert players_data[2].player.name == "Player 3"
         assert players_data[2].stats.goal_value == 2.0
 
-    def test_returns_none_when_team_not_found(self, db_session):
+    def test_returns_none_when_team_not_found(self, db_session) -> None:
         """Test that None is returned when team doesn't exist."""
         comp = CompetitionFactory()
         season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
@@ -395,7 +395,7 @@ class TestGetTeamSeasonSquadStats:
         assert competition_display is None
         assert players_data == []
 
-    def test_returns_none_when_season_not_found(self, db_session):
+    def test_returns_none_when_season_not_found(self, db_session) -> None:
         """Test that None is returned when season doesn't exist."""
         nation = NationFactory()
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -411,7 +411,7 @@ class TestGetTeamSeasonSquadStats:
         assert competition_display is None
         assert players_data == []
 
-    def test_returns_empty_list_when_no_player_stats(self, db_session):
+    def test_returns_empty_list_when_no_player_stats(self, db_session) -> None:
         """Test that empty list is returned when no player stats exist."""
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -425,7 +425,7 @@ class TestGetTeamSeasonSquadStats:
         assert season_display is not None
         assert players_data == []
 
-    def test_only_includes_players_for_specified_team_and_season(self, db_session):
+    def test_only_includes_players_for_specified_team_and_season(self, db_session) -> None:
         """Test that only players for specified team and season are included."""
         nation, comp, season1 = create_basic_season_setup(db_session)
         team1 = TeamFactory(name="Arsenal", nation=nation)
@@ -451,7 +451,7 @@ class TestGetTeamSeasonSquadStats:
 class TestGetTeamSeasonGoalLog:
     """Test get_team_season_goal_log function."""
 
-    def test_returns_goal_log_for_team_season(self, db_session):
+    def test_returns_goal_log_for_team_season(self, db_session) -> None:
         """Test that goal log for team season is returned."""
         match, player, team, season, _ = create_match_with_goal(
             db_session,
@@ -488,7 +488,7 @@ class TestGetTeamSeasonGoalLog:
         assert goal.xg == 0.3
         assert goal.post_shot_xg == 0.4
 
-    def test_includes_own_goals(self, db_session):
+    def test_includes_own_goals(self, db_session) -> None:
         """Test that own goals are included."""
         _match, player, team, season, _ = create_match_with_goal(
             db_session,
@@ -506,7 +506,7 @@ class TestGetTeamSeasonGoalLog:
         assert len(goal_entries) == 1
         assert goal_entries[0].scorer.name == "Scorer (OG)"
 
-    def test_includes_assists_when_present(self, db_session):
+    def test_includes_assists_when_present(self, db_session) -> None:
         """Test that assists are included when present."""
         _match, scorer, team, season, assister = create_match_with_goal(
             db_session,
@@ -527,7 +527,7 @@ class TestGetTeamSeasonGoalLog:
         assert goal_entries[0].assisted_by is not None
         assert goal_entries[0].assisted_by.name == "Assister"
 
-    def test_returns_none_when_team_not_found(self, db_session):
+    def test_returns_none_when_team_not_found(self, db_session) -> None:
         """Test that None is returned when team doesn't exist."""
         comp = CompetitionFactory()
         season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
@@ -542,7 +542,7 @@ class TestGetTeamSeasonGoalLog:
         assert competition_display is None
         assert goal_entries == []
 
-    def test_returns_none_when_season_not_found(self, db_session):
+    def test_returns_none_when_season_not_found(self, db_session) -> None:
         """Test that None is returned when season doesn't exist."""
         nation = NationFactory()
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -558,7 +558,7 @@ class TestGetTeamSeasonGoalLog:
         assert competition_display is None
         assert goal_entries == []
 
-    def test_returns_empty_list_when_no_goals(self, db_session):
+    def test_returns_empty_list_when_no_goals(self, db_session) -> None:
         """Test that empty list is returned when no goals exist."""
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)
@@ -580,7 +580,7 @@ class TestGetTeamSeasonGoalLog:
         assert season_display is not None
         assert goal_entries == []
 
-    def test_only_includes_goals_for_specified_team(self, db_session):
+    def test_only_includes_goals_for_specified_team(self, db_session) -> None:
         """Test that only goals for specified team are included."""
         nation, _, season = create_basic_season_setup(db_session)
         team1 = TeamFactory(name="Arsenal", nation=nation)
@@ -606,7 +606,7 @@ class TestGetTeamSeasonGoalLog:
         assert goal_entries[0].scorer.name == "Player 1"
         assert goal_entries[0].minute == 10
 
-    def test_handles_away_team_goals(self, db_session):
+    def test_handles_away_team_goals(self, db_session) -> None:
         """Test that away team goals are included when team is away."""
         nation, _, season = create_basic_season_setup(db_session)
         team = TeamFactory(name="Arsenal", nation=nation)

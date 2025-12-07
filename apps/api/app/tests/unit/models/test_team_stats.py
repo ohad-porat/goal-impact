@@ -10,7 +10,7 @@ from app.tests.utils.factories import SeasonFactory, TeamFactory, TeamStatsFacto
 class TestTeamStatsModel:
     """Test TeamStats model functionality."""
 
-    def test_create_team_stats(self, db_session):
+    def test_create_team_stats(self, db_session) -> None:
         """Test creating team stats with all fields."""
         team = TeamFactory()
         season = SeasonFactory()
@@ -35,7 +35,7 @@ class TestTeamStatsModel:
         assert stats.matches_played == 38
         assert stats.wins == 30
 
-    def test_team_stats_unique_fbref_url(self, db_session):
+    def test_team_stats_unique_fbref_url(self, db_session) -> None:
         """Test that fbref_url must be unique."""
         TeamStatsFactory(fbref_url="/en/squads/team_1/stats/")
         db_session.commit()
@@ -44,14 +44,14 @@ class TestTeamStatsModel:
             TeamStatsFactory(fbref_url="/en/squads/team_1/stats/")
             db_session.commit()
 
-    def test_team_stats_required_fields(self, db_session):
+    def test_team_stats_required_fields(self, db_session) -> None:
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
             stats = TeamStats(ranking=1, matches_played=38)
             db_session.add(stats)
             db_session.commit()
 
-    def test_team_stats_foreign_keys(self, db_session):
+    def test_team_stats_foreign_keys(self, db_session) -> None:
         """Test foreign key relationships."""
         team = TeamFactory()
         season = SeasonFactory()
@@ -61,7 +61,7 @@ class TestTeamStatsModel:
         assert stats.team == team
         assert stats.season == season
 
-    def test_team_stats_optional_fields(self, db_session):
+    def test_team_stats_optional_fields(self, db_session) -> None:
         """Test that optional fields can be null."""
         stats = TeamStatsFactory(ranking=None, goal_logs_url=None, notes=None, attendance=None)
         db_session.commit()
@@ -71,7 +71,7 @@ class TestTeamStatsModel:
         assert stats.notes is None
         assert stats.attendance is None
 
-    def test_team_stats_relationships(self, db_session):
+    def test_team_stats_relationships(self, db_session) -> None:
         """Test that reverse relationships work correctly."""
         team = TeamFactory()
         season = SeasonFactory()

@@ -13,7 +13,7 @@ TEST_BATCH_SIZE = 2500
 class TestInit:
     """Tests for __init__ method."""
 
-    def test_initializes_with_dependencies(self, mocker):
+    def test_initializes_with_dependencies(self, mocker) -> None:
         """Test that updater initializes with session and repository."""
         mocker.patch("app.core.goal_value.events_updater.Session")
         updater = EventGoalValueUpdater()
@@ -28,7 +28,7 @@ class TestInit:
 class TestQueryGoalEvents:
     """Tests for _query_goal_events method."""
 
-    def test_queries_goals_and_own_goals(self, db_session):
+    def test_queries_goals_and_own_goals(self, db_session) -> None:
         """Test that method queries both goals and own goals."""
         updater = EventGoalValueUpdater()
         updater.session = db_session
@@ -48,7 +48,7 @@ class TestQueryGoalEvents:
         goal_types = {g.event_type for g in goals}
         assert goal_types == {"goal", "own goal"}
 
-    def test_returns_empty_list_when_no_goals(self, db_session):
+    def test_returns_empty_list_when_no_goals(self, db_session) -> None:
         """Test that method returns empty list when no goals exist."""
         updater = EventGoalValueUpdater()
         updater.session = db_session
@@ -61,7 +61,7 @@ class TestQueryGoalEvents:
 class TestLookupWinProbability:
     """Tests for _lookup_win_probability method."""
 
-    def test_returns_direct_lookup(self):
+    def test_returns_direct_lookup(self) -> None:
         """Test that method returns value from direct lookup."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {45: {1: 0.75}}
@@ -70,7 +70,7 @@ class TestLookupWinProbability:
 
         assert result == 0.75
 
-    def test_returns_fallback_to_minute_minus_one(self):
+    def test_returns_fallback_to_minute_minus_one(self) -> None:
         """Test that method falls back to minute-1 when direct lookup fails."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {44: {1: 0.7}}
@@ -79,7 +79,7 @@ class TestLookupWinProbability:
 
         assert result == 0.7
 
-    def test_returns_fallback_to_minute_plus_one(self):
+    def test_returns_fallback_to_minute_plus_one(self) -> None:
         """Test that method falls back to minute+1 when direct lookup fails."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {46: {1: 0.8}}
@@ -88,7 +88,7 @@ class TestLookupWinProbability:
 
         assert result == 0.8
 
-    def test_returns_zero_for_negative_score_diff(self):
+    def test_returns_zero_for_negative_score_diff(self) -> None:
         """Test that method returns 0.0 for negative score_diff when no lookup."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {}
@@ -97,7 +97,7 @@ class TestLookupWinProbability:
 
         assert result == 0.0
 
-    def test_returns_one_for_positive_score_diff(self):
+    def test_returns_one_for_positive_score_diff(self) -> None:
         """Test that method returns 1.0 for positive score_diff when no lookup."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {}
@@ -106,7 +106,7 @@ class TestLookupWinProbability:
 
         assert result == 1.0
 
-    def test_returns_half_for_zero_score_diff(self):
+    def test_returns_half_for_zero_score_diff(self) -> None:
         """Test that method returns 0.5 for zero score_diff when no lookup."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {}
@@ -115,7 +115,7 @@ class TestLookupWinProbability:
 
         assert result == 0.5
 
-    def test_clamps_minute_to_95(self):
+    def test_clamps_minute_to_95(self) -> None:
         """Test that method clamps minute to 95 for lookup."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {95: {1: 0.9}}
@@ -128,7 +128,7 @@ class TestLookupWinProbability:
 class TestCalculateSingleGoalValue:
     """Tests for _calculate_single_goal_value method."""
 
-    def test_returns_none_when_missing_pre_event_data(self, mocker):
+    def test_returns_none_when_missing_pre_event_data(self, mocker) -> None:
         """Test that method returns None when pre-event data is missing."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {45: {1: 0.75}}
@@ -146,7 +146,7 @@ class TestCalculateSingleGoalValue:
         assert result is None
         assert updater.missing_data_count == 1
 
-    def test_returns_none_when_missing_post_event_data(self, mocker):
+    def test_returns_none_when_missing_post_event_data(self, mocker) -> None:
         """Test that method returns None when post-event data is missing."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {45: {1: 0.75}}
@@ -164,7 +164,7 @@ class TestCalculateSingleGoalValue:
         assert result is None
         assert updater.missing_data_count == 1
 
-    def test_returns_none_when_no_team_scored(self, mocker):
+    def test_returns_none_when_no_team_scored(self, mocker) -> None:
         """Test that method returns None when no team scored."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {45: {1: 0.75}}
@@ -182,7 +182,7 @@ class TestCalculateSingleGoalValue:
         assert result is None
         assert len(updater.calculation_errors) == 1
 
-    def test_calculates_goal_value_for_home_goal(self, mocker):
+    def test_calculates_goal_value_for_home_goal(self, mocker) -> None:
         """Test that method calculates goal value for home team goal."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {
@@ -201,7 +201,7 @@ class TestCalculateSingleGoalValue:
 
         assert result == 0.25
 
-    def test_calculates_goal_value_for_away_goal(self, mocker):
+    def test_calculates_goal_value_for_away_goal(self, mocker) -> None:
         """Test that method calculates goal value for away team goal."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {
@@ -220,7 +220,7 @@ class TestCalculateSingleGoalValue:
 
         assert result == 0.25
 
-    def test_returns_none_when_lookup_fails(self, mocker):
+    def test_returns_none_when_lookup_fails(self, mocker) -> None:
         """Test that method returns None when lookup fails."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {}
@@ -240,7 +240,7 @@ class TestCalculateSingleGoalValue:
         assert result is None
         assert len(updater.calculation_errors) == 1
 
-    def test_rounds_goal_value_to_three_decimals(self, mocker):
+    def test_rounds_goal_value_to_three_decimals(self, mocker) -> None:
         """Test that method rounds goal value to three decimal places."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = {
@@ -264,7 +264,7 @@ class TestCalculateSingleGoalValue:
 class TestCalculateGoalValues:
     """Tests for _calculate_goal_values method."""
 
-    def test_calculates_goal_values_for_all_goals(self, mocker):
+    def test_calculates_goal_values_for_all_goals(self, mocker) -> None:
         """Test that method calculates goal values for all goals."""
         mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -298,7 +298,7 @@ class TestCalculateGoalValues:
         assert update_data[1]["id"] == 2
         assert update_data[1]["goal_value"] == 0.25
 
-    def test_skips_goals_with_none_value(self, mocker):
+    def test_skips_goals_with_none_value(self, mocker) -> None:
         """Test that method skips goals that return None."""
         mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -318,7 +318,7 @@ class TestCalculateGoalValues:
 
         assert len(update_data) == 0
 
-    def test_prints_progress_every_5000_goals(self, mocker):
+    def test_prints_progress_every_5000_goals(self, mocker) -> None:
         """Test that method prints progress every 5000 goals."""
         mock_print = mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -346,7 +346,7 @@ class TestCalculateGoalValues:
 class TestBatchUpdate:
     """Tests for _batch_update method."""
 
-    def test_updates_events_in_batches(self, mocker):
+    def test_updates_events_in_batches(self, mocker) -> None:
         """Test that method updates events in batches."""
         mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -361,7 +361,7 @@ class TestBatchUpdate:
         assert updater.session.bulk_update_mappings.call_count >= 2
         assert updater.session.commit.called
 
-    def test_commits_final_batch(self, mocker):
+    def test_commits_final_batch(self, mocker) -> None:
         """Test that method commits final batch."""
         mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -380,7 +380,7 @@ class TestBatchUpdate:
 class TestPrintSummary:
     """Tests for _print_summary method."""
 
-    def test_prints_summary(self, mocker):
+    def test_prints_summary(self, mocker) -> None:
         """Test that method prints summary information."""
         mock_print = mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -395,7 +395,7 @@ class TestPrintSummary:
         assert "90" in print_output
         assert "5" in print_output
 
-    def test_prints_errors_when_few_errors(self, mocker):
+    def test_prints_errors_when_few_errors(self, mocker) -> None:
         """Test that method prints all errors when there are few errors."""
         mock_print = mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -407,7 +407,7 @@ class TestPrintSummary:
         assert "Error 1" in print_output
         assert "Error 2" in print_output
 
-    def test_prints_first_10_errors_when_many_errors(self, mocker):
+    def test_prints_first_10_errors_when_many_errors(self, mocker) -> None:
         """Test that method prints first 10 errors when there are many errors."""
         mock_print = mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -422,7 +422,7 @@ class TestPrintSummary:
 class TestUpdateGoalValuesForEvents:
     """Tests for update_goal_values_for_events method."""
 
-    def test_returns_early_when_no_event_ids(self, mocker):
+    def test_returns_early_when_no_event_ids(self, mocker) -> None:
         """Test that method returns early when no event IDs provided."""
         updater = EventGoalValueUpdater()
         updater.repository = mocker.Mock()
@@ -433,7 +433,7 @@ class TestUpdateGoalValuesForEvents:
         updater.repository.load_goal_values.assert_not_called()
         updater.session.query.assert_not_called()
 
-    def test_loads_lookup_if_not_loaded(self, mocker):
+    def test_loads_lookup_if_not_loaded(self, mocker) -> None:
         """Test that method loads lookup if not already loaded."""
         updater = EventGoalValueUpdater()
         updater.repository = mocker.Mock()
@@ -447,7 +447,7 @@ class TestUpdateGoalValuesForEvents:
 
         updater.repository.load_goal_values.assert_called_once()
 
-    def test_queries_specific_events(self, mocker):
+    def test_queries_specific_events(self, mocker) -> None:
         """Test that method queries only specific event IDs."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = defaultdict(dict)
@@ -465,7 +465,7 @@ class TestUpdateGoalValuesForEvents:
 
         assert mock_query.filter.called
 
-    def test_handles_exceptions(self, mocker):
+    def test_handles_exceptions(self, mocker) -> None:
         """Test that method handles exceptions correctly."""
         updater = EventGoalValueUpdater()
         updater.goal_value_lookup = defaultdict(dict)
@@ -483,7 +483,7 @@ class TestUpdateGoalValuesForEvents:
 class TestRun:
     """Tests for run method."""
 
-    def test_runs_full_update_flow(self, mocker):
+    def test_runs_full_update_flow(self, mocker) -> None:
         """Test that run method executes full update flow."""
         mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()
@@ -509,7 +509,7 @@ class TestRun:
         updater._batch_update.assert_called_once()
         updater._print_summary.assert_called_once()
 
-    def test_handles_empty_goals_list(self, mocker):
+    def test_handles_empty_goals_list(self, mocker) -> None:
         """Test that run method handles empty goals list."""
         mocker.patch("builtins.print")
         updater = EventGoalValueUpdater()

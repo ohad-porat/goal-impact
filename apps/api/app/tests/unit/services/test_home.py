@@ -21,13 +21,13 @@ from app.tests.utils.helpers import (
 class TestGetRecentImpactGoals:
     """Tests for get_recent_impact_goals function."""
 
-    def test_returns_empty_list_when_no_matches(self, db_session):
+    def test_returns_empty_list_when_no_matches(self, db_session) -> None:
         """Test that empty list is returned when no matches exist."""
         result = get_recent_impact_goals(db_session)
 
         assert result == []
 
-    def test_returns_top_goals_by_goal_value(self, db_session):
+    def test_returns_top_goals_by_goal_value(self, db_session) -> None:
         """Test that top goals are returned sorted by goal value."""
         nation, comp, season = create_basic_season_setup(db_session)
         home_team = TeamFactory(nation=nation)
@@ -53,7 +53,7 @@ class TestGetRecentImpactGoals:
         assert result[1].goal_value == 5.5
         assert result[1].scorer.name == player1.name
 
-    def test_respects_limit_parameter(self, db_session):
+    def test_respects_limit_parameter(self, db_session) -> None:
         """Test that limit parameter is respected."""
         nation, comp, season = create_basic_season_setup(db_session)
         home_team = TeamFactory(nation=nation)
@@ -74,7 +74,7 @@ class TestGetRecentImpactGoals:
 
         assert len(result) == 5
 
-    def test_filters_by_days_parameter(self, db_session):
+    def test_filters_by_days_parameter(self, db_session) -> None:
         """Test that goals are filtered by days parameter."""
         nation, comp, season = create_basic_season_setup(db_session)
         home_team = TeamFactory(nation=nation)
@@ -102,7 +102,7 @@ class TestGetRecentImpactGoals:
         assert len(result) == 1
         assert result[0].scorer.name == player1.name
 
-    def test_includes_goals_within_date_range(self, db_session):
+    def test_includes_goals_within_date_range(self, db_session) -> None:
         """Test that goals within date range are included."""
         match_date = date.today() - timedelta(days=3)
         _match, _player, _team, _season, _ = create_match_with_goal(
@@ -113,7 +113,7 @@ class TestGetRecentImpactGoals:
 
         assert len(result) == 1
 
-    def test_filters_by_league_id(self, db_session):
+    def test_filters_by_league_id(self, db_session) -> None:
         """Test that goals are filtered by league_id when provided."""
         nation = NationFactory()
         comp1 = CompetitionFactory(name="Premier League", nation=nation)
@@ -144,7 +144,7 @@ class TestGetRecentImpactGoals:
         assert len(result) == 1
         assert result[0].scorer.name == player1.name
 
-    def test_includes_own_goals(self, db_session):
+    def test_includes_own_goals(self, db_session) -> None:
         """Test that own goals are included in results."""
         _match, _player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=3.5, minute=10, event_type="own goal"
@@ -154,7 +154,7 @@ class TestGetRecentImpactGoals:
 
         assert len(result) == 1
 
-    def test_excludes_goals_without_goal_value(self, db_session):
+    def test_excludes_goals_without_goal_value(self, db_session) -> None:
         """Test that goals without goal_value are excluded."""
         nation, comp, season = create_basic_season_setup(db_session)
         home_team = TeamFactory(nation=nation)
@@ -174,7 +174,7 @@ class TestGetRecentImpactGoals:
 
         assert result == []
 
-    def test_formats_match_date_correctly(self, db_session):
+    def test_formats_match_date_correctly(self, db_session) -> None:
         """Test that match date is formatted correctly."""
         match_date = date(2024, 3, 15)
         _match, _player, _team, _season, _ = create_match_with_goal(
@@ -186,7 +186,7 @@ class TestGetRecentImpactGoals:
         assert len(result) == 1
         assert result[0].match.date == "March 15, 2024"
 
-    def test_formats_score_before_and_after(self, db_session):
+    def test_formats_score_before_and_after(self, db_session) -> None:
         """Test that score before and after are formatted correctly."""
         _match, _player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=5.5, minute=10, home_pre=1, home_post=2
@@ -198,7 +198,7 @@ class TestGetRecentImpactGoals:
         assert result[0].score_before == "1-0"
         assert result[0].score_after == "2-0"
 
-    def test_sorts_results_by_date_descending(self, db_session):
+    def test_sorts_results_by_date_descending(self, db_session) -> None:
         """Test that results are sorted by date descending."""
         nation, comp, season = create_basic_season_setup(db_session)
         home_team = TeamFactory(nation=nation)
@@ -228,7 +228,7 @@ class TestGetRecentImpactGoals:
         assert result[1].scorer.name == player2.name
         assert result[2].scorer.name == player3.name
 
-    def test_includes_team_names(self, db_session):
+    def test_includes_team_names(self, db_session) -> None:
         """Test that team names are included in match info."""
         _match, _player, team, _season, _ = create_match_with_goal(
             db_session,
@@ -244,7 +244,7 @@ class TestGetRecentImpactGoals:
         assert result[0].match.home_team == "Home FC"
         assert result[0].match.away_team == "Away FC"
 
-    def test_includes_minute(self, db_session):
+    def test_includes_minute(self, db_session) -> None:
         """Test that minute is included in result."""
         _match, _player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=5.5, minute=45

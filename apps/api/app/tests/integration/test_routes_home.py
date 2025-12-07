@@ -23,11 +23,11 @@ from app.tests.utils.helpers import (
 class TestGetRecentImpactGoalsRoute:
     """Tests for GET /api/v1/home/recent-goals endpoint."""
 
-    def test_returns_empty_list_when_no_goals(self, client: TestClient, db_session):
+    def test_returns_empty_list_when_no_goals(self, client: TestClient, db_session) -> None:
         """Test that empty list is returned when no goals exist."""
         assert_empty_list_response(client, "/api/v1/home/recent-goals", "goals")
 
-    def test_returns_recent_goals_successfully(self, client: TestClient, db_session):
+    def test_returns_recent_goals_successfully(self, client: TestClient, db_session) -> None:
         """Test that recent goals are returned with correct structure."""
         _match, player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=5.5, minute=45
@@ -46,7 +46,7 @@ class TestGetRecentImpactGoalsRoute:
         assert "score_before" in data["goals"][0]
         assert "score_after" in data["goals"][0]
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session):
+    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
         """Test that response structure matches the expected schema."""
         _match, player, team, _season, _ = create_match_with_goal(
             db_session, goal_value=6.5, minute=30, home_pre=1, home_post=2
@@ -72,7 +72,7 @@ class TestGetRecentImpactGoalsRoute:
         assert isinstance(goal["score_before"], str)
         assert isinstance(goal["score_after"], str)
 
-    def test_filters_by_league_id(self, client: TestClient, db_session):
+    def test_filters_by_league_id(self, client: TestClient, db_session) -> None:
         """Test that league_id query parameter filters results correctly."""
 
         def create_goal_data(season, nation):
@@ -108,7 +108,7 @@ class TestGetRecentImpactGoalsRoute:
         assert len(data["goals"]) == 1
         assert data["goals"][0]["scorer"]["name"] == player1.name
 
-    def test_league_id_parameter_is_optional(self, client: TestClient, db_session):
+    def test_league_id_parameter_is_optional(self, client: TestClient, db_session) -> None:
         """Test that league_id parameter is optional."""
         _match, _player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=5.5, minute=10
@@ -120,7 +120,7 @@ class TestGetRecentImpactGoalsRoute:
         data = response.json()
         assert len(data["goals"]) == 1
 
-    def test_returns_top_5_goals_sorted_by_goal_value(self, client: TestClient, db_session):
+    def test_returns_top_5_goals_sorted_by_goal_value(self, client: TestClient, db_session) -> None:
         """Test that results are limited to top 5 and sorted by goal_value descending."""
         nation, comp, season = create_basic_season_setup(db_session)
         home_team = TeamFactory(nation=nation)
@@ -147,7 +147,7 @@ class TestGetRecentImpactGoalsRoute:
         goal_values = [g["goal_value"] for g in data["goals"]]
         assert goal_values == sorted(goal_values, reverse=True)
 
-    def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session):
+    def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session) -> None:
         """Test that invalid league_id returns empty list without errors."""
         _match, _player, _team, _season, _ = create_match_with_goal(
             db_session, goal_value=5.5, minute=10
@@ -162,11 +162,11 @@ class TestGetRecentImpactGoalsRoute:
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_league_id_types(
         self, client: TestClient, db_session, invalid_id
-    ):
+    ) -> None:
         """Test that various invalid league_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/home/recent-goals?league_id={invalid_id}")
 
-    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session):
+    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session) -> None:
         """Test that negative and zero league_id return validation error or empty results."""
         response_neg = client.get("/api/v1/home/recent-goals?league_id=-1")
         response_zero = client.get("/api/v1/home/recent-goals?league_id=0")

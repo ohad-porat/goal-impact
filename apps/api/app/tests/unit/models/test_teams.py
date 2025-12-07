@@ -10,7 +10,7 @@ from app.tests.utils.factories import NationFactory, TeamFactory
 class TestTeamModel:
     """Test Team model functionality."""
 
-    def test_create_team(self, db_session):
+    def test_create_team(self, db_session) -> None:
         """Test creating a team with all fields."""
         nation = NationFactory()
         team = TeamFactory(
@@ -28,7 +28,7 @@ class TestTeamModel:
         assert team.fbref_id == "18bb7c10"
         assert team.nation_id == nation.id
 
-    def test_team_unique_fbref_id(self, db_session):
+    def test_team_unique_fbref_id(self, db_session) -> None:
         """Test that fbref_id must be unique."""
         TeamFactory(fbref_id="18bb7c10", fbref_url="/en/squads/18bb7c10/")
         db_session.commit()
@@ -37,7 +37,7 @@ class TestTeamModel:
             TeamFactory(fbref_id="18bb7c10", fbref_url="/en/squads/18bb7c10-2/")
             db_session.commit()
 
-    def test_team_unique_fbref_url(self, db_session):
+    def test_team_unique_fbref_url(self, db_session) -> None:
         """Test that fbref_url must be unique when not null."""
         TeamFactory(fbref_id="18bb7c10", fbref_url="/en/squads/18bb7c10/")
         db_session.commit()
@@ -46,14 +46,14 @@ class TestTeamModel:
             TeamFactory(fbref_id="18bb7c11", fbref_url="/en/squads/18bb7c10/")
             db_session.commit()
 
-    def test_team_required_fields(self, db_session):
+    def test_team_required_fields(self, db_session) -> None:
         """Test that required fields cannot be null."""
         with pytest.raises(IntegrityError):
             team = Team(name="Arsenal", fbref_url="/en/squads/test/")
             db_session.add(team)
             db_session.commit()
 
-    def test_team_foreign_key_to_nation(self, db_session):
+    def test_team_foreign_key_to_nation(self, db_session) -> None:
         """Test foreign key relationship to Nation."""
         nation = NationFactory()
         team = TeamFactory(nation=nation)
@@ -61,7 +61,7 @@ class TestTeamModel:
 
         assert team.nation == nation
 
-    def test_team_optional_fields(self, db_session):
+    def test_team_optional_fields(self, db_session) -> None:
         """Test that optional fields can be null."""
         team = TeamFactory(nation=None, name=None, gender=None, fbref_url=None)
         db_session.commit()
