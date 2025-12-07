@@ -11,8 +11,8 @@ class LeagueSummary(BaseModel):
     id: int
     name: str
     country: str
-    gender: str | None
-    tier: str | None
+    gender: str | None = None
+    tier: str | None = None
     available_seasons: str
 
 
@@ -39,17 +39,17 @@ class LeagueInfo(BaseModel):
 class LeagueTableEntry(BaseModel):
     """League table entry."""
 
-    position: int | None
+    position: int | None = None
     team_id: int
     team_name: str
-    matches_played: int | None
-    wins: int | None
-    draws: int | None
-    losses: int | None
-    goals_for: int | None
-    goals_against: int | None
-    goal_difference: int | None
-    points: int | None
+    matches_played: int | None = None
+    wins: int | None = None
+    draws: int | None = None
+    losses: int | None = None
+    goals_for: int | None = None
+    goals_against: int | None = None
+    goal_difference: int | None = None
+    points: int | None = None
 
 
 class LeagueTableResponse(BaseModel):

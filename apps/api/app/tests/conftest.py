@@ -21,6 +21,22 @@ sys.path.insert(0, app_dir)
 from app.core.database import get_db
 from app.main import app
 from app.models import Base
+from app.schemas.clubs import (
+    ClubInfo,
+    CompetitionInfo as ClubCompetitionInfo,
+    NationBasic,
+    NationDetailed,
+    PlayerBasic,
+    TeamStatsInfo,
+)
+from app.schemas.common import NationInfo
+from app.schemas.players import (
+    CompetitionInfo,
+    PlayerInfo,
+    PlayerStats,
+    SeasonDisplay,
+    TeamInfo,
+)
 from app.tests.utils.factories import (
     CompetitionFactory,
     EventFactory,
@@ -151,3 +167,96 @@ def setup_factories(db_session):
         StatsCalculationMetadataFactory,
     ]:
         factory_class._meta.sqlalchemy_session = None
+
+
+# Schema test fixtures
+@pytest.fixture
+def empty_player_stats() -> PlayerStats:
+    """Create PlayerStats with all None values."""
+    return PlayerStats(
+        matches_played=None,
+        matches_started=None,
+        total_minutes=None,
+        minutes_divided_90=None,
+        goals_scored=None,
+        assists=None,
+        total_goal_assists=None,
+        non_pk_goals=None,
+        pk_made=None,
+        pk_attempted=None,
+        yellow_cards=None,
+        red_cards=None,
+        goal_value=None,
+        gv_avg=None,
+        goal_per_90=None,
+        assists_per_90=None,
+        total_goals_assists_per_90=None,
+        non_pk_goals_per_90=None,
+        non_pk_goal_and_assists_per_90=None,
+    )
+
+
+@pytest.fixture
+def sample_season_display() -> SeasonDisplay:
+    """Create a sample SeasonDisplay."""
+    return SeasonDisplay(id=1, start_year=2023, end_year=None, display_name="2023-24")
+
+
+@pytest.fixture
+def sample_team_info() -> TeamInfo:
+    """Create a sample TeamInfo."""
+    return TeamInfo(id=1, name="Barcelona")
+
+
+@pytest.fixture
+def sample_competition_info() -> CompetitionInfo:
+    """Create a sample CompetitionInfo."""
+    return CompetitionInfo(id=1, name="La Liga")
+
+
+@pytest.fixture
+def sample_player_info() -> PlayerInfo:
+    """Create a sample PlayerInfo."""
+    return PlayerInfo(id=1, name="Lionel Messi", nation=None)
+
+
+@pytest.fixture
+def sample_nation_info() -> NationInfo:
+    """Create a sample NationInfo."""
+    return NationInfo(id=1, name="Argentina", country_code="AR")
+
+
+@pytest.fixture
+def sample_nation_basic() -> NationBasic:
+    """Create a sample NationBasic."""
+    return NationBasic(id=1, name="Argentina", country_code="AR")
+
+
+@pytest.fixture
+def sample_nation_detailed() -> NationDetailed:
+    """Create a sample NationDetailed."""
+    return NationDetailed(id=1, name="Argentina", country_code="AR")
+
+
+@pytest.fixture
+def empty_team_stats_info() -> TeamStatsInfo:
+    """Create TeamStatsInfo with all None values."""
+    return TeamStatsInfo(
+        ranking=None,
+        matches_played=None,
+        wins=None,
+        draws=None,
+        losses=None,
+        goals_for=None,
+        goals_against=None,
+        goal_difference=None,
+        points=None,
+        attendance=None,
+        notes=None,
+    )
+
+
+@pytest.fixture
+def sample_player_basic() -> PlayerBasic:
+    """Create a sample PlayerBasic."""
+    return PlayerBasic(id=1, name="Lionel Messi")

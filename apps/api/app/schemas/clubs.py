@@ -37,9 +37,9 @@ class ClubsByNationResponse(BaseModel):
 class NationDetailed(BaseModel):
     """Detailed nation information."""
 
-    id: int | None
+    id: int | None = None
     name: str
-    country_code: str | None
+    country_code: str | None = None
 
 
 class ClubInfo(BaseModel):
@@ -55,23 +55,23 @@ class CompetitionInfo(BaseModel):
 
     id: int
     name: str
-    tier: str | None
+    tier: str | None = None
 
 
 class TeamStatsInfo(BaseModel):
     """Team statistics."""
 
-    ranking: int | None
-    matches_played: int | None
-    wins: int | None
-    draws: int | None
-    losses: int | None
-    goals_for: int | None
-    goals_against: int | None
-    goal_difference: int | None
-    points: int | None
-    attendance: int | None
-    notes: str | None
+    ranking: int | None = None
+    matches_played: int | None = None
+    wins: int | None = None
+    draws: int | None = None
+    losses: int | None = None
+    goals_for: int | None = None
+    goals_against: int | None = None
+    goal_difference: int | None = None
+    points: int | None = None
+    attendance: int | None = None
+    notes: str | None = None
 
 
 class SeasonStats(BaseModel):
@@ -106,7 +106,7 @@ class SquadPlayer(BaseModel):
 class CompetitionDisplay(BaseModel):
     """Competition display information."""
 
-    id: int | None
+    id: int | None = None
     name: str
 
 
@@ -129,10 +129,10 @@ class GoalLogEntry(BaseModel):
     minute: int
     score_before: str
     score_after: str
-    goal_value: float | None
-    xg: float | None
-    post_shot_xg: float | None
-    assisted_by: PlayerBasic | None
+    goal_value: float | None = None
+    xg: float | None = None
+    post_shot_xg: float | None = None
+    assisted_by: PlayerBasic | None = None
 
 
 class TeamSeasonGoalLogResponse(BaseModel):
@@ -154,10 +154,10 @@ class PlayerGoalLogEntry(BaseModel):
     minute: int
     score_before: str
     score_after: str
-    goal_value: float | None
-    xg: float | None
-    post_shot_xg: float | None
-    assisted_by: PlayerBasic | None
+    goal_value: float | None = None
+    xg: float | None = None
+    post_shot_xg: float | None = None
+    assisted_by: PlayerBasic | None = None
     season_id: int
     season_display_name: str
 

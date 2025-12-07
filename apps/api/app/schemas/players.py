@@ -10,7 +10,7 @@ class PlayerInfo(BaseModel):
 
     id: int
     name: str
-    nation: NationInfo | None
+    nation: NationInfo | None = None
 
 
 class SeasonDisplay(BaseModel):
@@ -18,7 +18,7 @@ class SeasonDisplay(BaseModel):
 
     id: int
     start_year: int
-    end_year: int | None
+    end_year: int | None = None
     display_name: str
 
 
@@ -39,25 +39,25 @@ class CompetitionInfo(BaseModel):
 class PlayerStats(BaseModel):
     """Player statistics."""
 
-    matches_played: int | None
-    matches_started: int | None
-    total_minutes: int | None
-    minutes_divided_90: float | None
-    goals_scored: int | None
-    assists: int | None
-    total_goal_assists: int | None
-    non_pk_goals: int | None
-    pk_made: int | None
-    pk_attempted: int | None
-    yellow_cards: int | None
-    red_cards: int | None
-    goal_value: float | None
-    gv_avg: float | None
-    goal_per_90: float | None
-    assists_per_90: float | None
-    total_goals_assists_per_90: float | None
-    non_pk_goals_per_90: float | None
-    non_pk_goal_and_assists_per_90: float | None
+    matches_played: int | None = None
+    matches_started: int | None = None
+    total_minutes: int | None = None
+    minutes_divided_90: float | None = None
+    goals_scored: int | None = None
+    assists: int | None = None
+    total_goal_assists: int | None = None
+    non_pk_goals: int | None = None
+    pk_made: int | None = None
+    pk_attempted: int | None = None
+    yellow_cards: int | None = None
+    red_cards: int | None = None
+    goal_value: float | None = None
+    gv_avg: float | None = None
+    goal_per_90: float | None = None
+    assists_per_90: float | None = None
+    total_goals_assists_per_90: float | None = None
+    non_pk_goals_per_90: float | None = None
+    non_pk_goal_and_assists_per_90: float | None = None
 
 
 class SeasonData(BaseModel):
@@ -66,7 +66,7 @@ class SeasonData(BaseModel):
     season: SeasonDisplay
     team: TeamInfo
     competition: CompetitionInfo
-    league_rank: int | None
+    league_rank: int | None = None
     stats: PlayerStats
 
 
