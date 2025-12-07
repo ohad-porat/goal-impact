@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.search import SearchResult, SearchResponse, SearchResultType
+from app.schemas.search import SearchResponse, SearchResult, SearchResultType
 
 
 class TestSearchResult:

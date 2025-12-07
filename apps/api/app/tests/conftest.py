@@ -22,8 +22,6 @@ from app.core.database import get_db
 from app.main import app
 from app.models import Base
 from app.schemas.clubs import (
-    ClubInfo,
-    CompetitionInfo as ClubCompetitionInfo,
     NationBasic,
     NationDetailed,
     PlayerBasic,

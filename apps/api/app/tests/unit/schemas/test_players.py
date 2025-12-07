@@ -414,7 +414,9 @@ class TestSeasonData:
     ) -> None:
         """Test that season is required."""
         with pytest.raises(ValidationError) as exc_info:
-            SeasonData(team=sample_team_info, competition=sample_competition_info, stats=empty_player_stats)
+            SeasonData(
+                team=sample_team_info, competition=sample_competition_info, stats=empty_player_stats
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("season",) for error in errors)
 
@@ -426,7 +428,11 @@ class TestSeasonData:
     ) -> None:
         """Test that team is required."""
         with pytest.raises(ValidationError) as exc_info:
-            SeasonData(season=sample_season_display, competition=sample_competition_info, stats=empty_player_stats)
+            SeasonData(
+                season=sample_season_display,
+                competition=sample_competition_info,
+                stats=empty_player_stats,
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("team",) for error in errors)
 
@@ -438,7 +444,9 @@ class TestSeasonData:
     ) -> None:
         """Test that competition is required."""
         with pytest.raises(ValidationError) as exc_info:
-            SeasonData(season=sample_season_display, team=sample_team_info, stats=empty_player_stats)
+            SeasonData(
+                season=sample_season_display, team=sample_team_info, stats=empty_player_stats
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("competition",) for error in errors)
 
@@ -586,7 +594,9 @@ class TestPlayerDetailsResponse:
             stats=empty_player_stats,
         )
 
-        response = PlayerDetailsResponse(player=sample_player_info, seasons=[season_data1, season_data2])
+        response = PlayerDetailsResponse(
+            player=sample_player_info, seasons=[season_data1, season_data2]
+        )
 
         assert len(response.seasons) == 2
 

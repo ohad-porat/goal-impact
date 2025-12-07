@@ -4,7 +4,12 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas.common import NationInfo
-from app.schemas.leaders import BySeasonPlayer, BySeasonResponse, CareerTotalsPlayer, CareerTotalsResponse
+from app.schemas.leaders import (
+    BySeasonPlayer,
+    BySeasonResponse,
+    CareerTotalsPlayer,
+    CareerTotalsResponse,
+)
 
 
 class TestCareerTotalsPlayer:

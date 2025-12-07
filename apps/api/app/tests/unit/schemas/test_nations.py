@@ -8,8 +8,8 @@ from app.schemas.nations import (
     CompetitionSummary,
     NationDetails,
     NationDetailsResponse,
-    NationSummary,
     NationsListResponse,
+    NationSummary,
     PlayerSummary,
 )
 

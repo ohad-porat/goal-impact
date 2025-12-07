@@ -7,8 +7,8 @@ from app.schemas.clubs import (
     ClubByNation,
     ClubDetailsResponse,
     ClubInfo,
-    ClubSummary,
     ClubsByNationResponse,
+    ClubSummary,
     CompetitionDisplay,
     CompetitionInfo,
     GoalLogEntry,
@@ -17,8 +17,8 @@ from app.schemas.clubs import (
     PlayerBasic,
     PlayerGoalLogEntry,
     PlayerGoalLogResponse,
-    SquadPlayer,
     SeasonStats,
+    SquadPlayer,
     TeamSeasonGoalLogResponse,
     TeamSeasonSquadResponse,
     TeamStatsInfo,
@@ -646,9 +646,7 @@ class TestClubDetailsResponse:
         assert response.club.name == "Barcelona"
         assert len(response.seasons) == 1
 
-    def test_creates_with_empty_seasons_list(
-        self, sample_nation_detailed: NationDetailed
-    ) -> None:
+    def test_creates_with_empty_seasons_list(self, sample_nation_detailed: NationDetailed) -> None:
         """Test creating ClubDetailsResponse with empty seasons list."""
         club = ClubInfo(id=1, name="Barcelona", nation=sample_nation_detailed)
         response = ClubDetailsResponse(club=club, seasons=[])
@@ -892,13 +890,13 @@ class TestTeamSeasonSquadResponse:
         """Test that team is required."""
         competition = CompetitionDisplay(id=1, name="La Liga")
         with pytest.raises(ValidationError) as exc_info:
-            TeamSeasonSquadResponse(season=sample_season_display, competition=competition, players=[])
+            TeamSeasonSquadResponse(
+                season=sample_season_display, competition=competition, players=[]
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("team",) for error in errors)
 
-    def test_requires_season(
-        self, sample_nation_detailed: NationDetailed
-    ) -> None:
+    def test_requires_season(self, sample_nation_detailed: NationDetailed) -> None:
         """Test that season is required."""
         team = ClubInfo(id=1, name="Barcelona", nation=sample_nation_detailed)
         competition = CompetitionDisplay(id=1, name="La Liga")
@@ -928,7 +926,9 @@ class TestTeamSeasonSquadResponse:
         team = ClubInfo(id=1, name="Barcelona", nation=sample_nation_detailed)
         competition = CompetitionDisplay(id=1, name="La Liga")
         with pytest.raises(ValidationError) as exc_info:
-            TeamSeasonSquadResponse(team=team, season=sample_season_display, competition=competition)
+            TeamSeasonSquadResponse(
+                team=team, season=sample_season_display, competition=competition
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("players",) for error in errors)
 
@@ -1227,7 +1227,9 @@ class TestTeamSeasonGoalLogResponse:
         """Test that team is required."""
         competition = CompetitionDisplay(id=1, name="La Liga")
         with pytest.raises(ValidationError) as exc_info:
-            TeamSeasonGoalLogResponse(season=sample_season_display, competition=competition, goals=[])
+            TeamSeasonGoalLogResponse(
+                season=sample_season_display, competition=competition, goals=[]
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("team",) for error in errors)
 
@@ -1261,7 +1263,9 @@ class TestTeamSeasonGoalLogResponse:
         team = ClubInfo(id=1, name="Barcelona", nation=sample_nation_detailed)
         competition = CompetitionDisplay(id=1, name="La Liga")
         with pytest.raises(ValidationError) as exc_info:
-            TeamSeasonGoalLogResponse(team=team, season=sample_season_display, competition=competition)
+            TeamSeasonGoalLogResponse(
+                team=team, season=sample_season_display, competition=competition
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("goals",) for error in errors)
 
@@ -1327,9 +1331,7 @@ class TestTeamSeasonGoalLogResponse:
 class TestPlayerGoalLogEntry:
     """Test PlayerGoalLogEntry schema validation."""
 
-    def test_creates_with_required_fields(
-        self, sample_nation_detailed: NationDetailed
-    ) -> None:
+    def test_creates_with_required_fields(self, sample_nation_detailed: NationDetailed) -> None:
         """Test creating PlayerGoalLogEntry with required fields."""
         team = ClubInfo(id=1, name="Barcelona", nation=sample_nation_detailed)
         opponent = ClubInfo(id=2, name="Real Madrid", nation=sample_nation_detailed)
@@ -1356,9 +1358,7 @@ class TestPlayerGoalLogEntry:
         assert goal.goal_value is None
         assert goal.assisted_by is None
 
-    def test_creates_with_all_fields(
-        self, sample_nation_detailed: NationDetailed
-    ) -> None:
+    def test_creates_with_all_fields(self, sample_nation_detailed: NationDetailed) -> None:
         """Test creating PlayerGoalLogEntry with all fields."""
         team = ClubInfo(id=1, name="Barcelona", nation=sample_nation_detailed)
         opponent = ClubInfo(id=2, name="Real Madrid", nation=sample_nation_detailed)

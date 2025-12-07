@@ -6,10 +6,10 @@ from pydantic import ValidationError
 from app.schemas.leagues import (
     LeagueInfo,
     LeagueSeasonsResponse,
+    LeaguesListResponse,
     LeagueSummary,
     LeagueTableEntry,
     LeagueTableResponse,
-    LeaguesListResponse,
 )
 from app.schemas.players import SeasonDisplay
 
@@ -78,7 +78,9 @@ class TestLeagueSummary:
     def test_validates_types(self) -> None:
         """Test that types are validated."""
         with pytest.raises(ValidationError) as exc_info:
-            LeagueSummary(id="not_int", name="La Liga", country="Spain", available_seasons="2023-24")
+            LeagueSummary(
+                id="not_int", name="La Liga", country="Spain", available_seasons="2023-24"
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("id",) for error in errors)
 
@@ -245,9 +247,7 @@ class TestLeagueSeasonsResponse:
     def test_deserializes_from_dict(self) -> None:
         """Test deserialization from dictionary."""
         data = {
-            "seasons": [
-                {"id": 1, "start_year": 2023, "end_year": None, "display_name": "2023-24"}
-            ]
+            "seasons": [{"id": 1, "start_year": 2023, "end_year": None, "display_name": "2023-24"}]
         }
         response = LeagueSeasonsResponse.model_validate(data)
         assert len(response.seasons) == 1
@@ -445,9 +445,7 @@ class TestLeagueTableEntry:
 class TestLeagueTableResponse:
     """Test LeagueTableResponse schema validation."""
 
-    def test_creates_with_required_fields(
-        self, sample_season_display: SeasonDisplay
-    ) -> None:
+    def test_creates_with_required_fields(self, sample_season_display: SeasonDisplay) -> None:
         """Test creating LeagueTableResponse with required fields."""
         league = LeagueInfo(id=1, name="La Liga", country="Spain")
         entry = LeagueTableEntry(
@@ -469,9 +467,7 @@ class TestLeagueTableResponse:
         assert response.season.display_name == "2023-24"
         assert len(response.table) == 1
 
-    def test_creates_with_empty_table(
-        self, sample_season_display: SeasonDisplay
-    ) -> None:
+    def test_creates_with_empty_table(self, sample_season_display: SeasonDisplay) -> None:
         """Test creating LeagueTableResponse with empty table."""
         league = LeagueInfo(id=1, name="La Liga", country="Spain")
         response = LeagueTableResponse(league=league, season=sample_season_display, table=[])
