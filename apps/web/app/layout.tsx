@@ -12,7 +12,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'Goal Impact - Soccer Analytics',
-  description: 'Advanced soccer data analytics with Goal Value and Points Added metrics',
+  description: 'Advanced soccer data analytics with Goal Value metric',
 }
 
 export default function RootLayout({
