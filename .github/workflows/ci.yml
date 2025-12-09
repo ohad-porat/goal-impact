@@ -163,3 +163,27 @@ jobs:
       
       - name: Run type check
         run: yarn type-check
+
+  web-tests:
+    name: Web Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run tests
+        run: yarn test
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
