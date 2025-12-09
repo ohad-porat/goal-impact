@@ -4,5 +4,10 @@ export function getShortLeagueName(competitionName: string): string {
     'Fußball-Bundesliga': 'Bundesliga',
   }
 
-  return shortNames[competitionName] || competitionName
+  if (competitionName === null || competitionName === undefined) {
+    return ''
+  }
+
+  const trimmedName = competitionName.trim()
+  return shortNames[trimmedName] || trimmedName
 }
