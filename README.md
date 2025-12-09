@@ -8,24 +8,28 @@ A full-stack web application for soccer data analytics featuring proprietary Goa
 |-------|------------|
 | **Frontend** | Next.js 14 + React + TypeScript |
 | **Styling** | Tailwind CSS |
-| **Backend** | FastAPI + Python 3.9+ |
+| **Backend** | FastAPI + Python 3.10+ |
 | **Database** | PostgreSQL |
 | **ORM** | SQLAlchemy 2.0 + Alembic |
 | **Data Ingestion** | Custom FBRef scraper system |
 | **Build System** | Turborepo + Yarn Workspaces |
 | **Testing** | Pytest + Factory Boy |
+| **Code Quality** | Ruff (Python), ESLint + Prettier (TypeScript) |
 
 ## Features
 
-- **Leagues, Clubs, Players & Nations**: Browse statistics, standings, and performance metrics
-- **Leaders**: Career totals and seasonal leaderboards
-- **Search**: Global search across all entities
-- **Goal Value Analytics**: Proprietary metric for evaluating goal significance
+- **Leagues**: Browse competitions, view league tables, and explore season-by-season standings
+- **Clubs**: Team statistics, season rosters, and goal logs with player contributions
+- **Players**: Career statistics, season-by-season performance, and detailed goal logs
+- **Nations**: National team data with top players and clubs by country
+- **Leaders**: Career totals and seasonal leaderboards with league filtering
+- **Search**: Global search across players, clubs, competitions, and nations
+- **Goal Value Analytics**: Proprietary metric for evaluating goal significance and impact
 
 ## Prerequisites
 
 - **Node.js** 18+ and **Yarn** 1.22+
-- **Python** 3.9+ with pip
+- **Python** 3.10+ with pip
 - **PostgreSQL** database server
 - **Git** for version control
 
@@ -44,14 +48,20 @@ Create a PostgreSQL database for the application.
 
 ### 3. Environment Configuration
 
-Copy the example environment files and configure them:
+Create environment files for both applications:
 
+**`apps/api/.env.local`** - Required variables:
 ```bash
-cp apps/api/.env.example apps/api/.env.local
-cp apps/web/.env.example apps/web/.env.local
+DATABASE_URL=postgresql://user:password@localhost:5432/goal_impact
+ALLOWED_HOSTS=["http://localhost:3000"]
 ```
 
-Edit the `.env.local` files with your database connection string and other required values.
+**`apps/web/.env.local`** - Required variables:
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+Adjust these values according to your local setup.
 
 ### 4. Run Migrations
 
@@ -119,13 +129,23 @@ yarn dev          # Start all development servers
 yarn build        # Build all applications
 yarn lint         # Lint all applications
 yarn type-check   # Type check TypeScript code
+yarn format       # Format code with Prettier
+yarn clean        # Clean build artifacts
 yarn db:setup     # Create Python virtual environment and install dependencies
 yarn db:migrate   # Run database migrations
 ```
 
 ## Testing
 
-The project currently includes test coverage for the FBRef scraper system:
+The project includes comprehensive test coverage across multiple layers:
+
+### Test Structure
+
+- **Unit Tests**: Models, services, schemas, and goal value core logic
+- **Integration Tests**: API route endpoints
+- **Scraper Tests**: FBRef scraper system components
+
+### Running Tests
 
 ```bash
 cd apps/api
@@ -134,39 +154,92 @@ source venv/bin/activate
 # Run all tests
 pytest
 
+# Run specific test suites
+pytest app/tests/unit/              # Unit tests
+pytest app/tests/integration/       # Integration tests
+pytest app/fbref_scraper/tests/     # Scraper tests
+
 # Run specific test file
+pytest app/tests/unit/services/test_players.py
+pytest app/tests/integration/test_routes_players.py
 pytest app/fbref_scraper/tests/unit/test_config.py
-pytest app/fbref_scraper/tests/unit/test_base_scraper.py
 
 # Run with coverage
-pytest --cov=app.fbref_scraper
+pytest --cov=app --cov-report=html
 
 # Verbose output
 pytest -v
 ```
 
+### CI/CD
+
+The project uses GitHub Actions for continuous integration, running:
+- Unit tests for models, services, and schemas
+- Integration tests for API routes
+- Scraper tests
+- Linting and formatting checks (Ruff for Python, ESLint for TypeScript)
+
 ## API Endpoints
 
-The API provides the following main endpoints:
+The API provides the following endpoints:
 
-- `GET /api/v1/leagues` - List all leagues
-- `GET /api/v1/leagues/{id}` - League details
-- `GET /api/v1/clubs` - List all clubs
-- `GET /api/v1/clubs/{id}` - Club details
-- `GET /api/v1/players/{id}` - Player details
-- `GET /api/v1/nations` - List all nations
-- `GET /api/v1/nations/{id}` - Nation details
-- `GET /api/v1/leaders/career-totals` - Career leaderboards
-- `GET /api/v1/leaders/by-season` - Seasonal leaderboards
-- `GET /api/v1/search` - Global search
-- `GET /api/v1/home/recent-goals` - Recent high-impact goals
+### Core Endpoints
+
+- `GET /` - API information and version
+- `GET /health` - Health check endpoint
+
+### Leagues
+
+- `GET /api/v1/leagues` - List all leagues with season ranges
+- `GET /api/v1/leagues/seasons` - Get all unique seasons across all leagues
+- `GET /api/v1/leagues/{id}/seasons` - Get all seasons for a specific league
+- `GET /api/v1/leagues/{id}/table/{season_id}` - Get league table for a specific season
+
+### Clubs
+
+- `GET /api/v1/clubs` - List top clubs grouped by nation
+- `GET /api/v1/clubs/{id}` - Get club details with season statistics
+- `GET /api/v1/clubs/{id}/seasons/{season_id}` - Get team squad with player statistics for a season
+- `GET /api/v1/clubs/{id}/seasons/{season_id}/goals` - Get goal log for a team in a specific season
+
+### Players
+
+- `GET /api/v1/players/{id}` - Get player details with statistics across all seasons
+- `GET /api/v1/players/{id}/goals` - Get player career goal log
+
+### Nations
+
+- `GET /api/v1/nations` - List all nations with player counts
+- `GET /api/v1/nations/{id}` - Get nation details with top players and clubs
+
+### Leaders
+
+- `GET /api/v1/leaders/career-totals` - Career goal value leaderboards
+  - Query params: `limit` (1-100, default: 50), `league_id` (optional)
+- `GET /api/v1/leaders/by-season` - Seasonal goal value leaderboards
+  - Query params: `season_id` (required), `limit` (1-100, default: 50), `league_id` (optional)
+
+### Search & Home
+
+- `GET /api/v1/search` - Global search across players, clubs, competitions, and nations
+  - Query params: `q` (required, min length: 1)
+- `GET /api/v1/home/recent-goals` - Recent high-impact goals from the past week
+  - Query params: `league_id` (optional)
 
 ## Development
 
 ### Code Style
 
-- **Python**: Follow PEP 8 style guidelines
+- **Python**: Follow PEP 8 style guidelines, enforced with Ruff
 - **TypeScript/JavaScript**: ESLint and Prettier configurations
+
+### Code Quality Tools
+
+- **Ruff**: Fast Python linter and formatter (replaces Black, isort, flake8)
+- **ESLint**: TypeScript/JavaScript linting
+- **Prettier**: Code formatting for TypeScript, JavaScript, and Markdown
+- **Pytest**: Testing framework with coverage reporting
+- **TypeScript**: Static type checking for frontend code
 
 ## Acknowledgments
 

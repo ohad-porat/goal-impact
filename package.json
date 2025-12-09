@@ -1,7 +1,7 @@
 {
   "name": "goal-impact",
   "version": "1.0.0",
-  "description": "Soccer data analytics platform with Goal Value and Points Added metrics",
+  "description": "Soccer data analytics platform with Goal Value metric",
   "private": true,
   "workspaces": [
     "apps/*"
