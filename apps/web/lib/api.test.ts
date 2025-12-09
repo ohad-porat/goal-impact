@@ -116,13 +116,19 @@ describe('API Client', () => {
 
   describe('Error handling', () => {
     it('should throw error when NEXT_PUBLIC_API_URL is undefined', async () => {
-      vi.unstubAllEnvs()
+      const originalValue = process.env.NEXT_PUBLIC_API_URL
+      
+      delete process.env.NEXT_PUBLIC_API_URL
       vi.resetModules()
       
       const apiModule = await import('./api')
       expect(() => {
         apiModule.api.leadersCareerTotals()
       }).toThrow()
+      
+      if (originalValue !== undefined) {
+        process.env.NEXT_PUBLIC_API_URL = originalValue
+      }
     })
   })
 })
