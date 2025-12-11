@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+  schedule:
+    - cron: '0 13 * * *'
 
 jobs:
   api-tests-unit:
