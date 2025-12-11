@@ -13,7 +13,7 @@ A full-stack web application for soccer data analytics featuring proprietary Goa
 | **ORM** | SQLAlchemy 2.0 + Alembic |
 | **Data Ingestion** | Custom FBRef scraper system |
 | **Build System** | Turborepo + Yarn Workspaces |
-| **Testing** | Pytest + Factory Boy |
+| **Testing** | Vitest + React Testing Library (Frontend), Pytest + Factory Boy (Backend) |
 | **Code Quality** | Ruff (Python), ESLint + Prettier (TypeScript) |
 
 ## Features
@@ -141,11 +141,19 @@ The project includes comprehensive test coverage across multiple layers:
 
 ### Test Structure
 
+**Backend Tests:**
 - **Unit Tests**: Models, services, schemas, and goal value core logic
 - **Integration Tests**: API route endpoints
 - **Scraper Tests**: FBRef scraper system components
 
+**Frontend Tests:**
+- **Component Tests**: React components with user interaction testing
+- **Hook Tests**: Custom React hooks and data fetching logic
+- **Utility Tests**: Helper functions and API client utilities
+
 ### Running Tests
+
+**Backend Tests (Python):**
 
 ```bash
 cd apps/api
@@ -171,13 +179,33 @@ pytest --cov=app --cov-report=html
 pytest -v
 ```
 
+**Frontend Tests (TypeScript/React):**
+
+```bash
+cd apps/web
+
+# Run all tests
+yarn test
+
+# Run tests in watch mode
+yarn test:watch
+
+# Run tests with UI
+yarn test:ui
+
+# Run tests with coverage
+yarn test:coverage
+
+# Run specific test file
+yarn test SearchBar.test.tsx
+```
+
 ### CI/CD
 
 The project uses GitHub Actions for continuous integration, running:
-- Unit tests for models, services, and schemas
-- Integration tests for API routes
-- Scraper tests
-- Linting and formatting checks (Ruff for Python, ESLint for TypeScript)
+- **Backend**: Unit tests for models, services, and schemas; Integration tests for API routes; Scraper tests
+- **Frontend**: Component tests, hook tests, and utility tests using Vitest
+- **Code Quality**: Linting and formatting checks (Ruff for Python, ESLint for TypeScript)
 
 ## API Endpoints
 
@@ -238,7 +266,8 @@ The API provides the following endpoints:
 - **Ruff**: Fast Python linter and formatter (replaces Black, isort, flake8)
 - **ESLint**: TypeScript/JavaScript linting
 - **Prettier**: Code formatting for TypeScript, JavaScript, and Markdown
-- **Pytest**: Testing framework with coverage reporting
+- **Pytest**: Testing framework with coverage reporting for Python
+- **Vitest**: Fast unit test framework for TypeScript/React with coverage reporting
 - **TypeScript**: Static type checking for frontend code
 
 ## Acknowledgments
