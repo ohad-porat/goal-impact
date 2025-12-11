@@ -2,6 +2,19 @@
 
 A full-stack web application for soccer data analytics featuring proprietary Goal Value (GV) metric. Built with Next.js frontend and FastAPI backend in a monorepo architecture.
 
+## Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Data Ingestion](#data-ingestion)
+- [Available Scripts](#available-scripts)
+- [Testing](#testing)
+- [API Endpoints](#api-endpoints)
+- [Development](#development)
+- [Acknowledgments](#acknowledgments)
+
 ## Tech Stack
 
 | Layer | Technology |
