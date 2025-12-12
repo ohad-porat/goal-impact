@@ -1,0 +1,51 @@
+version: 2
+updates:
+  # Node.js/Yarn dependencies - Root package.json
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "08:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Node.js/Yarn dependencies - Web app
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "daily"
+      time: "08:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "web"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Python dependencies - API requirements
+  - package-ecosystem: "pip"
+    directory: "/apps/api"
+    schedule:
+      interval: "daily"
+      time: "08:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+      - "api"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
