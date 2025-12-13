@@ -70,33 +70,48 @@ export function RecentImpactGoals({ initialLeagues, initialGoals }: RecentImpact
 
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold text-orange-400">Recent Impact Goals</h2>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-orange-400">Recent Impact Goals</h2>
         
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedLeagueId(undefined)}
-            className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors whitespace-nowrap ${
-              selectedLeagueId === undefined
-                ? 'bg-orange-400 text-black'
-                : 'bg-slate-700 text-white hover:bg-slate-600'
-            }`}
+        <div className="w-full sm:w-auto">
+          <select
+            value={selectedLeagueId?.toString() || ''}
+            onChange={(e) => setSelectedLeagueId(e.target.value ? parseInt(e.target.value) : undefined)}
+            className="w-full md:hidden px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
           >
-            All Leagues
-          </button>
-          {topLeagues.map((league) => (
+            <option value="">All Leagues</option>
+            {topLeagues.map((league) => (
+              <option key={league.id} value={league.id.toString()}>
+                {getShortLeagueName(league.name)}
+              </option>
+            ))}
+          </select>
+          
+          <div className="hidden md:flex items-center gap-2 flex-wrap">
             <button
-              key={league.id}
-              onClick={() => setSelectedLeagueId(league.id)}
+              onClick={() => setSelectedLeagueId(undefined)}
               className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors whitespace-nowrap ${
-                selectedLeagueId === league.id
+                selectedLeagueId === undefined
                   ? 'bg-orange-400 text-black'
                   : 'bg-slate-700 text-white hover:bg-slate-600'
               }`}
             >
-              {getShortLeagueName(league.name)}
+              All Leagues
             </button>
-          ))}
+            {topLeagues.map((league) => (
+              <button
+                key={league.id}
+                onClick={() => setSelectedLeagueId(league.id)}
+                className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors whitespace-nowrap ${
+                  selectedLeagueId === league.id
+                    ? 'bg-orange-400 text-black'
+                    : 'bg-slate-700 text-white hover:bg-slate-600'
+                }`}
+              >
+                {getShortLeagueName(league.name)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -113,38 +128,56 @@ export function RecentImpactGoals({ initialLeagues, initialGoals }: RecentImpact
           {goalsData.goals.map((goal, index) => (
             <div
               key={index}
-              className="bg-gray-50 rounded-lg shadow-lg p-4 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-4"
+              className="bg-gray-50 rounded-lg shadow-lg p-2.5 md:p-4 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-2 md:gap-4"
             >
-              <div className="flex flex-col justify-center">
-                <p className="text-gray-900 font-semibold text-base">
+              <div className="flex flex-col justify-start md:justify-start">
+                <p className="text-gray-900 font-semibold text-sm md:text-base leading-tight">
                   {goal.match.home_team} vs {goal.match.away_team}
                 </p>
-                <p className="text-gray-600 text-xs mt-0.5">{goal.match.date}</p>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 md:hidden">
+                  <p className="text-gray-600 text-xs">{goal.match.date}</p>
+                  <span className="text-gray-400 text-xs">•</span>
+                  <p className="text-gray-900 font-medium text-xs">
+                    {goal.scorer.name}
+                  </p>
+                  <span className="text-gray-400 text-xs">•</span>
+                  <p className="text-gray-700 text-xs">Minute {goal.minute}</p>
+                </div>
+                <p className="text-gray-600 text-xs mt-1 hidden md:block">{goal.match.date}</p>
               </div>
 
-              <div className="flex flex-col justify-center">
-                <p className="text-gray-700 text-xs font-semibold mb-0.5">
+              <div className="hidden md:flex flex-col justify-start">
+                <p className="text-gray-700 text-xs font-semibold mb-1">
                   Minute {goal.minute}
                 </p>
-                <p className="text-gray-900 font-medium text-base">
+                <p className="text-gray-900 font-medium text-sm md:text-base leading-tight">
                   {goal.scorer.name}
                 </p>
               </div>
 
-              <div className="flex flex-col justify-center items-end md:items-start">
-                <p className="text-gray-700 text-xs font-semibold mb-0.5">Score</p>
-                {goal.score_before && goal.score_after ? (
-                  <p className="text-gray-700 text-sm">
-                    {goal.score_before} → {goal.score_after}
-                  </p>
-                ) : (
-                  <p className="text-gray-400 text-sm">-</p>
-                )}
+              <div className="flex items-center gap-2 md:flex-col md:justify-start md:items-start">
+                <div className="flex items-center gap-1.5 md:flex-col md:items-start">
+                  <span className="text-gray-700 text-xs font-semibold md:mb-1">Score:</span>
+                  {goal.score_before && goal.score_after ? (
+                    <span className="text-gray-700 text-sm md:block leading-tight">
+                      {goal.score_before} → {goal.score_after}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-sm md:block">-</span>
+                  )}
+                </div>
+                <span className="text-gray-400 text-xs md:hidden">•</span>
+                <div className="flex items-center gap-1.5 md:hidden">
+                  <span className="text-gray-700 text-xs font-semibold">GV:</span>
+                  <span className="text-gray-900 font-bold text-sm leading-tight">
+                    {formatGoalValue(goal.goal_value)}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex flex-col justify-center items-end md:items-start">
-                <p className="text-gray-700 text-xs font-semibold mb-0.5">GV</p>
-                <p className="text-gray-900 font-bold text-lg">
+              <div className="hidden md:flex flex-col justify-start items-end md:items-start">
+                <p className="text-gray-700 text-xs font-semibold mb-1">GV</p>
+                <p className="text-gray-900 font-bold text-base md:text-lg leading-tight">
                   {formatGoalValue(goal.goal_value)}
                 </p>
               </div>

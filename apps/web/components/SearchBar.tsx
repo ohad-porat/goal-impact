@@ -81,11 +81,11 @@ export default function SearchBar() {
           }
         }}
         placeholder="Search..."
-        className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-64"
+        className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-64"
       />
       
       {isOpen && (
-        <div className="absolute top-full mt-1 w-64 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full mt-1 w-full sm:w-64 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
           {isLoading ? (
             <div className="px-4 py-2 text-white">Searching...</div>
           ) : results.length > 0 ? (

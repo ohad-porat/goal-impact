@@ -46,7 +46,7 @@ export default async function GoalLogPage({ params, searchParams }: GoalLogPageP
       <div className="min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6 flex items-center justify-between gap-4">
-            <h1 className="text-4xl font-bold text-white flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white flex-1">
               Goal Log: {team.name} {season.display_name} ({competition.name})
             </h1>
             <Link

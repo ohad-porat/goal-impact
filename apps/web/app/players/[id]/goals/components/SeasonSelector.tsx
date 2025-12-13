@@ -32,7 +32,7 @@ export function SeasonSelector({ seasons, selectedSeasonId }: SeasonSelectorProp
     <select
       value={selectedSeasonId.toString()}
       onChange={handleSeasonChange}
-      className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+      className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-auto"
     >
       {seasons.map((season) => (
         <option key={season.id} value={season.id.toString()}>
