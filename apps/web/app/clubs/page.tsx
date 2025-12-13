@@ -27,7 +27,7 @@ export default async function ClubsPage() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-4xl font-bold text-white">Top Clubs</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Top Clubs</h1>
         </div>
 
         {data.nations.length === 0 ? (

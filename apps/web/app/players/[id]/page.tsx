@@ -39,12 +39,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-4xl font-bold text-white">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
                 {player.name}
               </h1>
               {player.nation?.name && (
                 <div className="mt-2">
-                  <p className="text-xl text-gray-300">
+                  <p className="text-lg sm:text-xl text-gray-300">
                     Country: {player.nation.name}
                   </p>
                 </div>

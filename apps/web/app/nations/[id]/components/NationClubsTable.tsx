@@ -8,7 +8,7 @@ interface NationClubsTableProps {
 export function NationClubsTable({ clubs }: NationClubsTableProps) {
   return (
     <div className="mb-10 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-semibold text-white mb-3">Top Clubs</h2>
+      <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3">Top Clubs</h2>
       <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700 table-fixed">

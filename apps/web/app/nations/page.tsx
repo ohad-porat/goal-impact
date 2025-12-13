@@ -31,7 +31,7 @@ export default async function NationsPage() {
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-4xl font-bold text-white">Nations</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Nations</h1>
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">

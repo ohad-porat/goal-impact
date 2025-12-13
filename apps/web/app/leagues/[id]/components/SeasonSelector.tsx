@@ -20,7 +20,7 @@ export function SeasonSelector({ seasons, currentSeasonId, leagueId }: SeasonSel
     <select
       value={currentSeasonId}
       onChange={(e) => handleSeasonChange(parseInt(e.target.value))}
-      className="bg-slate-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-orange-500 focus:outline-none"
+      className="bg-slate-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:border-orange-500 focus:outline-none w-full sm:w-auto"
     >
       {seasons.map((season) => (
         <option key={season.id} value={season.id}>

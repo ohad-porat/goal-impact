@@ -68,9 +68,9 @@ export default async function LeagueShowPage({ params, searchParams }: LeagueSho
       <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6">
-            <div className="flex items-center">
-              <h1 className="text-4xl font-bold text-white">{tableData.league.name}</h1>
-              <div className="ml-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{tableData.league.name}</h1>
+              <div className="w-full sm:w-auto">
                 <SeasonSelector 
                   seasons={seasons} 
                   currentSeasonId={targetSeasonId}

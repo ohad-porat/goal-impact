@@ -66,7 +66,8 @@ describe('Navbar', () => {
     expect(nationsLink).toHaveClass(
       'text-black',
       'font-semibold',
-      'text-lg',
+      'text-base',
+      'sm:text-lg',
       'uppercase',
       'tracking-wide',
       'hover:text-slate-700',
@@ -81,12 +82,14 @@ describe('Navbar', () => {
     expect(logo).toHaveClass(
       'text-black',
       'font-bold',
-      'text-2xl',
+      'text-xl',
+      'sm:text-2xl',
       'uppercase',
       'tracking-wide',
       'hover:text-slate-700',
       'transition-colors',
-      'mr-6'
+      'mr-2',
+      'sm:mr-6'
     )
   })
 })
