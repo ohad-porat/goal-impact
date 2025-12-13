@@ -54,3 +54,8 @@ Thumbs.db
 # Data
 data_raw/
 *.parquet
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
