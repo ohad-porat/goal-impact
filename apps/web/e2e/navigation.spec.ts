@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { navigateAndWait, verifyHomePageLoaded } from './helpers';
 
 const NAV_PAGES = [
   { link: 'Nations', url: '/nations', heading: 'Nations' },
@@ -23,7 +24,7 @@ async function navigateToPage(page: Page, linkName: string, expectedUrl: string,
 async function verifyHomePage(page: Page) {
   await expect(page).toHaveURL('/');
   await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: /Evaluate soccer's most valuable goals/i })).toBeVisible();
+  await verifyHomePageLoaded(page);
 }
 
 async function verifyNavLinksVisible(page: Page, visible: boolean) {
@@ -43,8 +44,7 @@ async function openMobileMenu(page: Page) {
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await navigateAndWait(page, '/');
   });
 
   test.describe('Desktop Navigation', () => {
@@ -119,8 +119,7 @@ test.describe('Navigation', () => {
 
     test('should navigate to all pages from mobile menu', async ({ page }) => {
       for (const { link, url, heading } of NAV_PAGES) {
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+        await navigateAndWait(page, '/');
         await openMobileMenu(page);
         await navigateToPage(page, link, url, heading);
       }
@@ -130,8 +129,7 @@ test.describe('Navigation', () => {
   test.describe('Logo Navigation', () => {
     test('should navigate to home from any page when clicking logo', async ({ page }) => {
       for (const { url } of NAV_PAGES) {
-        await page.goto(url);
-        await page.waitForLoadState('networkidle');
+        await navigateAndWait(page, url);
         await page.getByRole('link', { name: 'GOAL IMPACT' }).click();
         await verifyHomePage(page);
       }

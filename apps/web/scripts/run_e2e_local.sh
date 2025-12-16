@@ -56,7 +56,7 @@ cd "$WEB_DIR"
 echo "🧪 Running e2e tests..."
 export NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 export PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
-yarn test:e2e
+yarn test:e2e "$@"
 TEST_EXIT_CODE=$?
 
 echo "🛑 Stopping API server..."
