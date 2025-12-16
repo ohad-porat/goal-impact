@@ -30,12 +30,21 @@ test.describe('Home Page', () => {
       const buttonCount = await leagueButtons.count();
       
       if (buttonCount > 0) {
-        const firstLeagueButton = leagueButtons.first();
+        const initialGoalCards = getGoalCards(page);
+        const initialGoalCount = await initialGoalCards.count();
         
+        const firstLeagueButton = leagueButtons.first();
         await firstLeagueButton.click();
         await page.waitForLoadState('networkidle');
         
         await expect(firstLeagueButton).toHaveClass(/bg-orange-400/);
+        
+        const filteredGoalCards = getGoalCards(page);
+        const filteredGoalCount = await filteredGoalCards.count();
+        
+        if (initialGoalCount > 0) {
+          expect(filteredGoalCount).toBeLessThanOrEqual(initialGoalCount);
+        }
       }
     });
 
@@ -47,6 +56,9 @@ test.describe('Home Page', () => {
       const buttonCount = await leagueButtons.count();
       
       if (buttonCount > 0) {
+        const initialGoalCards = getGoalCards(page);
+        const initialGoalCount = await initialGoalCards.count();
+        
         await leagueButtons.first().click();
         await page.waitForLoadState('networkidle');
         
@@ -54,6 +66,13 @@ test.describe('Home Page', () => {
         await page.waitForLoadState('networkidle');
         
         await expect(allLeaguesButton).toHaveClass(/bg-orange-400/);
+        
+        const resetGoalCards = getGoalCards(page);
+        const resetGoalCount = await resetGoalCards.count();
+        
+        if (initialGoalCount > 0) {
+          expect(resetGoalCount).toBe(initialGoalCount);
+        }
       }
     });
 
@@ -62,13 +81,17 @@ test.describe('Home Page', () => {
       
       const noGoalsMessage = page.getByText('No recent goals found');
       const errorMessage = page.getByText('Failed to load recent goals.');
+      const goalCards = getGoalCards(page);
       
       const hasNoGoals = await noGoalsMessage.isVisible().catch(() => false);
       const hasError = await errorMessage.isVisible().catch(() => false);
+      const goalCount = await goalCards.count();
       
-      if (!hasNoGoals && !hasError) {
-        const goalCards = getGoalCards(page);
-        const goalCount = await goalCards.count();
+      if (hasError) {
+        await expect(errorMessage).toBeVisible();
+      } else if (hasNoGoals) {
+        await expect(noGoalsMessage).toBeVisible();
+      } else {
         expect(goalCount).toBeGreaterThan(0);
       }
     });
@@ -81,7 +104,16 @@ test.describe('Home Page', () => {
       
       if (goalCount > 0) {
         const firstGoal = goalCards.first();
+        
         await expect(firstGoal).toContainText('vs');
+        
+        const goalText = await firstGoal.textContent();
+        expect(goalText).toBeTruthy();
+        
+        if (goalText) {
+          expect(goalText).toMatch(/Minute \d+/);
+          expect(goalText).toMatch(/\+?\d+\.\d{2}/);
+        }
       }
     });
   });
@@ -99,12 +131,6 @@ test.describe('Home Page', () => {
 
     test('should display Goal Value example explanation', async ({ page }) => {
       await expect(page.getByText(/A Goal Value of \+0\.64 means/i)).toBeVisible();
-    });
-  });
-
-  test.describe('Page Load', () => {
-    test('should load all main sections', async ({ page }) => {
-      await verifyHomePageLoaded(page);
     });
   });
 });

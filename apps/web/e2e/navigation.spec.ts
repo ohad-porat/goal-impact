@@ -23,7 +23,6 @@ async function navigateToPage(page: Page, linkName: string, expectedUrl: string,
 
 async function verifyHomePage(page: Page) {
   await expect(page).toHaveURL('/');
-  await page.waitForLoadState('networkidle');
   await verifyHomePageLoaded(page);
 }
 
@@ -66,14 +65,9 @@ test.describe('Navigation', () => {
     }
 
     test('should maintain navbar visibility after navigation', async ({ page }) => {
-      for (const { link, heading } of NAV_PAGES) {
+      for (const { link } of NAV_PAGES) {
         await page.getByRole('link', { name: link }).click();
         await page.waitForLoadState('networkidle');
-        if (heading === 'Leaders') {
-          await expect(page.getByTestId('leaders-page-heading')).toBeVisible();
-        } else {
-          await expect(page.getByRole('heading', { name: heading })).toBeVisible();
-        }
         await expect(page.getByRole('link', { name: 'GOAL IMPACT' })).toBeVisible();
       }
     });
@@ -107,14 +101,17 @@ test.describe('Navigation', () => {
     });
 
     test('should close mobile menu when clicking a link', async ({ page }) => {
-      await openMobileMenu(page);
-      await expect(page.getByRole('link', { name: 'Nations' })).toBeVisible();
+      for (const { link, url } of NAV_PAGES) {
+        await navigateAndWait(page, '/');
+        await openMobileMenu(page);
+        await expect(page.getByRole('link', { name: link })).toBeVisible();
 
-      await page.getByRole('link', { name: 'Nations' }).click();
-      
-      await expect(page).toHaveURL('/nations');
-      await page.waitForLoadState('networkidle');
-      await verifyNavLinksVisible(page, false);
+        await page.getByRole('link', { name: link }).click();
+        
+        await expect(page).toHaveURL(url);
+        await page.waitForLoadState('networkidle');
+        await verifyNavLinksVisible(page, false);
+      }
     });
 
     test('should navigate to all pages from mobile menu', async ({ page }) => {
