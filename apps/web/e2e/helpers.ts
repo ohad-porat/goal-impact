@@ -19,4 +19,3 @@ export function getGoalCards(page: Page) {
 export function getLeagueButtons(page: Page) {
   return page.locator('button').filter({ hasText: /Premier League|Serie A|La Liga|Bundesliga/ });
 }
-

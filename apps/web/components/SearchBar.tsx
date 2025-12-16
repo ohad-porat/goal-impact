@@ -29,6 +29,7 @@ export default function SearchBar() {
 
     const timeoutId = setTimeout(async () => {
       setIsLoading(true)
+      setIsOpen(true)
       try {
         const response = await fetch(api.search(query))
         if (!response.ok) {
@@ -36,7 +37,7 @@ export default function SearchBar() {
         }
         const data = await response.json()
         setResults(data.results || [])
-        setIsOpen(data.results && data.results.length > 0)
+        setIsOpen(true)
       } catch (error) {
         console.error('Search error:', error)
         setResults([])
@@ -76,7 +77,7 @@ export default function SearchBar() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => {
-          if (results.length > 0) {
+          if (results.length > 0 || isLoading || query.trim()) {
             setIsOpen(true)
           }
         }}
