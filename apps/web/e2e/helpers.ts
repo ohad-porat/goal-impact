@@ -215,3 +215,18 @@ export async function selectFilterOptionIfAvailable(
 export function getUrlParam(page: Page, paramName: string): string | null {
   return new URL(page.url()).searchParams.get(paramName);
 }
+
+export async function verifyErrorMessage(page: Page, errorPattern: RegExp | string): Promise<void> {
+  const errorMessage = typeof errorPattern === 'string' 
+    ? page.getByText(errorPattern, { exact: false })
+    : page.getByText(errorPattern);
+  await expect(errorMessage).toBeVisible();
+}
+
+export async function verifyErrorDisplay(page: Page): Promise<void> {
+  const errorText = page.getByText(/Error:/i);
+  await expect(errorText).toBeVisible();
+  
+  const className = await errorText.getAttribute('class');
+  expect(className).toContain('text-red-400');
+}
