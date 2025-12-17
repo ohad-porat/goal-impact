@@ -1,5 +1,13 @@
-import { test, expect } from '@playwright/test';
-import { navigateAndWait, verifyErrorMessage, verifyErrorDisplay } from './helpers';
+import { test, expect, Page } from '@playwright/test';
+import { navigateAndWait, verifyErrorMessage } from './helpers';
+
+async function verifyErrorDisplay(page: Page): Promise<void> {
+  const errorText = page.getByText(/Error:/i);
+  await expect(errorText).toBeVisible();
+  
+  const className = await errorText.getAttribute('class');
+  expect(className).toContain('text-red-400');
+}
 
 const resourceTypes = [
   { type: 'nation', path: '/nations' },

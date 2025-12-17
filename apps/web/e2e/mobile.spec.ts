@@ -5,25 +5,11 @@ import {
   getGoalCards,
   getLeagueButtons,
   getSeasonSelector,
+  verifyDetailPageHeading,
+  verifyTableHasHorizontalScroll,
 } from './helpers';
 
 const MOBILE_VIEWPORT = { width: 375, height: 667 };
-
-async function verifyTableHasHorizontalScroll(page: Page, url: string) {
-  await navigateAndWait(page, url);
-  const table = page.locator('table');
-  await expect(table).toBeVisible();
-  const tableContainer = table.locator('..');
-  const className = await tableContainer.getAttribute('class');
-  expect(className).toContain('overflow-x-auto');
-}
-
-async function verifyDetailPageHeading(page: Page) {
-  const heading = page.getByRole('heading', { level: 1 });
-  await expect(heading).toBeVisible();
-  const headingText = await heading.textContent();
-  expect(headingText?.trim().length).toBeGreaterThan(0);
-}
 
 test.describe('Mobile', () => {
   test.use({ viewport: MOBILE_VIEWPORT });

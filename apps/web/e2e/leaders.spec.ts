@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import {
   navigateAndWait,
   waitForPageReady,
-  verifyTableOrEmptyState,
+  verifyTableWithData,
   selectFilterOptionIfAvailable,
   getUrlParam,
 } from './helpers';
@@ -21,6 +21,28 @@ function getLeagueFilter(page: Page) {
 
 function getSeasonFilter(page: Page) {
   return page.locator('select#season-filter');
+}
+
+async function verifyTableOrEmptyState(
+  page: Page,
+  emptyStateText: string,
+  errorText: string
+) {
+  const table = page.locator('table');
+  const emptyState = page.getByText(emptyStateText);
+  const errorMessage = page.getByText(errorText);
+  
+  const hasTable = await table.isVisible().catch(() => false);
+  const hasEmptyState = await emptyState.isVisible().catch(() => false);
+  const hasError = await errorMessage.isVisible().catch(() => false);
+  
+  if (hasTable) {
+    await verifyTableWithData(page);
+  } else if (hasEmptyState) {
+    await expect(emptyState).toBeVisible();
+  } else if (hasError) {
+    await expect(errorMessage).toBeVisible();
+  }
 }
 
 test.describe('Leaders', () => {

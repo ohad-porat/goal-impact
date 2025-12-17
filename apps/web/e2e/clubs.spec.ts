@@ -2,11 +2,33 @@ import { test, expect, Page } from '@playwright/test';
 import {
   navigateAndWait,
   navigateToFirstDetailPage,
-  navigateToSeasonRoster,
   navigateToGoalLog,
   verifyTableWithData,
   verifyEmptyStateOrContent,
 } from './helpers';
+
+async function navigateToSeasonRoster(
+  page: Page
+): Promise<number | null> {
+  const seasonLinks = page.locator('a[href*="/seasons?season="]');
+  const count = await seasonLinks.count();
+  
+  if (count > 0) {
+    const firstLink = seasonLinks.first();
+    const href = await firstLink.getAttribute('href');
+    
+    if (href) {
+      const match = href.match(/season=(\d+)/);
+      if (match) {
+        const seasonId = parseInt(match[1]);
+        await firstLink.click();
+        await page.waitForLoadState('networkidle');
+        return seasonId;
+      }
+    }
+  }
+  return null;
+}
 
 function getClubLinks(page: Page) {
   return page.locator('a[href^="/clubs/"]');

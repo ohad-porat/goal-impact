@@ -3,9 +3,23 @@ import {
   navigateAndWait,
   getFilteredTableRows,
   verifyEmptyStateOrContent,
-  verifyClickableLinks,
   verifyTableHeaders,
 } from './helpers';
+
+async function verifyClickableLinks(
+  page: Page,
+  linkSelector: string,
+  hrefPattern: RegExp
+) {
+  const links = page.locator(linkSelector);
+  const count = await links.count();
+  
+  if (count > 0) {
+    const firstLink = links.first();
+    const href = await firstLink.getAttribute('href');
+    expect(href).toMatch(hrefPattern);
+  }
+}
 
 function getNationRows(page: Page) {
   return getFilteredTableRows(page, 'No nations found');

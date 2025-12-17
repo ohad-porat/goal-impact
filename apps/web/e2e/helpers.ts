@@ -40,21 +40,6 @@ export async function verifyEmptyStateOrContent(
   }
 }
 
-export async function verifyClickableLinks(
-  page: Page,
-  linkSelector: string,
-  hrefPattern: RegExp
-) {
-  const links = page.locator(linkSelector);
-  const count = await links.count();
-  
-  if (count > 0) {
-    const firstLink = links.first();
-    const href = await firstLink.getAttribute('href');
-    expect(href).toMatch(hrefPattern);
-  }
-}
-
 export async function verifyTableHeaders(page: Page, headers: string[]) {
   for (const header of headers) {
     await expect(page.getByRole('columnheader', { name: header })).toBeVisible();
@@ -94,29 +79,6 @@ export async function navigateToFirstDetailPage(
   return null;
 }
 
-export async function navigateToSeasonRoster(
-  page: Page
-): Promise<number | null> {
-  const seasonLinks = page.locator('a[href*="/seasons?season="]');
-  const count = await seasonLinks.count();
-  
-  if (count > 0) {
-    const firstLink = seasonLinks.first();
-    const href = await firstLink.getAttribute('href');
-    
-    if (href) {
-      const match = href.match(/season=(\d+)/);
-      if (match) {
-        const seasonId = parseInt(match[1]);
-        await firstLink.click();
-        await page.waitForLoadState('networkidle');
-        return seasonId;
-      }
-    }
-  }
-  return null;
-}
-
 export async function navigateToGoalLog(page: Page): Promise<void> {
   const goalLogButton = page.getByRole('link', { name: 'View Goal Log' });
   await goalLogButton.click();
@@ -138,62 +100,9 @@ export async function verifyTableWithData(page: Page): Promise<void> {
   }
 }
 
-export async function hasNoGoals(page: Page, emptyStateText: string = 'No goals found for this player'): Promise<boolean> {
-  const noGoalsText = page.getByText(emptyStateText);
-  return await noGoalsText.isVisible().catch(() => false);
-}
-
-export async function navigateToPlayerViaSearch(page: Page, searchQuery: string = 'test'): Promise<number | null> {
-  await navigateAndWait(page, '/');
-  
-  const searchInput = page.getByPlaceholder('Search...');
-  await searchInput.fill(searchQuery);
-  await page.waitForSelector('text=Searching...', { state: 'hidden', timeout: 5000 }).catch(() => {});
-  await page.waitForLoadState('networkidle');
-  
-  const playerResults = page.locator('button').filter({ hasText: /Player/ });
-  const count = await playerResults.count();
-  
-  if (count > 0) {
-    const firstPlayer = playerResults.first();
-    await firstPlayer.click();
-    await page.waitForLoadState('networkidle');
-    
-    const url = page.url();
-    const match = url.match(/\/players\/(\d+)/);
-    if (match) {
-      return parseInt(match[1]);
-    }
-  }
-  
-  return null;
-}
-
 export async function waitForPageReady(page: Page, timeout: number = 2000) {
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(timeout);
-}
-
-export async function verifyTableOrEmptyState(
-  page: Page,
-  emptyStateText: string,
-  errorText: string
-) {
-  const table = page.locator('table');
-  const emptyState = page.getByText(emptyStateText);
-  const errorMessage = page.getByText(errorText);
-  
-  const hasTable = await table.isVisible().catch(() => false);
-  const hasEmptyState = await emptyState.isVisible().catch(() => false);
-  const hasError = await errorMessage.isVisible().catch(() => false);
-  
-  if (hasTable) {
-    await verifyTableWithData(page);
-  } else if (hasEmptyState) {
-    await expect(emptyState).toBeVisible();
-  } else if (hasError) {
-    await expect(errorMessage).toBeVisible();
-  }
 }
 
 export async function selectFilterOptionIfAvailable(
@@ -223,10 +132,18 @@ export async function verifyErrorMessage(page: Page, errorPattern: RegExp | stri
   await expect(errorMessage).toBeVisible();
 }
 
-export async function verifyErrorDisplay(page: Page): Promise<void> {
-  const errorText = page.getByText(/Error:/i);
-  await expect(errorText).toBeVisible();
-  
-  const className = await errorText.getAttribute('class');
-  expect(className).toContain('text-red-400');
+export async function verifyDetailPageHeading(page: Page): Promise<void> {
+  const heading = page.getByRole('heading', { level: 1 });
+  await expect(heading).toBeVisible();
+  const headingText = await heading.textContent();
+  expect(headingText?.trim().length).toBeGreaterThan(0);
+}
+
+export async function verifyTableHasHorizontalScroll(page: Page, url: string): Promise<void> {
+  await navigateAndWait(page, url);
+  const table = page.locator('table');
+  await expect(table).toBeVisible();
+  const tableContainer = table.locator('..');
+  const className = await tableContainer.getAttribute('class');
+  expect(className).toContain('overflow-x-auto');
 }

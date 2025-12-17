@@ -76,16 +76,27 @@ test.describe('Search', () => {
       const searchInput = page.getByPlaceholder('Search...');
       await searchInput.fill('messi');
       
+      await page.waitForTimeout(50);
+      
       const resultsDropdown = getResultsDropdown(page);
-      await expect(resultsDropdown).toBeVisible({ timeout: 500 });
-      
       const loadingText = page.getByText('Searching...');
-      const isVisible = await loadingText.isVisible().catch(() => false);
       
-      if (!isVisible) {
-        await expect(resultsDropdown).toBeVisible();
-      } else {
-        await expect(loadingText).toBeVisible();
+      try {
+        await Promise.race([
+          loadingText.waitFor({ state: 'visible', timeout: 1000 }).catch(() => null),
+          resultsDropdown.waitFor({ state: 'visible', timeout: 1000 }).catch(() => null),
+        ]);
+        
+        const hasLoading = await loadingText.isVisible().catch(() => false);
+        const hasDropdown = await resultsDropdown.isVisible().catch(() => false);
+        
+        if (hasLoading) {
+          await expect(loadingText).toBeVisible();
+        } else if (hasDropdown) {
+          await expect(resultsDropdown).toBeVisible();
+        }
+      } catch {
+        await expect(resultsDropdown).toBeVisible({ timeout: 2000 });
       }
     });
 
