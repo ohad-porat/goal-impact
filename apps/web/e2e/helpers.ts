@@ -168,3 +168,50 @@ export async function navigateToPlayerViaSearch(page: Page, searchQuery: string 
   
   return null;
 }
+
+export async function waitForPageReady(page: Page, timeout: number = 2000) {
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(timeout);
+}
+
+export async function verifyTableOrEmptyState(
+  page: Page,
+  emptyStateText: string,
+  errorText: string
+) {
+  const table = page.locator('table');
+  const emptyState = page.getByText(emptyStateText);
+  const errorMessage = page.getByText(errorText);
+  
+  const hasTable = await table.isVisible().catch(() => false);
+  const hasEmptyState = await emptyState.isVisible().catch(() => false);
+  const hasError = await errorMessage.isVisible().catch(() => false);
+  
+  if (hasTable) {
+    await verifyTableWithData(page);
+  } else if (hasEmptyState) {
+    await expect(emptyState).toBeVisible();
+  } else if (hasError) {
+    await expect(errorMessage).toBeVisible();
+  }
+}
+
+export async function selectFilterOptionIfAvailable(
+  page: Page,
+  filterLocator: Locator,
+  optionIndex: number
+): Promise<boolean> {
+  const options = filterLocator.locator('option');
+  const optionCount = await options.count();
+  
+  if (optionCount > optionIndex) {
+    await filterLocator.selectOption({ index: optionIndex });
+    await waitForPageReady(page);
+    return true;
+  }
+  return false;
+}
+
+export function getUrlParam(page: Page, paramName: string): string | null {
+  return new URL(page.url()).searchParams.get(paramName);
+}
