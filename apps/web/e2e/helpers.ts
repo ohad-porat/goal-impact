@@ -137,3 +137,34 @@ export async function verifyTableWithData(page: Page): Promise<void> {
     expect(rowText?.trim().length).toBeGreaterThan(0);
   }
 }
+
+export async function hasNoGoals(page: Page, emptyStateText: string = 'No goals found for this player'): Promise<boolean> {
+  const noGoalsText = page.getByText(emptyStateText);
+  return await noGoalsText.isVisible().catch(() => false);
+}
+
+export async function navigateToPlayerViaSearch(page: Page, searchQuery: string = 'test'): Promise<number | null> {
+  await navigateAndWait(page, '/');
+  
+  const searchInput = page.getByPlaceholder('Search...');
+  await searchInput.fill(searchQuery);
+  await page.waitForSelector('text=Searching...', { state: 'hidden', timeout: 5000 }).catch(() => {});
+  await page.waitForLoadState('networkidle');
+  
+  const playerResults = page.locator('button').filter({ hasText: /Player/ });
+  const count = await playerResults.count();
+  
+  if (count > 0) {
+    const firstPlayer = playerResults.first();
+    await firstPlayer.click();
+    await page.waitForLoadState('networkidle');
+    
+    const url = page.url();
+    const match = url.match(/\/players\/(\d+)/);
+    if (match) {
+      return parseInt(match[1]);
+    }
+  }
+  
+  return null;
+}
