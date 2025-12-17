@@ -60,3 +60,36 @@ export async function verifyTableHeaders(page: Page, headers: string[]) {
     await expect(page.getByRole('columnheader', { name: header })).toBeVisible();
   }
 }
+
+export function getSeasonSelector(page: Page) {
+  return page.locator('select').filter({ hasText: /20\d{2}/ });
+}
+
+export async function navigateToFirstDetailPage(
+  page: Page,
+  listUrl: string,
+  emptyStateText: string,
+  linkPattern: RegExp
+): Promise<number | null> {
+  await navigateAndWait(page, listUrl);
+  
+  const rows = getFilteredTableRows(page, emptyStateText);
+  const count = await rows.count();
+  
+  if (count > 0) {
+    const link = rows.first().getByRole('link').first();
+    const href = await link.getAttribute('href');
+    
+    if (href) {
+      const match = href.match(linkPattern);
+      if (match) {
+        const id = parseInt(match[1]);
+        await link.click();
+        await page.waitForLoadState('networkidle');
+        return id;
+      }
+    }
+  }
+  
+  return null;
+}
