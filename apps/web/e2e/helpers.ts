@@ -93,3 +93,47 @@ export async function navigateToFirstDetailPage(
   
   return null;
 }
+
+export async function navigateToSeasonRoster(
+  page: Page
+): Promise<number | null> {
+  const seasonLinks = page.locator('a[href*="/seasons?season="]');
+  const count = await seasonLinks.count();
+  
+  if (count > 0) {
+    const firstLink = seasonLinks.first();
+    const href = await firstLink.getAttribute('href');
+    
+    if (href) {
+      const match = href.match(/season=(\d+)/);
+      if (match) {
+        const seasonId = parseInt(match[1]);
+        await firstLink.click();
+        await page.waitForLoadState('networkidle');
+        return seasonId;
+      }
+    }
+  }
+  return null;
+}
+
+export async function navigateToGoalLog(page: Page): Promise<void> {
+  const goalLogButton = page.getByRole('link', { name: 'View Goal Log' });
+  await goalLogButton.click();
+  await page.waitForLoadState('networkidle');
+}
+
+export async function verifyTableWithData(page: Page): Promise<void> {
+  const table = page.locator('table');
+  await expect(table).toBeVisible();
+  
+  const tableRows = page.locator('tbody tr');
+  const count = await tableRows.count();
+  
+  if (count > 0) {
+    const firstRow = tableRows.first();
+    const rowText = await firstRow.textContent();
+    expect(rowText).toBeTruthy();
+    expect(rowText?.trim().length).toBeGreaterThan(0);
+  }
+}
