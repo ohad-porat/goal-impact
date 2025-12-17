@@ -200,7 +200,6 @@ describe('useSeasons', () => {
     expect(result.current.seasons).toEqual(mockSeasons1)
     expect(global.fetch).toHaveBeenCalledWith(api.leagueSeasons(5), { cache: 'no-cache' })
 
-    // Change leagueId
     rerender({ leagueId: 7 })
 
     expect(result.current.loading).toBe(true)
