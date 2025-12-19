@@ -24,10 +24,10 @@ test.describe('Mobile', () => {
       const leagueButtons = getLeagueButtons(page);
       const buttonCount = await leagueButtons.count();
       
-      if (buttonCount > 0) {
-        for (const button of await leagueButtons.all()) {
-          await expect(button).not.toBeVisible();
-        }
+      expect(buttonCount).toBeGreaterThan(0);
+      
+      for (const button of await leagueButtons.all()) {
+        await expect(button).not.toBeVisible();
       }
     });
 
@@ -38,9 +38,8 @@ test.describe('Mobile', () => {
       const goalCards = getGoalCards(page);
       const count = await goalCards.count();
       
-      if (count > 0) {
-        await expect(goalCards.first()).toBeVisible();
-      }
+      expect(count).toBeGreaterThan(0);
+      await expect(goalCards.first()).toBeVisible();
     });
   });
 
@@ -60,16 +59,15 @@ test.describe('Mobile', () => {
       const clubsGrid = page.locator('[class*="grid"]');
       const gridCount = await clubsGrid.count();
       
-      if (gridCount > 0) {
-        const firstGrid = clubsGrid.first();
-        const className = await firstGrid.getAttribute('class');
-        expect(className).toContain('grid');
-        
-        const gridBox = await firstGrid.boundingBox();
-        if (gridBox) {
-          expect(gridBox.width).toBeLessThanOrEqual(MOBILE_VIEWPORT.width);
-        }
-      }
+      expect(gridCount).toBeGreaterThan(0);
+      
+      const firstGrid = clubsGrid.first();
+      const className = await firstGrid.getAttribute('class');
+      expect(className).toContain('grid');
+      
+      const gridBox = await firstGrid.boundingBox();
+      expect(gridBox).not.toBeNull();
+      expect(gridBox!.width).toBeLessThanOrEqual(MOBILE_VIEWPORT.width);
     });
   });
 
@@ -82,9 +80,8 @@ test.describe('Mobile', () => {
         /\/nations\/(\d+)/
       );
       
-      if (nationId) {
-        await verifyDetailPageHeading(page);
-      }
+      expect(nationId).not.toBeNull();
+      await verifyDetailPageHeading(page);
     });
 
     test('should display league detail page responsively', async ({ page }) => {
@@ -95,11 +92,10 @@ test.describe('Mobile', () => {
         /\/leagues\/(\d+)/
       );
       
-      if (leagueId) {
-        await verifyDetailPageHeading(page);
-        const seasonSelector = getSeasonSelector(page);
-        await expect(seasonSelector).toBeVisible();
-      }
+      expect(leagueId).not.toBeNull();
+      await verifyDetailPageHeading(page);
+      const seasonSelector = getSeasonSelector(page);
+      await expect(seasonSelector).toBeVisible();
     });
 
     test('should display club detail page responsively', async ({ page }) => {
@@ -110,11 +106,10 @@ test.describe('Mobile', () => {
         /\/clubs\/(\d+)/
       );
       
-      if (clubId) {
-        await verifyDetailPageHeading(page);
-        const table = page.locator('table');
-        await expect(table).toBeVisible();
-      }
+      expect(clubId).not.toBeNull();
+      await verifyDetailPageHeading(page);
+      const table = page.locator('table');
+      await expect(table).toBeVisible();
     });
 
     test('should display player detail page responsively', async ({ page }) => {
@@ -128,22 +123,27 @@ test.describe('Mobile', () => {
       await page.waitForSelector('text=Searching...', { state: 'hidden', timeout: 5000 }).catch(() => {});
       await page.waitForLoadState('networkidle');
       
+      const resultsDropdown = page.locator('[class*="bg-slate-700"]').filter({ 
+        hasText: /Player|Club|Competition|Nation|No results found/ 
+      });
+      await expect(resultsDropdown).toBeVisible({ timeout: 5000 });
+      
       const playerResults = page.locator('button').filter({ hasText: /Player/ });
       const count = await playerResults.count();
+      expect(count).toBeGreaterThan(0);
       
-      if (count > 0) {
-        await playerResults.first().click();
-        await page.waitForLoadState('networkidle');
-        
-        const url = page.url();
-        const match = url.match(/\/players\/(\d+)/);
-        if (match) {
-          await verifyDetailPageHeading(page);
-          
-          const mainContent = page.locator('main');
-          await expect(mainContent).toBeVisible();
-        }
-      }
+      await playerResults.first().click();
+      await page.waitForURL(/\/players\/\d+/, { timeout: 5000 });
+      await page.waitForLoadState('networkidle');
+      
+      const url = page.url();
+      const match = url.match(/\/players\/(\d+)/);
+      expect(match).not.toBeNull();
+      
+      await verifyDetailPageHeading(page);
+      
+      const mainContent = page.locator('main');
+      await expect(mainContent).toBeVisible();
     });
   });
 
@@ -156,18 +156,18 @@ test.describe('Mobile', () => {
       const rows = page.locator('tbody tr');
       const count = await rows.count();
       
-      if (count > 0) {
-        const firstRow = rows.first();
-        const link = firstRow.getByRole('link');
-        const linkCount = await link.count();
-        
-        if (linkCount > 0) {
-          await link.first().tap();
-          await page.waitForLoadState('networkidle');
-          
-          await expect(page).toHaveURL(/\/nations\/\d+/);
-        }
-      }
+      expect(count).toBeGreaterThan(0);
+      
+      const firstRow = rows.first();
+      const link = firstRow.getByRole('link');
+      const linkCount = await link.count();
+      
+      expect(linkCount).toBeGreaterThan(0);
+      
+      await link.first().tap();
+      await page.waitForLoadState('networkidle');
+      
+      await expect(page).toHaveURL(/\/nations\/\d+/);
     });
   });
 
@@ -179,9 +179,8 @@ test.describe('Mobile', () => {
       await expect(mainContent).toBeVisible();
       
       const mainBox = await mainContent.boundingBox();
-      if (mainBox) {
-        expect(mainBox.width).toBeLessThanOrEqual(MOBILE_VIEWPORT.width);
-      }
+      expect(mainBox).not.toBeNull();
+      expect(mainBox!.width).toBeLessThanOrEqual(MOBILE_VIEWPORT.width);
     });
   });
 });

@@ -33,9 +33,11 @@ export async function verifyEmptyStateOrContent(
   const hasEmptyState = await emptyState.isVisible().catch(() => false);
   const rowCount = await rowLocator.count();
   
+  expect(hasEmptyState || rowCount > 0).toBe(true);
+  
   if (hasEmptyState) {
     await expect(emptyState).toBeVisible();
-  } else if (rowCount > 0) {
+  } else {
     expect(rowCount).toBeGreaterThan(0);
   }
 }
@@ -58,25 +60,30 @@ export async function navigateToFirstDetailPage(
 ): Promise<number | null> {
   await navigateAndWait(page, listUrl);
   
-  const rows = getFilteredTableRows(page, emptyStateText);
-  const count = await rows.count();
+  let link: Locator;
+  const tableRows = getFilteredTableRows(page, emptyStateText);
+  const rowCount = await tableRows.count();
   
-  if (count > 0) {
-    const link = rows.first().getByRole('link').first();
-    const href = await link.getAttribute('href');
-    
-    if (href) {
-      const match = href.match(linkPattern);
-      if (match) {
-        const id = parseInt(match[1]);
-        await link.click();
-        await page.waitForLoadState('networkidle');
-        return id;
-      }
-    }
+  if (rowCount > 0) {
+    link = tableRows.first().getByRole('link').first();
+  } else {
+    const basePath = listUrl.replace(/^\//, '');
+    const directLinks = page.locator(`a[href^="/${basePath}/"]`);
+    const linkCount = await directLinks.count();
+    expect(linkCount).toBeGreaterThan(0);
+    link = directLinks.first();
   }
   
-  return null;
+  const href = await link.getAttribute('href');
+  expect(href).toBeTruthy();
+  
+  const match = href!.match(linkPattern);
+  expect(match).toBeTruthy();
+  
+  const id = parseInt(match![1]);
+  await link.click();
+  await page.waitForLoadState('networkidle');
+  return id;
 }
 
 export async function navigateToGoalLog(page: Page): Promise<void> {
@@ -92,12 +99,12 @@ export async function verifyTableWithData(page: Page): Promise<void> {
   const tableRows = page.locator('tbody tr');
   const count = await tableRows.count();
   
-  if (count > 0) {
-    const firstRow = tableRows.first();
-    const rowText = await firstRow.textContent();
-    expect(rowText).toBeTruthy();
-    expect(rowText?.trim().length).toBeGreaterThan(0);
-  }
+  expect(count).toBeGreaterThan(0);
+  
+  const firstRow = tableRows.first();
+  const rowText = await firstRow.textContent();
+  expect(rowText).toBeTruthy();
+  expect(rowText?.trim().length).toBeGreaterThan(0);
 }
 
 export async function waitForPageReady(page: Page, timeout: number = 2000) {
@@ -113,12 +120,11 @@ export async function selectFilterOptionIfAvailable(
   const options = filterLocator.locator('option');
   const optionCount = await options.count();
   
-  if (optionCount > optionIndex) {
-    await filterLocator.selectOption({ index: optionIndex });
-    await waitForPageReady(page);
-    return true;
-  }
-  return false;
+  expect(optionCount).toBeGreaterThan(optionIndex);
+  
+  await filterLocator.selectOption({ index: optionIndex });
+  await waitForPageReady(page);
+  return true;
 }
 
 export function getUrlParam(page: Page, paramName: string): string | null {

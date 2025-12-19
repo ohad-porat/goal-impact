@@ -74,29 +74,19 @@ test.describe('Search', () => {
   test.describe('Search Results', () => {
     test('should show loading state while searching', async ({ page }) => {
       const searchInput = page.getByPlaceholder('Search...');
-      await searchInput.fill('messi');
+      await searchInput.fill('test');
       
-      await page.waitForTimeout(50);
-      
-      const resultsDropdown = getResultsDropdown(page);
-      const loadingText = page.getByText('Searching...');
+      await page.waitForTimeout(350);
       
       try {
-        await Promise.race([
-          loadingText.waitFor({ state: 'visible', timeout: 1000 }).catch(() => null),
-          resultsDropdown.waitFor({ state: 'visible', timeout: 1000 }).catch(() => null),
-        ]);
-        
-        const hasLoading = await loadingText.isVisible().catch(() => false);
-        const hasDropdown = await resultsDropdown.isVisible().catch(() => false);
-        
-        if (hasLoading) {
-          await expect(loadingText).toBeVisible();
-        } else if (hasDropdown) {
-          await expect(resultsDropdown).toBeVisible();
-        }
+        await page.waitForSelector('text=Searching...', { timeout: 200, state: 'visible' });
+        const loadingText = page.getByText('Searching...');
+        await expect(loadingText).toBeVisible();
       } catch {
-        await expect(resultsDropdown).toBeVisible({ timeout: 2000 });
+        const resultsDropdown = getResultsDropdown(page);
+        await expect(resultsDropdown).toBeVisible({ timeout: 1000 });
+        const hasResults = await hasSearchResults(page);
+        expect(hasResults).toBe(true);
       }
     });
 
@@ -106,9 +96,8 @@ test.describe('Search', () => {
       const resultsDropdown = getResultsDropdown(page);
       const hasResults = await hasSearchResults(page);
       
-      if (hasResults) {
-        await expect(resultsDropdown).toBeVisible();
-      }
+      expect(hasResults).toBe(true);
+      await expect(resultsDropdown).toBeVisible();
     });
 
     test('should display result name and type in dropdown', async ({ page }) => {
@@ -117,15 +106,12 @@ test.describe('Search', () => {
       const resultButtons = page.locator('button').filter({ hasText: /Player|Club|Competition|Nation/ });
       const resultCount = await resultButtons.count();
       
-      if (resultCount > 0) {
-        const firstResult = resultButtons.first();
-        const resultText = await firstResult.textContent();
-        expect(resultText).toBeTruthy();
-        
-        if (resultText) {
-          expect(resultText).toMatch(/Player|Club|Competition|Nation/);
-        }
-      }
+      expect(resultCount).toBeGreaterThan(0);
+      
+      const firstResult = resultButtons.first();
+      const resultText = await firstResult.textContent();
+      expect(resultText).toBeTruthy();
+      expect(resultText).toMatch(/Player|Club|Competition|Nation/);
     });
 
     test('should show "No results found" when no results', async ({ page }) => {
@@ -141,12 +127,12 @@ test.describe('Search', () => {
       const resultsDropdown = getResultsDropdown(page);
       const isVisible = await resultsDropdown.isVisible().catch(() => false);
       
-      if (isVisible) {
-        await page.click('body', { position: { x: 0, y: 0 } });
-        await page.waitForTimeout(200);
-        
-        await expect(resultsDropdown).not.toBeVisible();
-      }
+      expect(isVisible).toBe(true);
+      
+      await page.click('body', { position: { x: 0, y: 0 } });
+      await page.waitForTimeout(200);
+      
+      await expect(resultsDropdown).not.toBeVisible();
     });
 
     test('should close dropdown when search input is cleared', async ({ page }) => {
@@ -164,22 +150,57 @@ test.describe('Search', () => {
   test.describe('Search Navigation', () => {
     const resultTypes: ResultType[] = ['Player', 'Club', 'Competition', 'Nation'];
     
-    for (const resultType of resultTypes) {
-      test(`should navigate to ${resultType.toLowerCase()} page when clicking ${resultType.toLowerCase()} result`, async ({ page }) => {
-        await searchAndWaitForResults(page, 'test');
-        
-        const results = getResultButtonsByType(page, resultType);
-        const count = await results.count();
-        
-        if (count > 0) {
-          await results.first().click();
-          await page.waitForLoadState('networkidle');
-          
-          const expectedPath = resultTypeConfig[resultType];
-          await expect(page).toHaveURL(new RegExp(`${expectedPath}/\\d+`));
-        }
-      });
-    }
+    test('should navigate to player page when clicking player result', async ({ page }) => {
+      await searchAndWaitForResults(page, 'test');
+      
+      const results = getResultButtonsByType(page, 'Player');
+      const count = await results.count();
+      expect(count).toBeGreaterThan(0);
+      
+      await results.first().click();
+      await page.waitForLoadState('networkidle');
+      
+      await expect(page).toHaveURL(/\/players\/\d+$/);
+    });
+
+    test('should navigate to club page when clicking club result', async ({ page }) => {
+      await searchAndWaitForResults(page, 'arsenal');
+      
+      const results = getResultButtonsByType(page, 'Club');
+      const count = await results.count();
+      expect(count).toBeGreaterThan(0);
+      
+      await results.first().click();
+      await page.waitForLoadState('networkidle');
+      
+      await expect(page).toHaveURL(/\/clubs\/\d+$/);
+    });
+
+    test('should navigate to competition page when clicking competition result', async ({ page }) => {
+      await searchAndWaitForResults(page, 'premier');
+      
+      const results = getResultButtonsByType(page, 'Competition');
+      const count = await results.count();
+      expect(count).toBeGreaterThan(0);
+      
+      await results.first().click();
+      await page.waitForLoadState('networkidle');
+      
+      await expect(page).toHaveURL(/\/leagues\/\d+$/);
+    });
+
+    test('should navigate to nation page when clicking nation result', async ({ page }) => {
+      await searchAndWaitForResults(page, 'england');
+      
+      const results = getResultButtonsByType(page, 'Nation');
+      const count = await results.count();
+      expect(count).toBeGreaterThan(0);
+      
+      await results.first().click();
+      await page.waitForLoadState('networkidle');
+      
+      await expect(page).toHaveURL(/\/nations\/\d+$/);
+    });
 
     test('should clear search input after navigating to result', async ({ page }) => {
       await searchAndWaitForResults(page, 'test');
@@ -187,24 +208,24 @@ test.describe('Search', () => {
       const resultButtons = page.locator('button').filter({ hasText: /Player|Club|Competition|Nation/ });
       const resultCount = await resultButtons.count();
       
-      if (resultCount > 0) {
-        await resultButtons.first().click();
-        
-        await page.waitForURL(/\/players\/\d+|\/clubs\/\d+|\/leagues\/\d+|\/nations\/\d+/, { timeout: 5000 });
-        await page.waitForLoadState('networkidle');
-        await page.waitForLoadState('domcontentloaded');
+      expect(resultCount).toBeGreaterThan(0);
+      
+      await resultButtons.first().click();
+      
+      await page.waitForURL(/\/players\/\d+|\/clubs\/\d+|\/leagues\/\d+|\/nations\/\d+/, { timeout: 5000 });
+      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(500);
+      
+      try {
+        await navigateAndWait(page, '/');
+      } catch {
         await page.waitForTimeout(500);
-        
-        try {
-          await navigateAndWait(page, '/');
-        } catch {
-          await page.waitForTimeout(500);
-          await navigateAndWait(page, '/');
-        }
-        
-        const searchInput = page.getByPlaceholder('Search...');
-        await expect(searchInput).toHaveValue('');
+        await navigateAndWait(page, '/');
       }
+      
+      const searchInput = page.getByPlaceholder('Search...');
+      await expect(searchInput).toHaveValue('');
     });
   });
 
@@ -229,16 +250,16 @@ test.describe('Search', () => {
       const resultsDropdown = getResultsDropdown(page);
       const hasResults = await hasSearchResults(page);
       
-      if (hasResults) {
-        const searchInput = page.getByPlaceholder('Search...');
-        await searchInput.blur();
-        await page.waitForTimeout(200);
-        
-        await searchInput.focus();
-        await page.waitForTimeout(200);
-        
-        await expect(resultsDropdown).toBeVisible();
-      }
+      expect(hasResults).toBe(true);
+      
+      const searchInput = page.getByPlaceholder('Search...');
+      await searchInput.blur();
+      await page.waitForTimeout(200);
+      
+      await searchInput.focus();
+      await page.waitForTimeout(200);
+      
+      await expect(resultsDropdown).toBeVisible();
     });
   });
 });

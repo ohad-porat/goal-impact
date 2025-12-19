@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Base, Competition, Match, Nation, Player, Season, Team
+from app.models import Base, Competition, Event, Match, Nation, Player, PlayerStats, Season, Team, TeamStats
 from app.tests.utils.factories import (
     CompetitionFactory,
     EventFactory,
@@ -62,6 +62,7 @@ def seed_e2e_database(db_url: str):
 
         season1 = SeasonFactory(competition=comp1, start_year=2023, end_year=2024)
         season2 = SeasonFactory(competition=comp2, start_year=2023, end_year=2024)
+        season3 = SeasonFactory(competition=comp1, start_year=2022, end_year=2023)
         session.commit()
 
         team1 = TeamFactory(name="Arsenal", nation=nation1)
@@ -90,6 +91,14 @@ def seed_e2e_database(db_url: str):
             date=recent_date,
             home_team_goals=1,
             away_team_goals=0,
+        )
+        match3 = MatchFactory(
+            season=season3,
+            home_team=team1,
+            away_team=team2,
+            date=recent_date - timedelta(days=365),
+            home_team_goals=1,
+            away_team_goals=1,
         )
         session.commit()
 
@@ -123,6 +132,16 @@ def seed_e2e_database(db_url: str):
             away_post=0,
             goal_value=0.70,
         )
+        create_goal_event(
+            match3,
+            player1,
+            minute=30,
+            home_pre=0,
+            home_post=1,
+            away_pre=0,
+            away_post=0,
+            goal_value=0.50,
+        )
         session.commit()
 
         PlayerStatsFactory(
@@ -137,6 +156,13 @@ def seed_e2e_database(db_url: str):
             season=season2,
             team=team3,
             goal_value=0.70,
+            goals_scored=1,
+        )
+        PlayerStatsFactory(
+            player=player1,
+            season=season3,
+            team=team1,
+            goal_value=0.50,
             goals_scored=1,
         )
         session.commit()
@@ -177,9 +203,27 @@ def seed_e2e_database(db_url: str):
             draws=6,
             losses=5,
         )
+        TeamStatsFactory(
+            team=team1,
+            season=season3,
+            ranking=1,
+            matches_played=38,
+            wins=25,
+            draws=8,
+            losses=5,
+        )
+        TeamStatsFactory(
+            team=team2,
+            season=season3,
+            ranking=2,
+            matches_played=38,
+            wins=24,
+            draws=7,
+            losses=7,
+        )
         session.commit()
 
-        print("✅ E2E test data seeded successfully!")
+        print("\n✅ E2E test data seeded successfully!")
         print(f"   - Created {session.query(Nation).count()} nations")
         print(f"   - Created {session.query(Competition).count()} competitions")
         print(f"   - Created {session.query(Season).count()} seasons")

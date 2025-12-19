@@ -29,23 +29,23 @@ test.describe('Home Page', () => {
       const leagueButtons = getLeagueButtons(page);
       const buttonCount = await leagueButtons.count();
       
-      if (buttonCount > 0) {
-        const initialGoalCards = getGoalCards(page);
-        const initialGoalCount = await initialGoalCards.count();
-        
-        const firstLeagueButton = leagueButtons.first();
-        await firstLeagueButton.click();
-        await page.waitForLoadState('networkidle');
-        
-        await expect(firstLeagueButton).toHaveClass(/bg-orange-400/);
-        
-        const filteredGoalCards = getGoalCards(page);
-        const filteredGoalCount = await filteredGoalCards.count();
-        
-        if (initialGoalCount > 0) {
-          expect(filteredGoalCount).toBeLessThanOrEqual(initialGoalCount);
-        }
-      }
+      expect(buttonCount).toBeGreaterThan(0);
+      
+      const initialGoalCards = getGoalCards(page);
+      const initialGoalCount = await initialGoalCards.count();
+      
+      expect(initialGoalCount).toBeGreaterThan(0);
+      
+      const firstLeagueButton = leagueButtons.first();
+      await firstLeagueButton.click();
+      await page.waitForLoadState('networkidle');
+      
+      await expect(firstLeagueButton).toHaveClass(/bg-orange-400/);
+      
+      const filteredGoalCards = getGoalCards(page);
+      const filteredGoalCount = await filteredGoalCards.count();
+      
+      expect(filteredGoalCount).toBeLessThanOrEqual(initialGoalCount);
     });
 
     test('should reset to all leagues when clicking All Leagues button', async ({ page }) => {
@@ -55,45 +55,41 @@ test.describe('Home Page', () => {
       const leagueButtons = getLeagueButtons(page);
       const buttonCount = await leagueButtons.count();
       
-      if (buttonCount > 0) {
-        const initialGoalCards = getGoalCards(page);
-        const initialGoalCount = await initialGoalCards.count();
-        
-        await leagueButtons.first().click();
-        await page.waitForLoadState('networkidle');
-        
-        await allLeaguesButton.click();
-        await page.waitForLoadState('networkidle');
-        
-        await expect(allLeaguesButton).toHaveClass(/bg-orange-400/);
-        
-        const resetGoalCards = getGoalCards(page);
-        const resetGoalCount = await resetGoalCards.count();
-        
-        if (initialGoalCount > 0) {
-          expect(resetGoalCount).toBe(initialGoalCount);
-        }
-      }
+      expect(buttonCount).toBeGreaterThan(0);
+      
+      const initialGoalCards = getGoalCards(page);
+      const initialGoalCount = await initialGoalCards.count();
+      
+      expect(initialGoalCount).toBeGreaterThan(0);
+      
+      await leagueButtons.first().click();
+      await page.waitForLoadState('networkidle');
+      
+      await allLeaguesButton.click();
+      await page.waitForLoadState('networkidle');
+      await expect(allLeaguesButton).toHaveClass(/bg-orange-400/);
+      await page.waitForTimeout(500);
+      
+      const resetGoalCards = getGoalCards(page);
+      const resetGoalCount = await resetGoalCards.count();
+      expect(resetGoalCount).toBe(initialGoalCount);
     });
 
     test('should display goals when available', async ({ page }) => {
       await page.waitForLoadState('networkidle');
       
-      const noGoalsMessage = page.getByText('No recent goals found');
       const errorMessage = page.getByText('Failed to load recent goals.');
       const goalCards = getGoalCards(page);
       
-      const hasNoGoals = await noGoalsMessage.isVisible().catch(() => false);
       const hasError = await errorMessage.isVisible().catch(() => false);
       const goalCount = await goalCards.count();
       
       if (hasError) {
-        await expect(errorMessage).toBeVisible();
-      } else if (hasNoGoals) {
-        await expect(noGoalsMessage).toBeVisible();
-      } else {
-        expect(goalCount).toBeGreaterThan(0);
+        throw new Error('Failed to load recent goals - test cannot verify goals are displayed');
       }
+      
+      expect(goalCount).toBeGreaterThan(0);
+      await expect(goalCards.first()).toBeVisible();
     });
 
     test('should display goal information correctly', async ({ page }) => {
@@ -102,19 +98,16 @@ test.describe('Home Page', () => {
       const goalCards = getGoalCards(page);
       const goalCount = await goalCards.count();
       
-      if (goalCount > 0) {
-        const firstGoal = goalCards.first();
-        
-        await expect(firstGoal).toContainText('vs');
-        
-        const goalText = await firstGoal.textContent();
-        expect(goalText).toBeTruthy();
-        
-        if (goalText) {
-          expect(goalText).toMatch(/Minute \d+/);
-          expect(goalText).toMatch(/\+?\d+\.\d{2}/);
-        }
-      }
+      expect(goalCount).toBeGreaterThan(0);
+      
+      const firstGoal = goalCards.first();
+      
+      await expect(firstGoal).toContainText('vs');
+      
+      const goalText = await firstGoal.textContent();
+      expect(goalText).toBeTruthy();
+      expect(goalText).toMatch(/Minute \d+/);
+      expect(goalText).toMatch(/\+?\d+\.\d{2}/);
     });
   });
 

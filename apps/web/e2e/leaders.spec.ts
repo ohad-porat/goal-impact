@@ -36,11 +36,13 @@ async function verifyTableOrEmptyState(
   const hasEmptyState = await emptyState.isVisible().catch(() => false);
   const hasError = await errorMessage.isVisible().catch(() => false);
   
+  expect(hasTable || hasEmptyState || hasError).toBe(true);
+  
   if (hasTable) {
     await verifyTableWithData(page);
   } else if (hasEmptyState) {
     await expect(emptyState).toBeVisible();
-  } else if (hasError) {
+  } else {
     await expect(errorMessage).toBeVisible();
   }
 }
@@ -81,11 +83,19 @@ test.describe('Leaders', () => {
 
     test('should display career totals table when data loads', async ({ page }) => {
       await waitForPageReady(page);
-      await verifyTableOrEmptyState(
-        page,
-        'No players found.',
-        'Failed to load career totals data.'
-      );
+      
+      const table = page.locator('table');
+      const errorMessage = page.getByText('Failed to load career totals data.');
+      
+      const hasTable = await table.isVisible().catch(() => false);
+      const hasError = await errorMessage.isVisible().catch(() => false);
+      
+      if (hasError) {
+        throw new Error('Failed to load career totals data - test cannot verify table is displayed');
+      }
+      
+      expect(hasTable).toBe(true);
+      await verifyTableWithData(page);
     });
 
     test('should filter by league when selecting league', async ({ page }) => {
@@ -96,11 +106,11 @@ test.describe('Leaders', () => {
       
       const selected = await selectFilterOptionIfAvailable(page, leagueFilter, 1);
       
-      if (selected) {
-        const newUrl = page.url();
-        expect(newUrl).not.toBe(initialUrl);
-        expect(getUrlParam(page, 'league_id')).toBeTruthy();
-      }
+      expect(selected).toBe(true);
+      
+      const newUrl = page.url();
+      expect(newUrl).not.toBe(initialUrl);
+      expect(getUrlParam(page, 'league_id')).toBeTruthy();
     });
 
     test('should reset to all leagues when selecting "All Leagues"', async ({ page }) => {
@@ -110,17 +120,17 @@ test.describe('Leaders', () => {
       const options = leagueFilter.locator('option');
       const optionCount = await options.count();
       
-      if (optionCount > 1) {
-        await leagueFilter.selectOption({ index: 1 });
-        await waitForPageReady(page);
-        
-        expect(getUrlParam(page, 'league_id')).toBeTruthy();
-        
-        await leagueFilter.selectOption('');
-        await waitForPageReady(page);
-        
-        expect(getUrlParam(page, 'league_id')).toBeNull();
-      }
+      expect(optionCount).toBeGreaterThan(1);
+      
+      await leagueFilter.selectOption({ index: 1 });
+      await waitForPageReady(page);
+      
+      expect(getUrlParam(page, 'league_id')).toBeTruthy();
+      
+      await leagueFilter.selectOption('');
+      await waitForPageReady(page);
+      
+      expect(getUrlParam(page, 'league_id')).toBeNull();
     });
   });
 
@@ -150,11 +160,19 @@ test.describe('Leaders', () => {
 
     test('should display by season table when data loads', async ({ page }) => {
       await waitForPageReady(page);
-      await verifyTableOrEmptyState(
-        page,
-        'No players found.',
-        'Failed to load by-season data.'
-      );
+      
+      const table = page.locator('table');
+      const errorMessage = page.getByText('Failed to load by-season data.');
+      
+      const hasTable = await table.isVisible().catch(() => false);
+      const hasError = await errorMessage.isVisible().catch(() => false);
+      
+      if (hasError) {
+        throw new Error('Failed to load by-season data - test cannot verify table is displayed');
+      }
+      
+      expect(hasTable).toBe(true);
+      await verifyTableWithData(page);
     });
 
     test('should filter by league when selecting league', async ({ page }) => {
@@ -165,11 +183,11 @@ test.describe('Leaders', () => {
       
       const selected = await selectFilterOptionIfAvailable(page, leagueFilter, 1);
       
-      if (selected) {
-        const newUrl = page.url();
-        expect(newUrl).not.toBe(initialUrl);
-        expect(getUrlParam(page, 'league_id')).toBeTruthy();
-      }
+      expect(selected).toBe(true);
+      
+      const newUrl = page.url();
+      expect(newUrl).not.toBe(initialUrl);
+      expect(getUrlParam(page, 'league_id')).toBeTruthy();
     });
 
     test('should filter by season when selecting season', async ({ page }) => {
@@ -179,20 +197,17 @@ test.describe('Leaders', () => {
       const options = seasonFilter.locator('option');
       const optionCount = await options.count();
       
-      if (optionCount > 1) {
-        const initialSeasonId = getUrlParam(page, 'season_id');
-        
-        await seasonFilter.selectOption({ index: optionCount - 1 });
-        await waitForPageReady(page);
-        
-        const newSeasonId = getUrlParam(page, 'season_id');
-        
-        expect(newSeasonId).toBeTruthy();
-        
-        if (initialSeasonId !== newSeasonId) {
-          expect(newSeasonId).not.toBe(initialSeasonId);
-        }
-      }
+      expect(optionCount).toBeGreaterThan(1);
+      
+      const initialSeasonId = getUrlParam(page, 'season_id');
+      
+      await seasonFilter.selectOption({ index: optionCount - 1 });
+      await waitForPageReady(page);
+      
+      const newSeasonId = getUrlParam(page, 'season_id');
+      
+      expect(newSeasonId).toBeTruthy();
+      expect(newSeasonId).not.toBe(initialSeasonId);
     });
   });
 

@@ -6,8 +6,12 @@ import { ErrorDisplay } from '../../../components/ErrorDisplay'
 import { SeasonSelector } from './components/SeasonSelector'
 
 async function getLeagueSeasons(leagueId: number): Promise<Season[]> {
+  const cacheOption = process.env.DISABLE_FETCH_CACHE === 'true' ? 'no-store' : 'default'
+  const nextOption = process.env.DISABLE_FETCH_CACHE === 'true' ? undefined : { revalidate: 86400 }
+  
   const response = await fetch(api.leagueSeasons(leagueId), {
-    next: { revalidate: 86400 }
+    cache: cacheOption,
+    next: nextOption
   })
   if (!response.ok) {
     throw new Error('Failed to fetch league seasons')

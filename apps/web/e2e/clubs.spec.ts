@@ -9,25 +9,26 @@ import {
 
 async function navigateToSeasonRoster(
   page: Page
-): Promise<number | null> {
-  const seasonLinks = page.locator('a[href*="/seasons?season="]');
-  const count = await seasonLinks.count();
+): Promise<number> {
+  await page.waitForLoadState('networkidle');
+  await expect(page).toHaveURL(/\/clubs\/\d+$/);
   
-  if (count > 0) {
-    const firstLink = seasonLinks.first();
-    const href = await firstLink.getAttribute('href');
-    
-    if (href) {
-      const match = href.match(/season=(\d+)/);
-      if (match) {
-        const seasonId = parseInt(match[1]);
-        await firstLink.click();
-        await page.waitForLoadState('networkidle');
-        return seasonId;
-      }
-    }
-  }
-  return null;
+  const seasonLinks = page.locator('a[href*="/seasons?season="]');
+  await expect(seasonLinks.first()).toBeVisible({ timeout: 5000 });
+  const count = await seasonLinks.count();
+  expect(count).toBeGreaterThan(0);
+  
+  const firstLink = seasonLinks.first();
+  const href = await firstLink.getAttribute('href');
+  expect(href).toBeTruthy();
+  
+  const match = href!.match(/season=(\d+)/);
+  expect(match).toBeTruthy();
+  
+  const seasonId = parseInt(match![1]);
+  await firstLink.click();
+  await page.waitForLoadState('networkidle');
+  return seasonId;
 }
 
 function getClubLinks(page: Page) {
@@ -52,21 +53,20 @@ test.describe('Clubs', () => {
       const nationCount = await nationHeadings.count();
       const linkCount = await clubLinks.count();
       
-      if (linkCount > 0) {
-        expect(nationCount).toBeGreaterThan(0);
-      }
+      expect(linkCount).toBeGreaterThan(0);
+      expect(nationCount).toBeGreaterThan(0);
     });
 
     test('should display club links with valid hrefs', async ({ page }) => {
       const clubLinks = getClubLinks(page);
       const linkCount = await clubLinks.count();
       
-      if (linkCount > 0) {
-        const firstLink = clubLinks.first();
-        await expect(firstLink).toBeVisible();
-        const href = await firstLink.getAttribute('href');
-        expect(href).toMatch(/^\/clubs\/\d+$/);
-      }
+      expect(linkCount).toBeGreaterThan(0);
+      
+      const firstLink = clubLinks.first();
+      await expect(firstLink).toBeVisible();
+      const href = await firstLink.getAttribute('href');
+      expect(href).toMatch(/^\/clubs\/\d+$/);
     });
   });
 
@@ -83,40 +83,40 @@ test.describe('Clubs', () => {
     });
 
     test('should navigate from list to detail page', async ({ page }) => {
-      if (clubId) {
-        await expect(page).toHaveURL(`/clubs/${clubId}`);
-      }
+      expect(clubId).not.toBeNull();
+      await expect(page).toHaveURL(`/clubs/${clubId}`);
     });
 
     test('should display club name and nation', async ({ page }) => {
-      if (clubId) {
-        const heading = page.getByRole('heading', { level: 1 });
-        await expect(heading).toBeVisible();
-        
-        const headingText = await heading.textContent();
-        expect(headingText).toBeTruthy();
-        expect(headingText?.trim().length).toBeGreaterThan(0);
-        
-        const nationHeading = page.locator('h2').first();
-        const nationText = await nationHeading.textContent().catch(() => null);
-        if (nationText) {
-          expect(nationText.trim().length).toBeGreaterThan(0);
-        }
-      }
+      expect(clubId).not.toBeNull();
+      await expect(page).toHaveURL(`/clubs/${clubId}`);
+      
+      const heading = page.getByRole('heading', { level: 1 });
+      await expect(heading).toBeVisible();
+      
+      const headingText = await heading.textContent();
+      expect(headingText).toBeTruthy();
+      expect(headingText?.trim().length).toBeGreaterThan(0);
+      
+      const nationText = page.locator('p').filter({ hasText: /England|Spain|Unknown Nation/ });
+      await expect(nationText.first()).toBeVisible({ timeout: 5000 });
+      const nationContent = await nationText.first().textContent();
+      expect(nationContent).toBeTruthy();
+      expect(nationContent!.trim().length).toBeGreaterThan(0);
     });
 
     test('should display seasons table with data', async ({ page }) => {
-      if (clubId) {
-        await verifyTableWithData(page);
-        
-        const seasonLinks = page.locator('a[href*="/seasons?season="]');
-        const linkCount = await seasonLinks.count();
-        if (linkCount > 0) {
-          const firstLink = seasonLinks.first();
-          const href = await firstLink.getAttribute('href');
-          expect(href).toMatch(/\/clubs\/\d+\/seasons\?season=\d+/);
-        }
-      }
+      expect(clubId).not.toBeNull();
+      
+      await verifyTableWithData(page);
+      
+      const seasonLinks = page.locator('a[href*="/seasons?season="]');
+      const linkCount = await seasonLinks.count();
+      expect(linkCount).toBeGreaterThan(0);
+      
+      const firstLink = seasonLinks.first();
+      const href = await firstLink.getAttribute('href');
+      expect(href).toMatch(/\/clubs\/\d+\/seasons\?season=\d+/);
     });
   });
 
@@ -132,42 +132,44 @@ test.describe('Clubs', () => {
         /\/clubs\/(\d+)/
       );
       
-      if (clubId) {
-        seasonId = await navigateToSeasonRoster(page);
-      }
+      expect(clubId).not.toBeNull();
+      seasonId = await navigateToSeasonRoster(page);
+      expect(seasonId).not.toBeNull();
     });
 
     test('should navigate from detail to season roster', async ({ page }) => {
-      if (clubId && seasonId) {
-        await expect(page).toHaveURL(`/clubs/${clubId}/seasons?season=${seasonId}`);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      await expect(page).toHaveURL(`/clubs/${clubId}/seasons?season=${seasonId}`);
     });
 
     test('should display season roster heading with club and season info', async ({ page }) => {
-      if (clubId && seasonId) {
-        const heading = page.getByRole('heading', { level: 1 });
-        await expect(heading).toBeVisible();
-        
-        const headingText = await heading.textContent();
-        expect(headingText).toBeTruthy();
-        expect(headingText?.trim().length).toBeGreaterThan(0);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      
+      const heading = page.getByRole('heading', { level: 1 });
+      await expect(heading).toBeVisible();
+      
+      const headingText = await heading.textContent();
+      expect(headingText).toBeTruthy();
+      expect(headingText?.trim().length).toBeGreaterThan(0);
     });
 
     test('should display "View Goal Log" button', async ({ page }) => {
-      if (clubId && seasonId) {
-        const goalLogButton = page.getByRole('link', { name: 'View Goal Log' });
-        await expect(goalLogButton).toBeVisible();
-        
-        const href = await goalLogButton.getAttribute('href');
-        expect(href).toMatch(/\/clubs\/\d+\/seasons\/goals\?season=\d+/);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      
+      const goalLogButton = page.getByRole('link', { name: 'View Goal Log' });
+      await expect(goalLogButton).toBeVisible();
+      
+      const href = await goalLogButton.getAttribute('href');
+      expect(href).toMatch(/\/clubs\/\d+\/seasons\/goals\?season=\d+/);
     });
 
     test('should display roster table with player data', async ({ page }) => {
-      if (clubId && seasonId) {
-        await verifyTableWithData(page);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      await verifyTableWithData(page);
     });
   });
 
@@ -183,56 +185,57 @@ test.describe('Clubs', () => {
         /\/clubs\/(\d+)/
       );
       
-      if (clubId) {
-        seasonId = await navigateToSeasonRoster(page);
-        
-        if (seasonId) {
-          await navigateToGoalLog(page);
-        }
-      }
+      expect(clubId).not.toBeNull();
+      seasonId = await navigateToSeasonRoster(page);
+      expect(seasonId).not.toBeNull();
+      await navigateToGoalLog(page);
     });
 
     test('should navigate from season roster to goal log', async ({ page }) => {
-      if (clubId && seasonId) {
-        await expect(page).toHaveURL(`/clubs/${clubId}/seasons/goals?season=${seasonId}`);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      await expect(page).toHaveURL(`/clubs/${clubId}/seasons/goals?season=${seasonId}`);
     });
 
     test('should display goal log heading with club and season info', async ({ page }) => {
-      if (clubId && seasonId) {
-        const heading = page.getByRole('heading', { level: 1 });
-        await expect(heading).toBeVisible();
-        
-        const headingText = await heading.textContent();
-        expect(headingText).toBeTruthy();
-        expect(headingText).toContain('Goal Log');
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      await expect(page).toHaveURL(`/clubs/${clubId}/seasons/goals?season=${seasonId}`);
+      
+      const heading = page.getByRole('heading', { level: 1 });
+      await expect(heading).toBeVisible();
+      
+      const headingText = await heading.textContent();
+      expect(headingText).toBeTruthy();
+      expect(headingText).toContain('Goal Log');
     });
 
     test('should display "Back to Roster" button', async ({ page }) => {
-      if (clubId && seasonId) {
-        const backButton = page.getByRole('link', { name: 'Back to Roster' });
-        await expect(backButton).toBeVisible();
-        
-        const href = await backButton.getAttribute('href');
-        expect(href).toMatch(/\/clubs\/\d+\/seasons\?season=\d+/);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      
+      const backButton = page.getByRole('link', { name: 'Back to Roster' });
+      await expect(backButton).toBeVisible();
+      
+      const href = await backButton.getAttribute('href');
+      expect(href).toMatch(/\/clubs\/\d+\/seasons\?season=\d+/);
     });
 
     test('should navigate back to roster when clicking "Back to Roster"', async ({ page }) => {
-      if (clubId && seasonId) {
-        const backButton = page.getByRole('link', { name: 'Back to Roster' });
-        await backButton.click();
-        await page.waitForLoadState('networkidle');
-        
-        await expect(page).toHaveURL(`/clubs/${clubId}/seasons?season=${seasonId}`);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      
+      const backButton = page.getByRole('link', { name: 'Back to Roster' });
+      await backButton.click();
+      await page.waitForLoadState('networkidle');
+      
+      await expect(page).toHaveURL(`/clubs/${clubId}/seasons?season=${seasonId}`);
     });
 
     test('should display goal log table with data', async ({ page }) => {
-      if (clubId && seasonId) {
-        await verifyTableWithData(page);
-      }
+      expect(clubId).not.toBeNull();
+      expect(seasonId).not.toBeNull();
+      await verifyTableWithData(page);
     });
   });
 
@@ -245,14 +248,10 @@ test.describe('Clubs', () => {
         /\/clubs\/(\d+)/
       );
       
-      if (!clubId) {
-        return;
-      }
+      expect(clubId).not.toBeNull();
       
       const seasonId = await navigateToSeasonRoster(page);
-      if (!seasonId) {
-        return;
-      }
+      expect(seasonId).not.toBeNull();
       
       await expect(page).toHaveURL(`/clubs/${clubId}/seasons?season=${seasonId}`);
       
