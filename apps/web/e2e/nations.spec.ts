@@ -121,6 +121,8 @@ test.describe('Nations', () => {
         
         expect(rowCount).toBeGreaterThan(0);
         
+        await page.waitForSelector('a[href^="/leagues/"]', { state: 'visible', timeout: 5000 });
+        
         await verifyClickableLinks(page, 'a[href^="/leagues/"]', /^\/leagues\/\d+$/);
       });
     });
@@ -143,6 +145,8 @@ test.describe('Nations', () => {
         const rowCount = await clubRows.count();
         
         expect(rowCount).toBeGreaterThan(0);
+        
+        await page.waitForSelector('a[href^="/clubs/"]', { state: 'visible', timeout: 5000 });
         
         await verifyClickableLinks(page, 'a[href^="/clubs/"]', /^\/clubs\/\d+$/);
       });
@@ -177,9 +181,17 @@ test.describe('Nations', () => {
         expect(nationId).not.toBeNull();
         
         const playerRows = getFilteredTableRows(page, 'No players found.');
+        const rowCount = await playerRows.count();
+        const emptyState = page.getByText('No players found.');
+        const hasEmptyState = await emptyState.isVisible().catch(() => false);
         
-        await verifyEmptyStateOrContent(page, 'No players found.', playerRows);
-        await verifyClickableLinks(page, 'a[href^="/players/"]', /^\/players\/\d+$/);
+        if (hasEmptyState) {
+          await expect(emptyState).toBeVisible();
+        } else {
+          expect(rowCount).toBeGreaterThan(0);
+          await page.waitForSelector('a[href^="/players/"]', { state: 'visible', timeout: 5000 });
+          await verifyClickableLinks(page, 'a[href^="/players/"]', /^\/players\/\d+$/);
+        }
       });
 
       test('should display career goal value for players', async ({ page }) => {
