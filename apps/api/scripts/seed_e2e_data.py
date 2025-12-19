@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Base, Competition, Event, Match, Nation, Player, PlayerStats, Season, Team, TeamStats
+from app.models import Base, Competition, Match, Nation, Player, Season, Team
 from app.tests.utils.factories import (
     CompetitionFactory,
     EventFactory,
