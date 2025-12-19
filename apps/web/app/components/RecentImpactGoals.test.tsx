@@ -103,7 +103,6 @@ describe('RecentImpactGoals', () => {
     it('should render top 4 league filter buttons', () => {
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      // Check buttons (desktop view)
       expect(screen.getByRole('button', { name: 'Premier League' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Serie A' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'La Liga' })).toBeInTheDocument()
@@ -125,14 +124,10 @@ describe('RecentImpactGoals', () => {
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
       expect(screen.getByText('Team A vs Team B')).toBeInTheDocument()
-      // Date appears in both mobile and desktop views
       expect(screen.getAllByText('2024-01-15').length).toBeGreaterThan(0)
-      // Minute appears in both mobile and desktop views
       expect(screen.getAllByText('Minute 45').length).toBeGreaterThan(0)
-      // Player name appears in both mobile and desktop views
       expect(screen.getAllByText('Player 1').length).toBeGreaterThan(0)
       expect(screen.getByText('0-0 → 1-0')).toBeInTheDocument()
-      // Goal value appears in both mobile and desktop views
       expect(screen.getAllByText('+0.64').length).toBeGreaterThan(0)
     })
 
@@ -399,7 +394,6 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={goalsWithVariousValues} />)
 
-      // Goal values appear in both mobile and desktop views
       expect(screen.getAllByText('+0.12').length).toBeGreaterThan(0)
       expect(screen.getAllByText('+1.50').length).toBeGreaterThan(0)
     })

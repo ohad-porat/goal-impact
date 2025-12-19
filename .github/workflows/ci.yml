@@ -166,8 +166,8 @@ jobs:
       - name: Run type check
         run: yarn type-check
 
-  web-tests:
-    name: Web Tests
+  web-tests-unit:
+    name: Web Unit Tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -189,3 +189,98 @@ jobs:
         run: yarn test
         env:
           NEXT_PUBLIC_API_URL: 'https://api.example.com'
+
+  web-tests-e2e:
+    name: Web E2E Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: yarn install --frozen-lockfile
+      
+      - name: Install Playwright browsers
+        working-directory: apps/web
+        run: yarn playwright install --with-deps
+      
+      - name: Create test database
+        working-directory: apps/api
+        run: |
+          mkdir -p /tmp/e2e_test
+          echo "DATABASE_URL=sqlite:////tmp/e2e_test/test.db" >> $GITHUB_ENV
+      
+      - name: Run database migrations
+        working-directory: apps/api
+        run: |
+          source venv/bin/activate
+          alembic upgrade head
+        env:
+          DATABASE_URL: sqlite:////tmp/e2e_test/test.db
+      
+      - name: Seed test database
+        working-directory: apps/api
+        run: |
+          source venv/bin/activate
+          python scripts/seed_e2e_data.py
+        env:
+          DATABASE_URL: sqlite:////tmp/e2e_test/test.db
+      
+      - name: Start API server
+        working-directory: apps/api
+        run: |
+          source venv/bin/activate
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > /tmp/api_server.log 2>&1 &
+          echo $! > /tmp/api_server.pid
+        env:
+          DATABASE_URL: sqlite:////tmp/e2e_test/test.db
+          ALLOWED_HOSTS: '["*"]'
+      
+      - name: Wait for API server
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+              echo "API server is ready"
+              exit 0
+            fi
+            echo "Waiting for API server... ($i/30)"
+            sleep 1
+          done
+          echo "API server failed to start"
+          cat /tmp/api_server.log
+          exit 1
+      
+      - name: Run E2E tests
+        working-directory: apps/web
+        run: yarn test:e2e
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+      
+      - name: Stop API server
+        if: always()
+        run: |
+          if [ -f /tmp/api_server.pid ]; then
+            kill $(cat /tmp/api_server.pid) || true
+          fi

@@ -165,7 +165,7 @@ describe('SearchBar', () => {
       })
     })
 
-    it('should close dropdown when results are empty', async () => {
+    it('should show "No results found" when results are empty', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ results: [] }),
@@ -176,7 +176,7 @@ describe('SearchBar', () => {
 
       await triggerSearch(input, 'test')
 
-      expect(screen.queryByText('No results found')).not.toBeInTheDocument()
+      expect(screen.getByText('No results found')).toBeInTheDocument()
       expect(screen.queryByText('Searching...')).not.toBeInTheDocument()
     })
 
