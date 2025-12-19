@@ -29,6 +29,7 @@ export default function SearchBar() {
 
     const timeoutId = setTimeout(async () => {
       setIsLoading(true)
+      setIsOpen(true)
       try {
         const response = await fetch(api.search(query))
         if (!response.ok) {
@@ -36,7 +37,7 @@ export default function SearchBar() {
         }
         const data = await response.json()
         setResults(data.results || [])
-        setIsOpen(data.results && data.results.length > 0)
+        setIsOpen(true)
       } catch (error) {
         console.error('Search error:', error)
         setResults([])
@@ -76,16 +77,16 @@ export default function SearchBar() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => {
-          if (results.length > 0) {
+          if (results.length > 0 || isLoading || query.trim()) {
             setIsOpen(true)
           }
         }}
         placeholder="Search..."
-        className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-64"
+        className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-64"
       />
       
       {isOpen && (
-        <div className="absolute top-full mt-1 w-64 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full mt-1 w-full sm:w-64 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
           {isLoading ? (
             <div className="px-4 py-2 text-white">Searching...</div>
           ) : results.length > 0 ? (

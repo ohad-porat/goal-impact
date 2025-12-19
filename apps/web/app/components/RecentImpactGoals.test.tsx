@@ -103,17 +103,17 @@ describe('RecentImpactGoals', () => {
     it('should render top 4 league filter buttons', () => {
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      expect(screen.getByText('Premier League')).toBeInTheDocument()
-      expect(screen.getByText('Serie A')).toBeInTheDocument()
-      expect(screen.getByText('La Liga')).toBeInTheDocument()
-      expect(screen.getByText('Bundesliga')).toBeInTheDocument()
-      expect(screen.queryByText('Ligue 1')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Premier League' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Serie A' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'La Liga' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Bundesliga' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Ligue 1' })).not.toBeInTheDocument()
     })
 
     it('should highlight "All Leagues" button by default', () => {
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      const allLeaguesButton = screen.getByText('All Leagues')
+      const allLeaguesButton = screen.getByRole('button', { name: 'All Leagues' })
       expect(allLeaguesButton).toHaveClass('bg-orange-400', 'text-black')
       expect(global.fetch).not.toHaveBeenCalled()
     })
@@ -124,11 +124,11 @@ describe('RecentImpactGoals', () => {
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
       expect(screen.getByText('Team A vs Team B')).toBeInTheDocument()
-      expect(screen.getByText('2024-01-15')).toBeInTheDocument()
-      expect(screen.getByText('Minute 45')).toBeInTheDocument()
-      expect(screen.getByText('Player 1')).toBeInTheDocument()
+      expect(screen.getAllByText('2024-01-15').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Minute 45').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Player 1').length).toBeGreaterThan(0)
       expect(screen.getByText('0-0 → 1-0')).toBeInTheDocument()
-      expect(screen.getByText('+0.64')).toBeInTheDocument()
+      expect(screen.getAllByText('+0.64').length).toBeGreaterThan(0)
     })
 
     it('should handle goals without score information', () => {
@@ -188,8 +188,8 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      const premierLeagueButton = screen.getByText('Premier League')
-      const allLeaguesButton = screen.getByText('All Leagues')
+      const premierLeagueButton = screen.getByRole('button', { name: 'Premier League' })
+      const allLeaguesButton = screen.getByRole('button', { name: 'All Leagues' })
 
       act(() => {
         fireEvent.click(premierLeagueButton)
@@ -223,7 +223,7 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      const premierLeagueButton = screen.getByText('Premier League')
+      const premierLeagueButton = screen.getByRole('button', { name: 'Premier League' })
 
       act(() => {
         fireEvent.click(premierLeagueButton)
@@ -251,7 +251,7 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      const premierLeagueButton = screen.getByText('Premier League')
+      const premierLeagueButton = screen.getByRole('button', { name: 'Premier League' })
 
       act(() => {
         fireEvent.click(premierLeagueButton)
@@ -272,7 +272,7 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      const premierLeagueButton = screen.getByText('Premier League')
+      const premierLeagueButton = screen.getByRole('button', { name: 'Premier League' })
 
       act(() => {
         fireEvent.click(premierLeagueButton)
@@ -318,7 +318,7 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={mockGoals} />)
 
-      const premierLeagueButton = screen.getByText('Premier League')
+      const premierLeagueButton = screen.getByRole('button', { name: 'Premier League' })
 
       act(() => {
         fireEvent.click(premierLeagueButton)
@@ -339,8 +339,8 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={fewLeagues} initialGoals={mockGoals} />)
 
-      expect(screen.getByText('Premier League')).toBeInTheDocument()
-      expect(screen.getByText('Serie A')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Premier League' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Serie A' })).toBeInTheDocument()
     })
 
     it('should handle leagues with no top leagues', () => {
@@ -394,8 +394,8 @@ describe('RecentImpactGoals', () => {
 
       render(<RecentImpactGoals initialLeagues={mockLeagues} initialGoals={goalsWithVariousValues} />)
 
-      expect(screen.getByText('+0.12')).toBeInTheDocument()
-      expect(screen.getByText('+1.50')).toBeInTheDocument()
+      expect(screen.getAllByText('+0.12').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('+1.50').length).toBeGreaterThan(0)
     })
   })
 })

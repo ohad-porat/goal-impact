@@ -26,7 +26,7 @@ A full-stack web application for soccer data analytics featuring proprietary Goa
 | **ORM** | SQLAlchemy 2.0 + Alembic |
 | **Data Ingestion** | Custom FBRef scraper system |
 | **Build System** | Turborepo + Yarn Workspaces |
-| **Testing** | Vitest + React Testing Library (Frontend), Pytest + Factory Boy (Backend) |
+| **Testing** | Vitest + React Testing Library (Frontend), Pytest + Factory Boy (Backend), Playwright (E2E) |
 | **Code Quality** | Ruff (Python), ESLint + Prettier (TypeScript) |
 
 ## Features
@@ -163,6 +163,7 @@ The project includes comprehensive test coverage across multiple layers:
 - **Component Tests**: React components with user interaction testing
 - **Hook Tests**: Custom React hooks and data fetching logic
 - **Utility Tests**: Helper functions and API client utilities
+- **E2E Tests**: End-to-end browser tests covering navigation, pages, search, mobile responsiveness, and error handling
 
 ### Running Tests
 
@@ -213,11 +214,55 @@ yarn test:coverage
 yarn test SearchBar.test.tsx
 ```
 
+**E2E Tests (Playwright):**
+
+E2E tests require the backend API to be running. The easiest way to run them locally is using the automated script:
+
+```bash
+cd apps/web
+./scripts/run_e2e_local.sh
+```
+
+This script automatically:
+- Sets up a test database (SQLite)
+- Runs migrations
+- Seeds test data
+- Starts the API server
+- Runs the E2E tests
+- Cleans up afterward
+
+**Alternative: Manual Setup**
+
+If you want to run tests against your own running backend:
+
+```bash
+# 1. Ensure backend API is running on http://localhost:8000
+# 2. Ensure frontend is running on http://localhost:3000 (or built and started)
+
+cd apps/web
+
+# Run all E2E tests
+yarn test:e2e
+
+# Run E2E tests with UI
+yarn test:e2e:ui
+
+# Run E2E tests in debug mode
+yarn test:e2e:debug
+
+# Run E2E tests in headed mode (visible browser)
+yarn test:e2e:headed
+
+# Run specific E2E test file
+yarn test:e2e e2e/home.spec.ts
+```
+
 ### CI/CD
 
 The project uses GitHub Actions for continuous integration, running:
 - **Backend**: Unit tests for models, services, and schemas; Integration tests for API routes; Scraper tests
 - **Frontend**: Component tests, hook tests, and utility tests using Vitest
+- **E2E**: Browser-based end-to-end tests using Playwright (Chromium in CI, all browsers locally)
 - **Code Quality**: Linting and formatting checks (Ruff for Python, ESLint for TypeScript)
 
 ## API Endpoints
@@ -281,6 +326,7 @@ The API provides the following endpoints:
 - **Prettier**: Code formatting for TypeScript, JavaScript, and Markdown
 - **Pytest**: Testing framework with coverage reporting for Python
 - **Vitest**: Fast unit test framework for TypeScript/React with coverage reporting
+- **Playwright**: End-to-end browser testing framework for full user flow validation
 - **TypeScript**: Static type checking for frontend code
 
 ## Acknowledgments

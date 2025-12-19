@@ -29,7 +29,7 @@ function LeadersPage() {
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-6">Leaders</h1>
+          <h1 data-testid="leaders-page-heading" className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-6">Leaders</h1>
           
           <div className="inline-flex space-x-1 bg-slate-800 rounded-lg p-1">
             {TABS.map((tab) => (

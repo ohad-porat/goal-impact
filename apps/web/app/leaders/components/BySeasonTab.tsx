@@ -104,14 +104,14 @@ export function BySeasonTab() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between flex-wrap gap-4">
-        <h2 className="text-2xl font-bold text-white">Season Leaders by Goal Value</h2>
-        <div className="flex gap-4">
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Season Leaders by Goal Value</h2>
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <select
             id="league-filter"
             value={selectedLeagueId || ''}
             onChange={handleLeagueChange}
-            className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+            className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-auto"
             disabled={loadingLeagues}
           >
             <option value="">All Leagues</option>
@@ -125,7 +125,7 @@ export function BySeasonTab() {
             id="season-filter"
             value={selectedSeasonId || ''}
             onChange={handleSeasonChange}
-            className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+            className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-auto"
             disabled={loadingSeasons || !seasons.length}
           >
             {!seasons.length && <option value="">Loading seasons...</option>}

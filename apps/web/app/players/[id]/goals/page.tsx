@@ -17,8 +17,12 @@ interface PlayerGoalLogPageProps {
 }
 
 async function getPlayerGoalLog(playerId: number): Promise<PlayerGoalLogResponse> {
+  const cacheOption = process.env.DISABLE_FETCH_CACHE === 'true' ? 'no-store' : 'default'
+  const nextOption = process.env.DISABLE_FETCH_CACHE === 'true' ? undefined : { revalidate: 86400 }
+  
   const response = await fetch(api.playerGoalLog(playerId), {
-    next: { revalidate: 86400 }
+    cache: cacheOption,
+    next: nextOption
   })
   
   if (!response.ok) {
@@ -106,7 +110,7 @@ export default async function PlayerGoalLogPage({ params, searchParams }: Player
       <div className="min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6 flex items-center justify-between gap-4">
-            <h1 className="text-4xl font-bold text-white flex-1">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white flex-1">
               Goal Log: {player.name}
             </h1>
             {backButton}
@@ -142,11 +146,11 @@ export default async function PlayerGoalLogPage({ params, searchParams }: Player
   return (
     <div className="min-h-screen">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <h1 className="text-4xl font-bold text-white flex-1">
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white flex-1">
             Goal Log: {player.name}
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
             <SeasonSelector seasons={seasons} selectedSeasonId={selectedSeasonId} />
             {backButton}
           </div>
