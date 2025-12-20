@@ -27,11 +27,12 @@ async function getTeamSeasonGoalLog(teamId: number, seasonId: number): Promise<T
 }
 
 export default async function GoalLogPage({ params, searchParams }: GoalLogPageProps) {
-  const teamId = parseInt(params.id)
-  const seasonId = searchParams.season ? parseInt(searchParams.season) : null
+  const [{ id }, { season }] = await Promise.all([params, searchParams])
+  const teamId = parseInt(id)
+  const seasonId = season ? parseInt(season) : null
   
   if (isNaN(teamId)) {
-    return <ErrorDisplay message={`The team ID "${params.id}" is not valid.`} />
+    return <ErrorDisplay message={`The team ID "${id}" is not valid.`} />
   }
   
   if (!seasonId || isNaN(seasonId)) {

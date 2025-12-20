@@ -23,10 +23,11 @@ async function getClubDetails(clubId: number): Promise<ClubDetailsResponse> {
 }
 
 export default async function ClubShowPage({ params }: ClubShowPageProps) {
-  const clubId = parseInt(params.id)
+  const { id } = await params
+  const clubId = parseInt(id)
   
   if (isNaN(clubId)) {
-    return <ErrorDisplay message={`The club ID "${params.id}" is not valid.`} />
+    return <ErrorDisplay message={`The club ID "${id}" is not valid.`} />
   }
   
   try {
