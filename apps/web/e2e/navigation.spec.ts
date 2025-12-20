@@ -13,7 +13,8 @@ const NAV_LINK_NAMES = ['Nations', 'Leagues', 'Clubs', 'Leaders'] as const;
 async function navigateToPage(page: Page, linkName: string, expectedUrl: string, expectedHeading: string) {
   await page.getByRole('link', { name: linkName }).click();
   await expect(page).toHaveURL(expectedUrl);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(200);
   if (expectedHeading === 'Leaders') {
     await expect(page.getByTestId('leaders-page-heading')).toBeVisible();
   } else {
@@ -67,7 +68,8 @@ test.describe('Navigation', () => {
     test('should maintain navbar visibility after navigation', async ({ page }) => {
       for (const { link } of NAV_PAGES) {
         await page.getByRole('link', { name: link }).click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(200);
         await expect(page.getByRole('link', { name: 'GOAL IMPACT' })).toBeVisible();
       }
     });
@@ -109,7 +111,8 @@ test.describe('Navigation', () => {
         await page.getByRole('link', { name: link }).click();
         
         await expect(page).toHaveURL(url);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(200);
         await verifyNavLinksVisible(page, false);
       }
     });

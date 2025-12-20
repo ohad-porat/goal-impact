@@ -2,7 +2,8 @@ import { Page, expect, Locator } from '@playwright/test';
 
 export async function navigateAndWait(page: Page, url: string) {
   await page.goto(url);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(100);
 }
 
 export async function verifyHomePageLoaded(page: Page) {
@@ -82,14 +83,16 @@ export async function navigateToFirstDetailPage(
   
   const id = parseInt(match![1]);
   await link.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(200);
   return id;
 }
 
 export async function navigateToGoalLog(page: Page): Promise<void> {
   const goalLogButton = page.getByRole('link', { name: 'View Goal Log' });
   await goalLogButton.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(200);
 }
 
 export async function verifyTableWithData(page: Page): Promise<void> {
@@ -108,7 +111,7 @@ export async function verifyTableWithData(page: Page): Promise<void> {
 }
 
 export async function waitForPageReady(page: Page, timeout: number = 2000) {
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(timeout);
 }
 

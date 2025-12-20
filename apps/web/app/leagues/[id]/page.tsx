@@ -51,11 +51,12 @@ interface LeagueShowPageProps {
 }
 
 export default async function LeagueShowPage({ params, searchParams }: LeagueShowPageProps) {
-  const leagueId = parseInt(params.id)
-  const seasonId = searchParams.season ? parseInt(searchParams.season) : null
+  const [{ id }, { season }] = await Promise.all([params, searchParams])
+  const leagueId = parseInt(id)
+  const seasonId = season ? parseInt(season) : null
 
   if (isNaN(leagueId)) {
-    return <ErrorDisplay message={`The league ID "${params.id}" is not valid.`} />
+    return <ErrorDisplay message={`The league ID "${id}" is not valid.`} />
   }
 
   try {
