@@ -20,9 +20,10 @@ async function getNationDetails(nationId: number): Promise<NationDetailsResponse
 }
 
 export default async function NationShowPage({ params }: NationShowPageProps) {
-  const nationId = parseInt(params.id)
+  const { id } = await params
+  const nationId = parseInt(id)
   if (isNaN(nationId)) {
-    return <ErrorDisplay message={`The nation ID "${params.id}" is not valid.`} />
+    return <ErrorDisplay message={`The nation ID "${id}" is not valid.`} />
   }
 
   try {

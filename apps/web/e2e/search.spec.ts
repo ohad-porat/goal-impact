@@ -158,7 +158,8 @@ test.describe('Search', () => {
       expect(count).toBeGreaterThan(0);
       
       await results.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(200);
       
       await expect(page).toHaveURL(/\/players\/\d+$/);
     });
@@ -171,7 +172,8 @@ test.describe('Search', () => {
       expect(count).toBeGreaterThan(0);
       
       await results.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(200);
       
       await expect(page).toHaveURL(/\/clubs\/\d+$/);
     });
@@ -184,7 +186,8 @@ test.describe('Search', () => {
       expect(count).toBeGreaterThan(0);
       
       await results.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(200);
       
       await expect(page).toHaveURL(/\/leagues\/\d+$/);
     });
@@ -197,7 +200,8 @@ test.describe('Search', () => {
       expect(count).toBeGreaterThan(0);
       
       await results.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(200);
       
       await expect(page).toHaveURL(/\/nations\/\d+$/);
     });
@@ -213,16 +217,12 @@ test.describe('Search', () => {
       await resultButtons.first().click();
       
       await page.waitForURL(/\/players\/\d+|\/clubs\/\d+|\/leagues\/\d+|\/nations\/\d+/, { timeout: 5000 });
-      await page.waitForLoadState('networkidle');
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(200);
       
-      try {
-        await navigateAndWait(page, '/');
-      } catch {
-        await page.waitForTimeout(500);
-        await navigateAndWait(page, '/');
-      }
+      await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(200);
       
       const searchInput = page.getByPlaceholder('Search...');
       await expect(searchInput).toHaveValue('');

@@ -77,10 +77,11 @@ function isRedirectError(error: unknown): boolean {
 }
 
 export default async function PlayerGoalLogPage({ params, searchParams }: PlayerGoalLogPageProps) {
-  const playerId = parseInt(params.id)
+  const [{ id }, { season }] = await Promise.all([params, searchParams])
+  const playerId = parseInt(id)
   
   if (isNaN(playerId)) {
-    return <ErrorDisplay message={`The player ID "${params.id}" is not valid.`} />
+    return <ErrorDisplay message={`The player ID "${id}" is not valid.`} />
   }
   
   let data: PlayerGoalLogResponse
@@ -128,11 +129,11 @@ export default async function PlayerGoalLogPage({ params, searchParams }: Player
   const seasons = extractUniqueSeasons(goals)
   const defaultSeason = seasons[0]
   
-  if (!searchParams.season && defaultSeason) {
+  if (!season && defaultSeason) {
     redirect(`/players/${playerId}/goals?season=${defaultSeason.id}`)
   }
   
-  const selectedSeasonId = searchParams.season ? parseInt(searchParams.season) : null
+  const selectedSeasonId = season ? parseInt(season) : null
   const selectedSeason = selectedSeasonId 
     ? seasons.find(s => s.season_ids.includes(selectedSeasonId))
     : null

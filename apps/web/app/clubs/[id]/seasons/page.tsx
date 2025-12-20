@@ -27,11 +27,12 @@ async function getTeamSeasonSquad(teamId: number, seasonId: number): Promise<Tea
 }
 
 export default async function TeamSeasonPage({ params, searchParams }: TeamSeasonPageProps) {
-  const teamId = parseInt(params.id)
-  const seasonId = searchParams.season ? parseInt(searchParams.season) : null
+  const [{ id }, { season }] = await Promise.all([params, searchParams])
+  const teamId = parseInt(id)
+  const seasonId = season ? parseInt(season) : null
   
   if (isNaN(teamId)) {
-    return <ErrorDisplay message={`The team ID "${params.id}" is not valid.`} />
+    return <ErrorDisplay message={`The team ID "${id}" is not valid.`} />
   }
   
   if (!seasonId || isNaN(seasonId)) {

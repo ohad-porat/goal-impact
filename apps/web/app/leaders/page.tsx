@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CareerTotalsTab } from './components/CareerTotalsTab'
 import { BySeasonTab } from './components/BySeasonTab'
@@ -15,7 +16,7 @@ const isValidTab = (value: string | null): value is TabType => {
   return value === 'career' || value === 'season'
 }
 
-function LeadersPage() {
+function LeadersPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const viewParam = searchParams.get('view')
@@ -60,4 +61,14 @@ function LeadersPage() {
   )
 }
 
-export default LeadersPage
+export default function LeadersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <LeadersPageContent />
+    </Suspense>
+  )
+}

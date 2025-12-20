@@ -24,10 +24,11 @@ async function getPlayerDetails(playerId: number): Promise<PlayerDetailsResponse
 }
 
 export default async function PlayerPage({ params }: PlayerPageProps) {
-  const playerId = parseInt(params.id)
+  const { id } = await params
+  const playerId = parseInt(id)
   
   if (isNaN(playerId)) {
-    return <ErrorDisplay message={`The player ID "${params.id}" is not valid.`} />
+    return <ErrorDisplay message={`The player ID "${id}" is not valid.`} />
   }
   
   try {
