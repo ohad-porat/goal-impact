@@ -36,7 +36,7 @@ async function fetchBySeasonData(seasonId: number, leagueId?: number): Promise<B
 
 function autoSelectMostRecentSeason(
   seasons: Season[],
-  searchParams: URLSearchParams,
+  searchParams: ReturnType<typeof useSearchParams>,
   router: ReturnType<typeof useRouter>
 ) {
   if (seasons.length === 0) return
