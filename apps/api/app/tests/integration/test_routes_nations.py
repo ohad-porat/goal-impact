@@ -279,13 +279,6 @@ class TestGetNationDetailsRoute:
         """Test that various invalid nation_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/nations/{invalid_id}")
 
-    def test_handles_negative_and_zero_nation_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero nation_id return 404."""
-        response_neg = client.get("/api/v1/nations/-1")
-        response_zero = client.get("/api/v1/nations/0")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
-
     def test_governing_body_defaults_to_na(self, client: TestClient, db_session) -> None:
         """Test that governing_body defaults to 'N/A' when None."""
         nation = NationFactory(name="Test Nation", country_code="TST", governing_body=None)

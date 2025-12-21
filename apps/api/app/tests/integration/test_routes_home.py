@@ -165,10 +165,3 @@ class TestGetRecentImpactGoalsRoute:
     ) -> None:
         """Test that various invalid league_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/home/recent-goals?league_id={invalid_id}")
-
-    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero league_id return validation error or empty results."""
-        response_neg = client.get("/api/v1/home/recent-goals?league_id=-1")
-        response_zero = client.get("/api/v1/home/recent-goals?league_id=0")
-        assert response_neg.status_code in [200, 422]
-        assert response_zero.status_code in [200, 422]

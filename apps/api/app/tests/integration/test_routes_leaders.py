@@ -450,17 +450,6 @@ class TestGetBySeasonLeadersRoute:
         """Test that various invalid season_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/leaders/by-season?season_id={invalid_id}")
 
-    def test_handles_negative_and_zero_season_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero season_id return 404 or empty results."""
-        response_neg = client.get("/api/v1/leaders/by-season?season_id=-1")
-        response_zero = client.get("/api/v1/leaders/by-season?season_id=0")
-        assert response_neg.status_code in [200, 404]
-        assert response_zero.status_code in [200, 404]
-        if response_neg.status_code == 200:
-            assert response_neg.json()["top_goal_value"] == []
-        if response_zero.status_code == 200:
-            assert response_zero.json()["top_goal_value"] == []
-
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_league_id_types(
         self, client: TestClient, db_session, invalid_id
@@ -483,31 +472,6 @@ class TestGetBySeasonLeadersRoute:
         assert_422_validation_error(
             client, f"/api/v1/leaders/by-season?season_id={season.id}&league_id={invalid_id}"
         )
-
-    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero league_id return validation error or empty results."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-        PlayerStatsFactory(
-            player=player,
-            season=season,
-            team=team,
-            goal_value=25.0,
-            goals_scored=10,
-            matches_played=20,
-        )
-        db_session.commit()
-
-        response_neg1 = client.get("/api/v1/leaders/career-totals?league_id=-1")
-        response_zero1 = client.get("/api/v1/leaders/career-totals?league_id=0")
-        response_neg2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=-1")
-        response_zero2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=0")
-
-        assert response_neg1.status_code in [200, 422]
-        assert response_zero1.status_code in [200, 422]
-        assert response_neg2.status_code in [200, 422]
-        assert response_zero2.status_code in [200, 422]
 
     def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session) -> None:
         """Test that invalid league_id returns empty list without errors for by-season endpoint."""

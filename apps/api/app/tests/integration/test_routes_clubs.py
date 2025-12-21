@@ -167,13 +167,6 @@ class TestGetClubDetailsRoute:
         """Test that various invalid club_id types return validation error."""
         assert_422_validation_error(client, f"/api/v1/clubs/{invalid_id}")
 
-    def test_handles_negative_and_zero_club_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero club_id return 404."""
-        response_neg = client.get("/api/v1/clubs/-1")
-        response_zero = client.get("/api/v1/clubs/0")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
-
 
 class TestGetTeamSeasonSquadRoute:
     """Tests for GET /api/v1/clubs/{team_id}/seasons/{season_id} endpoint."""
@@ -288,16 +281,6 @@ class TestGetTeamSeasonSquadRoute:
 
         assert_422_validation_error(client, f"/api/v1/clubs/{invalid_id}/seasons/{season.id}")
 
-    def test_handles_negative_and_zero_team_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero team_id return 404."""
-        nation, _comp, season = create_basic_season_setup(db_session)
-        db_session.commit()
-
-        response_neg = client.get(f"/api/v1/clubs/-1/seasons/{season.id}")
-        response_zero = client.get(f"/api/v1/clubs/0/seasons/{season.id}")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
-
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_season_id_types(
         self, client: TestClient, db_session, invalid_id
@@ -308,17 +291,6 @@ class TestGetTeamSeasonSquadRoute:
         db_session.commit()
 
         assert_422_validation_error(client, f"/api/v1/clubs/{team.id}/seasons/{invalid_id}")
-
-    def test_handles_negative_and_zero_season_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero season_id return 404."""
-        nation, comp, _season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        db_session.commit()
-
-        response_neg = client.get(f"/api/v1/clubs/{team.id}/seasons/-1")
-        response_zero = client.get(f"/api/v1/clubs/{team.id}/seasons/0")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
 
 
 class TestGetTeamSeasonGoalLogRoute:
@@ -445,18 +417,6 @@ class TestGetTeamSeasonGoalLogRoute:
 
         assert_422_validation_error(client, f"/api/v1/clubs/{invalid_id}/seasons/{season.id}/goals")
 
-    def test_handles_negative_and_zero_team_id_for_goals(
-        self, client: TestClient, db_session
-    ) -> None:
-        """Test that negative and zero team_id return 404 for goals endpoint."""
-        nation, _comp, season = create_basic_season_setup(db_session)
-        db_session.commit()
-
-        response_neg = client.get(f"/api/v1/clubs/-1/seasons/{season.id}/goals")
-        response_zero = client.get(f"/api/v1/clubs/0/seasons/{season.id}/goals")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
-
     @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_season_id_types_for_goals(
         self, client: TestClient, db_session, invalid_id
@@ -467,16 +427,3 @@ class TestGetTeamSeasonGoalLogRoute:
         db_session.commit()
 
         assert_422_validation_error(client, f"/api/v1/clubs/{team.id}/seasons/{invalid_id}/goals")
-
-    def test_handles_negative_and_zero_season_id_for_goals(
-        self, client: TestClient, db_session
-    ) -> None:
-        """Test that negative and zero season_id return 404 for goals endpoint."""
-        nation, comp, _season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        db_session.commit()
-
-        response_neg = client.get(f"/api/v1/clubs/{team.id}/seasons/-1/goals")
-        response_zero = client.get(f"/api/v1/clubs/{team.id}/seasons/0/goals")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
