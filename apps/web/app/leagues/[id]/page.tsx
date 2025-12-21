@@ -50,6 +50,43 @@ interface LeagueShowPageProps {
   }
 }
 
+const LeagueTableContent = ({ tableData, seasons, targetSeasonId, leagueId }: {
+  tableData: LeagueTableData
+  seasons: Season[]
+  targetSeasonId: number
+  leagueId: number
+}) => {
+  return (
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{tableData.league.name}</h1>
+            <div className="w-full sm:w-auto">
+              <SeasonSelector 
+                seasons={seasons} 
+                currentSeasonId={targetSeasonId}
+                leagueId={leagueId}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-700 table-fixed">
+                <LeagueTableHeader />
+                <LeagueTableBody tableData={tableData} />
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default async function LeagueShowPage({ params, searchParams }: LeagueShowPageProps) {
   const [{ id }, { season }] = await Promise.all([params, searchParams])
   const leagueId = parseInt(id)
@@ -59,45 +96,14 @@ export default async function LeagueShowPage({ params, searchParams }: LeagueSho
     return <ErrorDisplay message={`The league ID "${id}" is not valid.`} />
   }
 
+  let seasons: Season[]
+  let tableData: LeagueTableData
+  let targetSeasonId: number
+
   try {
-    const seasons = await getLeagueSeasons(leagueId)
-
-    if (seasons.length === 0) {
-      return <ErrorDisplay message="The requested league has no available seasons." />
-    }
-
-    const targetSeasonId = getTargetSeasonId(seasonId, seasons)
-    const tableData = await getLeagueTable(leagueId, targetSeasonId)
-
-    return (
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{tableData.league.name}</h1>
-              <div className="w-full sm:w-auto">
-                <SeasonSelector 
-                  seasons={seasons} 
-                  currentSeasonId={targetSeasonId}
-                  leagueId={leagueId}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-700 table-fixed">
-                  <LeagueTableHeader />
-                  <LeagueTableBody tableData={tableData} />
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    seasons = await getLeagueSeasons(leagueId)
+    targetSeasonId = getTargetSeasonId(seasonId, seasons)
+    tableData = await getLeagueTable(leagueId, targetSeasonId)
   } catch (error) {
     console.error('Error fetching league data:', error)
     if (error instanceof Error && error.message === 'Invalid season') {
@@ -105,4 +111,10 @@ export default async function LeagueShowPage({ params, searchParams }: LeagueSho
     }
     return <ErrorDisplay message="The requested league could not be found or does not exist." />
   }
+
+  if (seasons.length === 0) {
+    return <ErrorDisplay message="The requested league has no available seasons." />
+  }
+
+  return <LeagueTableContent tableData={tableData} seasons={seasons} targetSeasonId={targetSeasonId} leagueId={leagueId} />
 }
