@@ -138,9 +138,7 @@ class TestGetLeagueSeasonsRoute:
 
         assert_empty_list_response(client, f"/api/v1/leagues/{comp.id}/seasons", "seasons")
 
-    def test_handles_various_invalid_league_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid league_id types return validation error."""
         assert_invalid_id_types_return_422(client, "/api/v1/leagues/{invalid_id}/seasons")
 
@@ -219,9 +217,7 @@ class TestGetLeagueTableRoute:
         nation, comp, season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        assert_empty_list_response(
-            client, f"/api/v1/leagues/{comp.id}/table/{season.id}", "table"
-        )
+        assert_empty_list_response(client, f"/api/v1/leagues/{comp.id}/table/{season.id}", "table")
 
     def test_handles_various_invalid_league_id_types_for_table(
         self, client: TestClient, db_session

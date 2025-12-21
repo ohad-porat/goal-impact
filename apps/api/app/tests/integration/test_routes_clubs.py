@@ -111,9 +111,7 @@ class TestGetClubDetailsRoute:
         assert data["club"]["id"] == team.id
         assert data["seasons"] == []
 
-    def test_handles_various_invalid_club_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_club_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid club_id types return validation error."""
         assert_invalid_id_types_return_422(client, "/api/v1/clubs/{invalid_id}")
 
@@ -190,9 +188,7 @@ class TestGetTeamSeasonSquadRoute:
             client, f"/api/v1/clubs/{team.id}/seasons/{season.id}", "players"
         )
 
-    def test_handles_various_invalid_team_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_team_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid team_id types return validation error."""
         nation, _comp, season = create_basic_season_setup(db_session)
         db_session.commit()
@@ -201,9 +197,7 @@ class TestGetTeamSeasonSquadRoute:
             client, f"/api/v1/clubs/{{invalid_id}}/seasons/{season.id}"
         )
 
-    def test_handles_various_invalid_season_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_season_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid season_id types return validation error."""
         nation, comp, _season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)

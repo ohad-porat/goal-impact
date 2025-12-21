@@ -207,9 +207,7 @@ class TestGetNationDetailsRoute:
         assert data["clubs"] == []
         assert data["players"] == []
 
-    def test_handles_various_invalid_nation_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_nation_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid nation_id types return validation error."""
         assert_invalid_id_types_return_422(client, "/api/v1/nations/{invalid_id}")
 

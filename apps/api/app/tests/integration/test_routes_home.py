@@ -158,9 +158,7 @@ class TestGetRecentImpactGoalsRoute:
         data = response.json()
         assert data["goals"] == []
 
-    def test_handles_various_invalid_league_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid league_id types return validation error."""
         assert_invalid_id_types_return_422(
             client, "/api/v1/home/recent-goals?league_id={invalid_id}"

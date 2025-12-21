@@ -84,9 +84,7 @@ class TestGetPlayerDetailsRoute:
         assert data["player"]["id"] == player.id
         assert data["seasons"] == []
 
-    def test_handles_various_invalid_player_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_player_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid player_id types return validation error."""
         assert_invalid_id_types_return_422(client, "/api/v1/players/{invalid_id}")
 

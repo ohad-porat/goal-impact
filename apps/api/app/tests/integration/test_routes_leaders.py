@@ -371,17 +371,13 @@ class TestGetBySeasonLeadersRoute:
         data = response.json()
         assert len(data["top_goal_value"]) == 1
 
-    def test_handles_various_invalid_season_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_season_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid season_id types return validation error."""
         assert_invalid_id_types_return_422(
             client, "/api/v1/leaders/by-season?season_id={invalid_id}"
         )
 
-    def test_handles_various_invalid_league_id_types(
-        self, client: TestClient, db_session
-    ) -> None:
+    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid league_id types return validation error."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
