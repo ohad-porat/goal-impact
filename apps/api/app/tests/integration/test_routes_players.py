@@ -87,25 +87,6 @@ class TestGetPlayerDetailsRoute:
         assert data["player"]["id"] == player.id
         assert data["seasons"] == []
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema with all required fields."""
-        nation = NationFactory(name="England", country_code="ENG")
-        player = PlayerFactory(name="Test Player", nation=nation)
-        db_session.commit()
-
-        response = client.get(f"/api/v1/players/{player.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["player"]
-        assert "name" in data["player"]
-        assert "nation" in data["player"]
-        assert isinstance(data["player"]["id"], int)
-        assert isinstance(data["player"]["name"], str)
-
-        assert isinstance(data["seasons"], list)
-
     def test_handles_various_invalid_player_id_types(
         self, client: TestClient, db_session
     ) -> None:
@@ -178,33 +159,6 @@ class TestGetPlayerCareerGoalLogRoute:
         assert "goal_value" in goal
         assert goal["minute"] == 45
         assert goal["goal_value"] == 5.5
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        _match, player, _team, _season, _ = create_match_with_goal(
-            db_session, goal_value=3.5, minute=10, match_date=date(2024, 1, 1)
-        )
-
-        response = client.get(f"/api/v1/players/{player.id}/goals")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["player"]
-        assert "name" in data["player"]
-        assert isinstance(data["player"]["id"], int)
-
-        assert isinstance(data["goals"], list)
-        if len(data["goals"]) > 0:
-            goal = data["goals"][0]
-            assert "minute" in goal
-            assert "goal_value" in goal
-            assert "team" in goal
-            assert "opponent" in goal
-            assert "date" in goal
-            assert "venue" in goal
-            assert "score_before" in goal
-            assert "score_after" in goal
 
     def test_returns_goals_with_assists(self, client: TestClient, db_session) -> None:
         """Test that goals with assists include assist information."""

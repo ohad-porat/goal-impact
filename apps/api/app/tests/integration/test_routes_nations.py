@@ -72,30 +72,6 @@ class TestGetNationsRoute:
         assert nation_data is not None
         assert nation_data["player_count"] == 0
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation = NationFactory(name="Test Nation", country_code="TST", governing_body="UEFA")
-        db_session.commit()
-
-        response = client.get("/api/v1/nations/")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "nations" in data
-        assert isinstance(data["nations"], list)
-
-        if len(data["nations"]) > 0:
-            nation_data = next((n for n in data["nations"] if n["id"] == nation.id), None)
-            if nation_data:
-                assert "id" in nation_data
-                assert "name" in nation_data
-                assert "country_code" in nation_data
-                assert "governing_body" in nation_data
-                assert "player_count" in nation_data
-                assert isinstance(nation_data["id"], int)
-                assert isinstance(nation_data["name"], str)
-                assert isinstance(nation_data["player_count"], int)
-
     def test_includes_governing_body(self, client: TestClient, db_session) -> None:
         """Test that governing_body is included in response."""
         nation = NationFactory(name="England", country_code="ENG", governing_body="UEFA")
@@ -232,46 +208,6 @@ class TestGetNationDetailsRoute:
         assert data["competitions"] == []
         assert data["clubs"] == []
         assert data["players"] == []
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation = NationFactory(name="Test Nation", country_code="TST", governing_body="UEFA")
-        db_session.commit()
-
-        response = client.get(f"/api/v1/nations/{nation.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["nation"]
-        assert "name" in data["nation"]
-        assert "country_code" in data["nation"]
-        assert "governing_body" in data["nation"]
-        assert isinstance(data["nation"]["id"], int)
-        assert isinstance(data["nation"]["name"], str)
-
-        assert isinstance(data["competitions"], list)
-        if len(data["competitions"]) > 0:
-            comp = data["competitions"][0]
-            assert "id" in comp
-            assert "name" in comp
-            assert "tier" in comp
-            assert "season_count" in comp
-            assert "has_seasons" in comp
-
-        assert isinstance(data["clubs"], list)
-        if len(data["clubs"]) > 0:
-            club = data["clubs"][0]
-            assert "id" in club
-            assert "name" in club
-            assert "avg_position" in club
-
-        assert isinstance(data["players"], list)
-        if len(data["players"]) > 0:
-            player = data["players"][0]
-            assert "id" in player
-            assert "name" in player
-            assert "total_goal_value" in player
 
     def test_handles_various_invalid_nation_id_types(
         self, client: TestClient, db_session

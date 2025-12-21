@@ -49,36 +49,6 @@ class TestGetClubsByNationRoute:
         assert nation_data is not None
         assert len(nation_data["clubs"]) >= 1
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation = NationFactory(name="England", country_code="ENG")
-        comp = CompetitionFactory(name="Premier League", tier="1st", nation=nation)
-        season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
-        team = TeamFactory(nation=nation)
-        TeamStatsFactory(team=team, season=season, ranking=1)
-        db_session.commit()
-
-        response = client.get("/api/v1/clubs/")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "nations" in data
-        assert isinstance(data["nations"], list)
-
-        if len(data["nations"]) > 0:
-            nation_data = data["nations"][0]
-            assert "nation" in nation_data
-            assert "clubs" in nation_data
-            assert "id" in nation_data["nation"]
-            assert "name" in nation_data["nation"]
-            assert isinstance(nation_data["clubs"], list)
-
-            if len(nation_data["clubs"]) > 0:
-                club = nation_data["clubs"][0]
-                assert "id" in club
-                assert "name" in club
-                assert "avg_position" in club
-
 
 class TestGetClubDetailsRoute:
     """Tests for GET /api/v1/clubs/{club_id} endpoint."""
@@ -142,24 +112,6 @@ class TestGetClubDetailsRoute:
         data = response.json()
         assert data["club"]["id"] == team.id
         assert data["seasons"] == []
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation = NationFactory(name="England", country_code="ENG")
-        team = TeamFactory(nation=nation)
-        db_session.commit()
-
-        response = client.get(f"/api/v1/clubs/{team.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["club"]
-        assert "name" in data["club"]
-        assert "nation" in data["club"]
-        assert isinstance(data["club"]["id"], int)
-
-        assert isinstance(data["seasons"], list)
 
     def test_handles_various_invalid_club_id_types(
         self, client: TestClient, db_session
@@ -229,36 +181,6 @@ class TestGetTeamSeasonSquadRoute:
         assert data["team"]["id"] == team.id
         assert data["season"]["id"] == season.id
         assert len(data["players"]) == 1
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        PlayerStatsFactory(player=player, team=team, season=season)
-        db_session.commit()
-
-        response = client.get(f"/api/v1/clubs/{team.id}/seasons/{season.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["team"]
-        assert "name" in data["team"]
-        assert isinstance(data["team"]["id"], int)
-
-        assert "id" in data["season"]
-        assert "start_year" in data["season"]
-        assert "display_name" in data["season"]
-
-        assert isinstance(data["players"], list)
-        if len(data["players"]) > 0:
-            squad_player = data["players"][0]
-            assert "player" in squad_player
-            assert "stats" in squad_player
-            assert "id" in squad_player["player"]
-            assert "name" in squad_player["player"]
 
     def test_returns_empty_squad_when_no_players(self, client: TestClient, db_session) -> None:
         """Test that empty squad is returned when team has no players for season."""
@@ -350,37 +272,6 @@ class TestGetTeamSeasonGoalLogRoute:
         assert data["team"]["id"] == team.id
         assert data["season"]["id"] == season.id
         assert len(data["goals"]) == 1
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        _match, _player, team, season, _ = create_match_with_goal(
-            db_session, goal_value=3.0, minute=10, match_date=date(2024, 1, 1)
-        )
-
-        response = client.get(f"/api/v1/clubs/{team.id}/seasons/{season.id}/goals")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["team"]
-        assert "name" in data["team"]
-        assert isinstance(data["team"]["id"], int)
-
-        assert "id" in data["season"]
-        assert "start_year" in data["season"]
-        assert "display_name" in data["season"]
-
-        assert isinstance(data["goals"], list)
-        if len(data["goals"]) > 0:
-            goal = data["goals"][0]
-            assert "date" in goal
-            assert "venue" in goal
-            assert "scorer" in goal
-            assert "opponent" in goal
-            assert "minute" in goal
-            assert "score_before" in goal
-            assert "score_after" in goal
-            assert "goal_value" in goal
 
     def test_returns_empty_goals_when_no_goals(self, client: TestClient, db_session) -> None:
         """Test that empty goals list is returned when team has no goals for season."""

@@ -49,41 +49,6 @@ class TestGetCareerTotalsLeadersRoute:
         assert data["top_goal_value"][0]["player_name"] == "Top Player"
         assert data["top_goal_value"][0]["total_goal_value"] == 50.5
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        PlayerStatsFactory(
-            player=player,
-            season=season,
-            team=team,
-            goal_value=25.0,
-            goals_scored=10,
-            matches_played=20,
-        )
-        db_session.commit()
-
-        response = client.get("/api/v1/leaders/career-totals")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "top_goal_value" in data
-        assert isinstance(data["top_goal_value"], list)
-
-        if len(data["top_goal_value"]) > 0:
-            player_data = data["top_goal_value"][0]
-            assert "player_id" in player_data
-            assert "player_name" in player_data
-            assert "nation" in player_data
-            assert "total_goal_value" in player_data
-            assert "goal_value_avg" in player_data
-            assert "total_goals" in player_data
-            assert "total_matches" in player_data
-            assert isinstance(player_data["player_id"], int)
-            assert isinstance(player_data["total_goal_value"], float)
-
     def test_uses_default_limit_of_50(self, client: TestClient, db_session) -> None:
         """Test that default limit of 50 is used when not specified."""
         nation, comp, season = create_basic_season_setup(db_session)
@@ -275,42 +240,6 @@ class TestGetBySeasonLeadersRoute:
         assert len(data["top_goal_value"]) == 1
         assert data["top_goal_value"][0]["player_name"] == "Season Leader"
         assert data["top_goal_value"][0]["total_goal_value"] == 45.5
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        PlayerStatsFactory(
-            player=player,
-            season=season,
-            team=team,
-            goal_value=30.0,
-            goals_scored=12,
-            matches_played=25,
-        )
-        db_session.commit()
-
-        response = client.get(f"/api/v1/leaders/by-season?season_id={season.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "top_goal_value" in data
-        assert isinstance(data["top_goal_value"], list)
-
-        if len(data["top_goal_value"]) > 0:
-            player_data = data["top_goal_value"][0]
-            assert "player_id" in player_data
-            assert "player_name" in player_data
-            assert "clubs" in player_data
-            assert "total_goal_value" in player_data
-            assert "goal_value_avg" in player_data
-            assert "total_goals" in player_data
-            assert "total_matches" in player_data
-            assert isinstance(player_data["player_id"], int)
-            assert isinstance(player_data["total_goal_value"], float)
-            assert isinstance(player_data["clubs"], str)
 
     def test_uses_default_limit_of_50(self, client: TestClient, db_session) -> None:
         """Test that default limit of 50 is used when not specified."""

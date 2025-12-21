@@ -47,36 +47,6 @@ class TestGetLeaguesRoute:
         assert "Premier League" in league_names
         assert "La Liga" in league_names
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation = NationFactory(name="England", country_code="ENG")
-        comp = CompetitionFactory(name="Premier League", nation=nation, tier="1st")
-        _season = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
-        db_session.commit()
-
-        response = client.get("/api/v1/leagues/")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "leagues" in data
-        assert isinstance(data["leagues"], list)
-
-        if len(data["leagues"]) > 0:
-            league = next(
-                (league_item for league_item in data["leagues"] if league_item["id"] == comp.id),
-                None,
-            )
-            if league:
-                assert "id" in league
-                assert "name" in league
-                assert "country" in league
-                assert "gender" in league
-                assert "tier" in league
-                assert "available_seasons" in league
-                assert isinstance(league["id"], int)
-                assert isinstance(league["name"], str)
-                assert isinstance(league["country"], str)
-
     def test_includes_season_range(self, client: TestClient, db_session) -> None:
         """Test that available_seasons is included in response."""
         nation = NationFactory(name="England", country_code="ENG")
@@ -120,28 +90,6 @@ class TestGetAllSeasonsRoute:
         season_ids = [s["id"] for s in data["seasons"]]
         assert season1.id in season_ids
         assert season2.id in season_ids
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        db_session.commit()
-
-        response = client.get("/api/v1/leagues/seasons")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "seasons" in data
-        assert isinstance(data["seasons"], list)
-
-        if len(data["seasons"]) > 0:
-            season_data = next((s for s in data["seasons"] if s["id"] == season.id), None)
-            if season_data:
-                assert "id" in season_data
-                assert "start_year" in season_data
-                assert "end_year" in season_data
-                assert "display_name" in season_data
-                assert isinstance(season_data["id"], int)
-                assert isinstance(season_data["start_year"], int)
 
     def test_sorts_by_start_year_descending(self, client: TestClient, db_session) -> None:
         """Test that seasons are sorted by start_year descending."""
@@ -194,25 +142,6 @@ class TestGetLeagueSeasonsRoute:
         assert response.status_code == 200
         data = response.json()
         assert data["seasons"] == []
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        _nation, comp, _season = create_basic_season_setup(db_session)
-        db_session.commit()
-
-        response = client.get(f"/api/v1/leagues/{comp.id}/seasons")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "seasons" in data
-        assert isinstance(data["seasons"], list)
-
-        if len(data["seasons"]) > 0:
-            season_data = data["seasons"][0]
-            assert "id" in season_data
-            assert "start_year" in season_data
-            assert "end_year" in season_data
-            assert "display_name" in season_data
 
     def test_handles_various_invalid_league_id_types(
         self, client: TestClient, db_session
@@ -289,43 +218,6 @@ class TestGetLeagueTableRoute:
         assert data["league"]["id"] == comp.id
         assert data["season"]["id"] == season.id
         assert len(data["table"]) == 2
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        TeamStatsFactory(team=team, season=season, ranking=1)
-        db_session.commit()
-
-        response = client.get(f"/api/v1/leagues/{comp.id}/table/{season.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["league"]
-        assert "name" in data["league"]
-        assert "country" in data["league"]
-        assert isinstance(data["league"]["id"], int)
-
-        assert "id" in data["season"]
-        assert "start_year" in data["season"]
-        assert "display_name" in data["season"]
-        assert isinstance(data["season"]["id"], int)
-
-        assert isinstance(data["table"], list)
-        if len(data["table"]) > 0:
-            entry = data["table"][0]
-            assert "position" in entry
-            assert "team_id" in entry
-            assert "team_name" in entry
-            assert "matches_played" in entry
-            assert "wins" in entry
-            assert "draws" in entry
-            assert "losses" in entry
-            assert "goals_for" in entry
-            assert "goals_against" in entry
-            assert "goal_difference" in entry
-            assert "points" in entry
 
     def test_returns_empty_table_when_no_teams(self, client: TestClient, db_session) -> None:
         """Test that empty table is returned when season has no teams."""

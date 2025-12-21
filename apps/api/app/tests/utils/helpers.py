@@ -107,20 +107,7 @@ INVALID_ID_VALUES = ["not-a-number", "abc", "12.5"]
 def assert_invalid_id_types_return_422(
     client: TestClient, url_template: str, id_placeholder: str = "{invalid_id}"
 ):
-    """Assert that various invalid ID types return 422 validation error.
-    
-    Args:
-        client: FastAPI TestClient instance
-        url_template: URL template with placeholder for invalid ID (e.g., "/api/v1/players/{invalid_id}")
-        id_placeholder: The placeholder string to replace (default: "{invalid_id}")
-    
-    Examples:
-        # Path parameter
-        assert_invalid_id_types_return_422(client, "/api/v1/players/{invalid_id}")
-        
-        # Query parameter
-        assert_invalid_id_types_return_422(client, "/api/v1/home/recent-goals?league_id={invalid_id}")
-    """
+    """Assert that various invalid ID types return 422 validation error."""
     for invalid_id in INVALID_ID_VALUES:
         url = url_template.replace(id_placeholder, invalid_id)
         assert_422_validation_error(client, url)
