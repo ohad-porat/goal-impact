@@ -10,7 +10,6 @@ from app.tests.utils.factories import (
     TeamFactory,
 )
 from app.tests.utils.helpers import (
-    assert_422_validation_error,
     assert_empty_list_response,
     assert_invalid_id_types_return_422,
     create_basic_season_setup,

@@ -2,12 +2,10 @@
 
 from datetime import date
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
     MatchFactory,
-    NationFactory,
     PlayerFactory,
     PlayerStatsFactory,
     SeasonFactory,
@@ -15,7 +13,6 @@ from app.tests.utils.factories import (
 )
 from app.tests.utils.helpers import (
     assert_404_not_found,
-    assert_422_validation_error,
     assert_invalid_id_types_return_422,
     create_basic_season_setup,
     create_goal_event,
