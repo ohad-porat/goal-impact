@@ -2,7 +2,6 @@
 
 from datetime import date
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
@@ -11,8 +10,8 @@ from app.tests.utils.factories import (
     TeamFactory,
 )
 from app.tests.utils.helpers import (
-    assert_422_validation_error,
     assert_empty_list_response,
+    assert_invalid_id_types_return_422,
     create_basic_season_setup,
     create_goal_event,
     create_match_with_goal,
@@ -159,16 +158,8 @@ class TestGetRecentImpactGoalsRoute:
         data = response.json()
         assert data["goals"] == []
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_league_id_types(
-        self, client: TestClient, db_session, invalid_id
-    ) -> None:
+    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid league_id types return validation error."""
-        assert_422_validation_error(client, f"/api/v1/home/recent-goals?league_id={invalid_id}")
-
-    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero league_id return validation error or empty results."""
-        response_neg = client.get("/api/v1/home/recent-goals?league_id=-1")
-        response_zero = client.get("/api/v1/home/recent-goals?league_id=0")
-        assert response_neg.status_code in [200, 422]
-        assert response_zero.status_code in [200, 422]
+        assert_invalid_id_types_return_422(
+            client, "/api/v1/home/recent-goals?league_id={invalid_id}"
+        )

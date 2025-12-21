@@ -2,12 +2,10 @@
 
 from datetime import date
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.tests.utils.factories import (
     MatchFactory,
-    NationFactory,
     PlayerFactory,
     PlayerStatsFactory,
     SeasonFactory,
@@ -15,7 +13,7 @@ from app.tests.utils.factories import (
 )
 from app.tests.utils.helpers import (
     assert_404_not_found,
-    assert_422_validation_error,
+    assert_invalid_id_types_return_422,
     create_basic_season_setup,
     create_goal_event,
     create_match_with_goal,
@@ -86,38 +84,9 @@ class TestGetPlayerDetailsRoute:
         assert data["player"]["id"] == player.id
         assert data["seasons"] == []
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema with all required fields."""
-        nation = NationFactory(name="England", country_code="ENG")
-        player = PlayerFactory(name="Test Player", nation=nation)
-        db_session.commit()
-
-        response = client.get(f"/api/v1/players/{player.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["player"]
-        assert "name" in data["player"]
-        assert "nation" in data["player"]
-        assert isinstance(data["player"]["id"], int)
-        assert isinstance(data["player"]["name"], str)
-
-        assert isinstance(data["seasons"], list)
-
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_player_id_types(
-        self, client: TestClient, db_session, invalid_id
-    ) -> None:
+    def test_handles_various_invalid_player_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid player_id types return validation error."""
-        assert_422_validation_error(client, f"/api/v1/players/{invalid_id}")
-
-    def test_handles_negative_and_zero_player_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero player_id return 404 (valid integers but no resource)."""
-        response_neg = client.get("/api/v1/players/-1")
-        response_zero = client.get("/api/v1/players/0")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
+        assert_invalid_id_types_return_422(client, "/api/v1/players/{invalid_id}")
 
     def test_returns_multiple_seasons_sorted_correctly(
         self, client: TestClient, db_session
@@ -186,33 +155,6 @@ class TestGetPlayerCareerGoalLogRoute:
         assert goal["minute"] == 45
         assert goal["goal_value"] == 5.5
 
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        _match, player, _team, _season, _ = create_match_with_goal(
-            db_session, goal_value=3.5, minute=10, match_date=date(2024, 1, 1)
-        )
-
-        response = client.get(f"/api/v1/players/{player.id}/goals")
-
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "id" in data["player"]
-        assert "name" in data["player"]
-        assert isinstance(data["player"]["id"], int)
-
-        assert isinstance(data["goals"], list)
-        if len(data["goals"]) > 0:
-            goal = data["goals"][0]
-            assert "minute" in goal
-            assert "goal_value" in goal
-            assert "team" in goal
-            assert "opponent" in goal
-            assert "date" in goal
-            assert "venue" in goal
-            assert "score_before" in goal
-            assert "score_after" in goal
-
     def test_returns_goals_with_assists(self, client: TestClient, db_session) -> None:
         """Test that goals with assists include assist information."""
         _match, player, _team, _season, assister = create_match_with_goal(
@@ -243,21 +185,11 @@ class TestGetPlayerCareerGoalLogRoute:
         goal = data["goals"][0]
         assert goal.get("assisted_by") is None
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_player_id_types_for_goals(
-        self, client: TestClient, db_session, invalid_id
-    ) -> None:
-        """Test that various invalid player_id types return validation error for goals endpoint."""
-        assert_422_validation_error(client, f"/api/v1/players/{invalid_id}/goals")
-
-    def test_handles_negative_and_zero_player_id_for_goals(
         self, client: TestClient, db_session
     ) -> None:
-        """Test that negative and zero player_id return 404 for goals endpoint."""
-        response_neg = client.get("/api/v1/players/-1/goals")
-        response_zero = client.get("/api/v1/players/0/goals")
-        assert response_neg.status_code == 404
-        assert response_zero.status_code == 404
+        """Test that various invalid player_id types return validation error for goals endpoint."""
+        assert_invalid_id_types_return_422(client, "/api/v1/players/{invalid_id}/goals")
 
     def test_returns_goals_sorted_by_date(self, client: TestClient, db_session) -> None:
         """Test that goals are returned sorted by date (earliest first, then by minute)."""

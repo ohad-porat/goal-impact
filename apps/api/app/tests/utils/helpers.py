@@ -100,6 +100,19 @@ def assert_422_validation_error(client: TestClient, url: str):
     assert "detail" in data
 
 
+# Invalid ID values used for testing validation
+INVALID_ID_VALUES = ["not-a-number", "abc", "12.5"]
+
+
+def assert_invalid_id_types_return_422(
+    client: TestClient, url_template: str, id_placeholder: str = "{invalid_id}"
+):
+    """Assert that various invalid ID types return 422 validation error."""
+    for invalid_id in INVALID_ID_VALUES:
+        url = url_template.replace(id_placeholder, invalid_id)
+        assert_422_validation_error(client, url)
+
+
 def assert_empty_list_response(client: TestClient, url: str, list_field_name: str):
     """Assert that a GET request returns 200 with an empty list."""
     response = client.get(url)

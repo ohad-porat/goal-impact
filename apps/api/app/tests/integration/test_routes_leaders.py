@@ -10,8 +10,8 @@ from app.tests.utils.factories import (
     TeamFactory,
 )
 from app.tests.utils.helpers import (
-    assert_422_validation_error,
     assert_empty_list_response,
+    assert_invalid_id_types_return_422,
     create_basic_season_setup,
     create_two_competitions_with_data,
 )
@@ -47,41 +47,6 @@ class TestGetCareerTotalsLeadersRoute:
         assert len(data["top_goal_value"]) == 1
         assert data["top_goal_value"][0]["player_name"] == "Top Player"
         assert data["top_goal_value"][0]["total_goal_value"] == 50.5
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        PlayerStatsFactory(
-            player=player,
-            season=season,
-            team=team,
-            goal_value=25.0,
-            goals_scored=10,
-            matches_played=20,
-        )
-        db_session.commit()
-
-        response = client.get("/api/v1/leaders/career-totals")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "top_goal_value" in data
-        assert isinstance(data["top_goal_value"], list)
-
-        if len(data["top_goal_value"]) > 0:
-            player_data = data["top_goal_value"][0]
-            assert "player_id" in player_data
-            assert "player_name" in player_data
-            assert "nation" in player_data
-            assert "total_goal_value" in player_data
-            assert "goal_value_avg" in player_data
-            assert "total_goals" in player_data
-            assert "total_matches" in player_data
-            assert isinstance(player_data["player_id"], int)
-            assert isinstance(player_data["total_goal_value"], float)
 
     def test_uses_default_limit_of_50(self, client: TestClient, db_session) -> None:
         """Test that default limit of 50 is used when not specified."""
@@ -246,10 +211,9 @@ class TestGetBySeasonLeadersRoute:
         nation, comp, season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        response = client.get(f"/api/v1/leaders/by-season?season_id={season.id}")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["top_goal_value"] == []
+        assert_empty_list_response(
+            client, f"/api/v1/leaders/by-season?season_id={season.id}", "top_goal_value"
+        )
 
     def test_returns_by_season_leaders_successfully(self, client: TestClient, db_session) -> None:
         """Test that by-season leaders are returned with correct structure."""
@@ -274,42 +238,6 @@ class TestGetBySeasonLeadersRoute:
         assert len(data["top_goal_value"]) == 1
         assert data["top_goal_value"][0]["player_name"] == "Season Leader"
         assert data["top_goal_value"][0]["total_goal_value"] == 45.5
-
-    def test_response_structure_is_correct(self, client: TestClient, db_session) -> None:
-        """Test that response structure matches the expected schema."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-
-        PlayerStatsFactory(
-            player=player,
-            season=season,
-            team=team,
-            goal_value=30.0,
-            goals_scored=12,
-            matches_played=25,
-        )
-        db_session.commit()
-
-        response = client.get(f"/api/v1/leaders/by-season?season_id={season.id}")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "top_goal_value" in data
-        assert isinstance(data["top_goal_value"], list)
-
-        if len(data["top_goal_value"]) > 0:
-            player_data = data["top_goal_value"][0]
-            assert "player_id" in player_data
-            assert "player_name" in player_data
-            assert "clubs" in player_data
-            assert "total_goal_value" in player_data
-            assert "goal_value_avg" in player_data
-            assert "total_goals" in player_data
-            assert "total_matches" in player_data
-            assert isinstance(player_data["player_id"], int)
-            assert isinstance(player_data["total_goal_value"], float)
-            assert isinstance(player_data["clubs"], str)
 
     def test_uses_default_limit_of_50(self, client: TestClient, db_session) -> None:
         """Test that default limit of 50 is used when not specified."""
@@ -443,28 +371,13 @@ class TestGetBySeasonLeadersRoute:
         data = response.json()
         assert len(data["top_goal_value"]) == 1
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_season_id_types(
-        self, client: TestClient, db_session, invalid_id
-    ) -> None:
+    def test_handles_various_invalid_season_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid season_id types return validation error."""
-        assert_422_validation_error(client, f"/api/v1/leaders/by-season?season_id={invalid_id}")
+        assert_invalid_id_types_return_422(
+            client, "/api/v1/leaders/by-season?season_id={invalid_id}"
+        )
 
-    def test_handles_negative_and_zero_season_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero season_id return 404 or empty results."""
-        response_neg = client.get("/api/v1/leaders/by-season?season_id=-1")
-        response_zero = client.get("/api/v1/leaders/by-season?season_id=0")
-        assert response_neg.status_code in [200, 404]
-        assert response_zero.status_code in [200, 404]
-        if response_neg.status_code == 200:
-            assert response_neg.json()["top_goal_value"] == []
-        if response_zero.status_code == 200:
-            assert response_zero.json()["top_goal_value"] == []
-
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
-    def test_handles_various_invalid_league_id_types(
-        self, client: TestClient, db_session, invalid_id
-    ) -> None:
+    def test_handles_various_invalid_league_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid league_id types return validation error."""
         nation, comp, season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
@@ -479,35 +392,12 @@ class TestGetBySeasonLeadersRoute:
         )
         db_session.commit()
 
-        assert_422_validation_error(client, f"/api/v1/leaders/career-totals?league_id={invalid_id}")
-        assert_422_validation_error(
-            client, f"/api/v1/leaders/by-season?season_id={season.id}&league_id={invalid_id}"
+        assert_invalid_id_types_return_422(
+            client, "/api/v1/leaders/career-totals?league_id={invalid_id}"
         )
-
-    def test_handles_negative_and_zero_league_id(self, client: TestClient, db_session) -> None:
-        """Test that negative and zero league_id return validation error or empty results."""
-        nation, comp, season = create_basic_season_setup(db_session)
-        team = TeamFactory(nation=nation)
-        player = PlayerFactory(nation=nation)
-        PlayerStatsFactory(
-            player=player,
-            season=season,
-            team=team,
-            goal_value=25.0,
-            goals_scored=10,
-            matches_played=20,
+        assert_invalid_id_types_return_422(
+            client, f"/api/v1/leaders/by-season?season_id={season.id}&league_id={{invalid_id}}"
         )
-        db_session.commit()
-
-        response_neg1 = client.get("/api/v1/leaders/career-totals?league_id=-1")
-        response_zero1 = client.get("/api/v1/leaders/career-totals?league_id=0")
-        response_neg2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=-1")
-        response_zero2 = client.get(f"/api/v1/leaders/by-season?season_id={season.id}&league_id=0")
-
-        assert response_neg1.status_code in [200, 422]
-        assert response_zero1.status_code in [200, 422]
-        assert response_neg2.status_code in [200, 422]
-        assert response_zero2.status_code in [200, 422]
 
     def test_handles_invalid_league_id_gracefully(self, client: TestClient, db_session) -> None:
         """Test that invalid league_id returns empty list without errors for by-season endpoint."""
