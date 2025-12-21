@@ -188,10 +188,9 @@ class TestGetTeamSeasonSquadRoute:
         team = TeamFactory(nation=nation)
         db_session.commit()
 
-        response = client.get(f"/api/v1/clubs/{team.id}/seasons/{season.id}")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["players"] == []
+        assert_empty_list_response(
+            client, f"/api/v1/clubs/{team.id}/seasons/{season.id}", "players"
+        )
 
     def test_handles_various_invalid_team_id_types(
         self, client: TestClient, db_session
@@ -279,10 +278,9 @@ class TestGetTeamSeasonGoalLogRoute:
         team = TeamFactory(nation=nation)
         db_session.commit()
 
-        response = client.get(f"/api/v1/clubs/{team.id}/seasons/{season.id}/goals")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["goals"] == []
+        assert_empty_list_response(
+            client, f"/api/v1/clubs/{team.id}/seasons/{season.id}/goals", "goals"
+        )
 
     def test_includes_assist_information(self, client: TestClient, db_session) -> None:
         """Test that goals with assists include assist information."""

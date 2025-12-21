@@ -138,10 +138,7 @@ class TestGetLeagueSeasonsRoute:
         comp = CompetitionFactory(nation=nation)
         db_session.commit()
 
-        response = client.get(f"/api/v1/leagues/{comp.id}/seasons")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["seasons"] == []
+        assert_empty_list_response(client, f"/api/v1/leagues/{comp.id}/seasons", "seasons")
 
     def test_handles_various_invalid_league_id_types(
         self, client: TestClient, db_session
@@ -224,10 +221,9 @@ class TestGetLeagueTableRoute:
         nation, comp, season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        response = client.get(f"/api/v1/leagues/{comp.id}/table/{season.id}")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["table"] == []
+        assert_empty_list_response(
+            client, f"/api/v1/leagues/{comp.id}/table/{season.id}", "table"
+        )
 
     def test_handles_various_invalid_league_id_types_for_table(
         self, client: TestClient, db_session

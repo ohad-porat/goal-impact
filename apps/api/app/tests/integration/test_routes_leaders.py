@@ -212,10 +212,9 @@ class TestGetBySeasonLeadersRoute:
         nation, comp, season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        response = client.get(f"/api/v1/leaders/by-season?season_id={season.id}")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["top_goal_value"] == []
+        assert_empty_list_response(
+            client, f"/api/v1/leaders/by-season?season_id={season.id}", "top_goal_value"
+        )
 
     def test_returns_by_season_leaders_successfully(self, client: TestClient, db_session) -> None:
         """Test that by-season leaders are returned with correct structure."""
