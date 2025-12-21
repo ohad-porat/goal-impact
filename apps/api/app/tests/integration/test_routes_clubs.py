@@ -18,6 +18,7 @@ from app.tests.utils.helpers import (
     assert_404_not_found,
     assert_422_validation_error,
     assert_empty_list_response,
+    assert_invalid_id_types_return_422,
     create_basic_season_setup,
     create_match_with_goal,
 )
@@ -160,12 +161,11 @@ class TestGetClubDetailsRoute:
 
         assert isinstance(data["seasons"], list)
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_club_id_types(
-        self, client: TestClient, db_session, invalid_id
+        self, client: TestClient, db_session
     ) -> None:
         """Test that various invalid club_id types return validation error."""
-        assert_422_validation_error(client, f"/api/v1/clubs/{invalid_id}")
+        assert_invalid_id_types_return_422(client, "/api/v1/clubs/{invalid_id}")
 
 
 class TestGetTeamSeasonSquadRoute:
@@ -271,26 +271,28 @@ class TestGetTeamSeasonSquadRoute:
         data = response.json()
         assert data["players"] == []
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_team_id_types(
-        self, client: TestClient, db_session, invalid_id
+        self, client: TestClient, db_session
     ) -> None:
         """Test that various invalid team_id types return validation error."""
         nation, _comp, season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        assert_422_validation_error(client, f"/api/v1/clubs/{invalid_id}/seasons/{season.id}")
+        assert_invalid_id_types_return_422(
+            client, f"/api/v1/clubs/{{invalid_id}}/seasons/{season.id}"
+        )
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_season_id_types(
-        self, client: TestClient, db_session, invalid_id
+        self, client: TestClient, db_session
     ) -> None:
         """Test that various invalid season_id types return validation error."""
         nation, comp, _season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
         db_session.commit()
 
-        assert_422_validation_error(client, f"/api/v1/clubs/{team.id}/seasons/{invalid_id}")
+        assert_invalid_id_types_return_422(
+            client, f"/api/v1/clubs/{team.id}/seasons/{{invalid_id}}"
+        )
 
 
 class TestGetTeamSeasonGoalLogRoute:
@@ -407,23 +409,25 @@ class TestGetTeamSeasonGoalLogRoute:
         assert goal["assisted_by"] is not None
         assert goal["assisted_by"]["name"] == assister.name
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_team_id_types_for_goals(
-        self, client: TestClient, db_session, invalid_id
+        self, client: TestClient, db_session
     ) -> None:
         """Test that various invalid team_id types return validation error for goals endpoint."""
         nation, _comp, season = create_basic_season_setup(db_session)
         db_session.commit()
 
-        assert_422_validation_error(client, f"/api/v1/clubs/{invalid_id}/seasons/{season.id}/goals")
+        assert_invalid_id_types_return_422(
+            client, f"/api/v1/clubs/{{invalid_id}}/seasons/{season.id}/goals"
+        )
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_season_id_types_for_goals(
-        self, client: TestClient, db_session, invalid_id
+        self, client: TestClient, db_session
     ) -> None:
         """Test that various invalid season_id types return validation error for goals endpoint."""
         nation, comp, _season = create_basic_season_setup(db_session)
         team = TeamFactory(nation=nation)
         db_session.commit()
 
-        assert_422_validation_error(client, f"/api/v1/clubs/{team.id}/seasons/{invalid_id}/goals")
+        assert_invalid_id_types_return_422(
+            client, f"/api/v1/clubs/{team.id}/seasons/{{invalid_id}}/goals"
+        )

@@ -16,6 +16,7 @@ from app.tests.utils.factories import (
 from app.tests.utils.helpers import (
     assert_404_not_found,
     assert_422_validation_error,
+    assert_invalid_id_types_return_422,
     create_basic_season_setup,
     create_goal_event,
     create_match_with_goal,
@@ -105,12 +106,11 @@ class TestGetPlayerDetailsRoute:
 
         assert isinstance(data["seasons"], list)
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_player_id_types(
-        self, client: TestClient, db_session, invalid_id
+        self, client: TestClient, db_session
     ) -> None:
         """Test that various invalid player_id types return validation error."""
-        assert_422_validation_error(client, f"/api/v1/players/{invalid_id}")
+        assert_invalid_id_types_return_422(client, "/api/v1/players/{invalid_id}")
 
     def test_returns_multiple_seasons_sorted_correctly(
         self, client: TestClient, db_session
@@ -236,12 +236,11 @@ class TestGetPlayerCareerGoalLogRoute:
         goal = data["goals"][0]
         assert goal.get("assisted_by") is None
 
-    @pytest.mark.parametrize("invalid_id", ["not-a-number", "abc", "12.5"])
     def test_handles_various_invalid_player_id_types_for_goals(
-        self, client: TestClient, db_session, invalid_id
+        self, client: TestClient, db_session
     ) -> None:
         """Test that various invalid player_id types return validation error for goals endpoint."""
-        assert_422_validation_error(client, f"/api/v1/players/{invalid_id}/goals")
+        assert_invalid_id_types_return_422(client, "/api/v1/players/{invalid_id}/goals")
 
     def test_returns_goals_sorted_by_date(self, client: TestClient, db_session) -> None:
         """Test that goals are returned sorted by date (earliest first, then by minute)."""
