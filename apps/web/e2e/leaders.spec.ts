@@ -241,7 +241,7 @@ test.describe('Leaders', () => {
       await bySeasonTab.click();
       await waitForPageReady(page);
       
-      expect(getUrlParam(page, 'view')).toBe('season');
+      expect(getUrlParam(page, 'view')).toBe('by-season');
       
       const careerTab = getCareerTotalsTab(page);
       await careerTab.click();
