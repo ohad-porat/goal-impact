@@ -294,21 +294,17 @@ def get_all_seasons(
     )
 
     if league_id is not None:
-        team_names_query = team_names_query.join(
-            Season, PlayerStats.season_id == Season.id
-        ).filter(Season.competition_id == league_id)
+        team_names_query = team_names_query.join(Season, PlayerStats.season_id == Season.id).filter(
+            Season.competition_id == league_id
+        )
 
     team_names_results = team_names_query.all()
-    team_names_dict = {
-        (row.player_id, row.season_id): row.team_names for row in team_names_results
-    }
+    team_names_dict = {(row.player_id, row.season_id): row.team_names for row in team_names_results}
 
     def build_all_seasons_player(row) -> AllSeasonsPlayer:
         season = seasons_dict.get(row.season_id)
         season_display_name = (
-            format_season_display_name(season.start_year, season.end_year)
-            if season
-            else "Unknown"
+            format_season_display_name(season.start_year, season.end_year) if season else "Unknown"
         )
 
         team_names = team_names_dict.get((row.player_id, row.season_id))
