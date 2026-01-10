@@ -29,7 +29,7 @@ export function useSeasons(leagueId?: number) {
           const params = new URLSearchParams(searchParams.toString())
           params.set('season_id', mostRecentSeason.id.toString())
           if (!params.get('view')) {
-            params.set('view', 'season')
+            params.set('view', 'by-season')
           }
           router.push(`/leaders?${params.toString()}`, { scroll: false })
         }

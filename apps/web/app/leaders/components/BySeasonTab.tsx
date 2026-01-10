@@ -45,7 +45,7 @@ function autoSelectMostRecentSeason(
   const params = new URLSearchParams(searchParams.toString())
   params.set('season_id', mostRecentSeason.id.toString())
   if (!params.get('view')) {
-    params.set('view', 'season')
+    params.set('view', 'by-season')
   }
   router.push(`/leaders?${params.toString()}`, { scroll: false })
 }
@@ -91,12 +91,12 @@ export function BySeasonTab() {
 
   const handleLeagueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLeagueId = event.target.value === '' ? null : event.target.value
-    updateParams('season', { league_id: newLeagueId, season_id: null })
+    updateParams('by-season', { league_id: newLeagueId, season_id: null })
   }
 
   const handleSeasonChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newSeasonId = event.target.value || null
-    updateParams('season', { season_id: newSeasonId })
+    updateParams('by-season', { season_id: newSeasonId })
   }
 
   const isEmpty = bySeason !== null && bySeason.top_goal_value.length === 0
