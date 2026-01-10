@@ -1,9 +1,7 @@
 """Leaders-related business logic services."""
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
-
-from sqlalchemy import or_
 
 from app.models import Nation, Player, PlayerStats, Season, Team
 from app.schemas.leaders import AllSeasonsPlayer, BySeasonPlayer, CareerTotalsPlayer
