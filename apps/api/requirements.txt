@@ -1,21 +1,21 @@
 # FastAPI dependencies
-fastapi==0.115.0
-uvicorn[standard]==0.38.0
-pydantic==2.12.0
+fastapi==0.128.0
+uvicorn[standard]==0.40.0
+pydantic==2.12.5
 pydantic-settings==2.12.0
 python-dotenv==1.2.1
 httpx==0.28.1
 
 # Database dependencies
 sqlalchemy==2.0.45
-alembic==1.12.1
+alembic==1.17.2
 psycopg2-binary==2.9.11
 
 # Scraper dependencies
 beautifulsoup4>=4.9.0
-requests==2.32.4
+requests==2.32.5
 cloudscraper>=1.2.71
-pandas==2.1.4
+pandas==2.3.3
 numpy>=1.26.0
 lxml>=4.6.0
 python-dateutil>=2.8.0
