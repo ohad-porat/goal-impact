@@ -479,7 +479,7 @@ class TestGetAllSeasonsLeadersRoute:
         assert response.status_code == 200
         data = response.json()
         assert len(data["top_goal_value"]) == 50
-        
+
         values = [p["total_goal_value"] for p in data["top_goal_value"]]
         assert values == sorted(values, reverse=True)
         assert values[0] == 60.0
@@ -507,7 +507,7 @@ class TestGetAllSeasonsLeadersRoute:
         assert response.status_code == 200
         data = response.json()
         assert len(data["top_goal_value"]) == 5
-        
+
         values = [p["total_goal_value"] for p in data["top_goal_value"]]
         assert values == sorted(values, reverse=True)
         assert values[0] == 10.0
@@ -674,9 +674,7 @@ class TestGetAllSeasonsLeadersRoute:
 
     def test_includes_season_display_name_in_response(self, client: TestClient, db_session) -> None:
         """Test that season_display_name is included in response."""
-        nation, comp, season = create_basic_season_setup(
-            db_session, start_year=2022, end_year=2023
-        )
+        nation, comp, season = create_basic_season_setup(db_session, start_year=2022, end_year=2023)
         team = TeamFactory(nation=nation)
         player = PlayerFactory(nation=nation)
 

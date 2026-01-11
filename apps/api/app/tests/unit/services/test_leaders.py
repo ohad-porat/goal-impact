@@ -716,7 +716,9 @@ class TestGetAllSeasons:
     def test_respects_limit_parameter(self, db_session) -> None:
         """Test that limit parameter is respected."""
         nation = NationFactory()
-        _, comp, season1 = create_basic_season_setup(db_session, nation=nation, start_year=2022, end_year=2023)
+        _, comp, season1 = create_basic_season_setup(
+            db_session, nation=nation, start_year=2022, end_year=2023
+        )
         season2 = SeasonFactory(competition=comp, start_year=2023, end_year=2024)
         team = TeamFactory(nation=nation)
 
