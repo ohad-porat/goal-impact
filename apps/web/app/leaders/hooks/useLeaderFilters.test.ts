@@ -64,12 +64,12 @@ describe('useLeaderFilters', () => {
 
       const { result } = renderHook(() => useLeaderFilters())
 
-      result.current.updateParams('season', {
+      result.current.updateParams('by-season', {
         season_id: '10',
         league_id: '7',
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/leaders?league_id=7&view=season&season_id=10', {
+      expect(mockPush).toHaveBeenCalledWith('/leaders?league_id=7&view=by-season&season_id=10', {
         scroll: false,
       })
     })
@@ -90,7 +90,7 @@ describe('useLeaderFilters', () => {
     })
 
     it('should preserve existing view parameter when updating other parameters', () => {
-      const mockSearchParams = new URLSearchParams('view=season&league_id=5')
+      const mockSearchParams = new URLSearchParams('view=by-season&league_id=5')
       ;(useSearchParams as any).mockReturnValue(mockSearchParams)
 
       const { result } = renderHook(() => useLeaderFilters())
@@ -99,7 +99,7 @@ describe('useLeaderFilters', () => {
         league_id: '7',
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/leaders?view=season&league_id=7', {
+      expect(mockPush).toHaveBeenCalledWith('/leaders?view=by-season&league_id=7', {
         scroll: false,
       })
     })
@@ -110,7 +110,7 @@ describe('useLeaderFilters', () => {
 
       const { result } = renderHook(() => useLeaderFilters())
 
-      result.current.updateParams('season', {
+      result.current.updateParams('by-season', {
         league_id: null,
         season_id: '10',
       })
@@ -127,14 +127,14 @@ describe('useLeaderFilters', () => {
 
       const { result } = renderHook(() => useLeaderFilters())
 
-      result.current.updateParams('season', {
+      result.current.updateParams('by-season', {
         league_id: '5',
         season_id: '10',
         other_param: 'value',
       })
 
       expect(mockPush).toHaveBeenCalledWith(
-        '/leaders?view=season&league_id=5&season_id=10&other_param=value',
+        '/leaders?view=by-season&league_id=5&season_id=10&other_param=value',
         { scroll: false }
       )
     })
@@ -145,7 +145,7 @@ describe('useLeaderFilters', () => {
 
       const { result } = renderHook(() => useLeaderFilters())
 
-      result.current.updateParams('season', {
+      result.current.updateParams('by-season', {
         season_id: '10',
       })
 

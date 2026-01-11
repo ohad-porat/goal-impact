@@ -3,17 +3,19 @@
 import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CareerTotalsTab } from './components/CareerTotalsTab'
+import { AllSeasonsTab } from './components/AllSeasonsTab'
 import { BySeasonTab } from './components/BySeasonTab'
 
-type TabType = 'career' | 'season'
+type TabType = 'career' | 'all-seasons' | 'by-season'
 
 const TABS: { id: TabType; label: string }[] = [
   { id: 'career', label: 'Career Totals' },
-  { id: 'season', label: 'By Season' },
+  { id: 'all-seasons', label: 'All Seasons' },
+  { id: 'by-season', label: 'By Season' },
 ]
 
 const isValidTab = (value: string | null): value is TabType => {
-  return value === 'career' || value === 'season'
+  return value === 'career' || value === 'all-seasons' || value === 'by-season'
 }
 
 function LeadersPageContent() {
@@ -54,7 +56,8 @@ function LeadersPageContent() {
 
         <div className="mt-8">
           {activeTab === 'career' && <CareerTotalsTab />}
-          {activeTab === 'season' && <BySeasonTab />}
+          {activeTab === 'all-seasons' && <AllSeasonsTab />}
+          {activeTab === 'by-season' && <BySeasonTab />}
         </div>
       </div>
     </div>

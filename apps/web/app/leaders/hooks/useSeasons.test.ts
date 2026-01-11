@@ -80,7 +80,7 @@ describe('useSeasons', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1)
   })
 
-  it('should auto-select most recent season and navigate to URL with season_id and view=season when no season_id is present', async () => {
+  it('should auto-select most recent season and navigate to URL with season_id and view=by-season when no season_id is present', async () => {
     const mockSeasons = [
       { id: 1, start_year: 2023, end_year: 2024, display_name: '2023/24' },
       { id: 2, start_year: 2022, end_year: 2023, display_name: '2022/23' },
@@ -103,7 +103,7 @@ describe('useSeasons', () => {
     const callArgs = mockPush.mock.calls[0][0]
     const url = new URL(`http://localhost${callArgs}`)
     expect(url.searchParams.get('season_id')).toBe('1')
-    expect(url.searchParams.get('view')).toBe('season')
+    expect(url.searchParams.get('view')).toBe('by-season')
   })
 
   it('should not auto-select or navigate when season_id is already present in URL', async () => {

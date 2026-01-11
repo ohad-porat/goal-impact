@@ -11,6 +11,10 @@ function getCareerTotalsTab(page: Page) {
   return page.getByRole('button', { name: 'Career Totals' });
 }
 
+function getAllSeasonsTab(page: Page) {
+  return page.getByRole('button', { name: 'All Seasons' });
+}
+
 function getBySeasonTab(page: Page) {
   return page.getByRole('button', { name: 'By Season' });
 }
@@ -59,6 +63,7 @@ test.describe('Leaders', () => {
 
     test('should display tab buttons', async ({ page }) => {
       await expect(getCareerTotalsTab(page)).toBeVisible();
+      await expect(getAllSeasonsTab(page)).toBeVisible();
       await expect(getBySeasonTab(page)).toBeVisible();
     });
 
@@ -131,6 +136,152 @@ test.describe('Leaders', () => {
       await waitForPageReady(page);
       
       expect(getUrlParam(page, 'league_id')).toBeNull();
+    });
+  });
+
+  test.describe('All Seasons Tab', () => {
+    test.beforeEach(async ({ page }) => {
+      await getAllSeasonsTab(page).click();
+      await waitForPageReady(page);
+    });
+
+    test('should display All Seasons tab content', async ({ page }) => {
+      await expect(page.getByRole('heading', { name: 'All Seasons Leaders by Goal Value' })).toBeVisible();
+    });
+
+    test('should display league filter dropdown but no season filter', async ({ page }) => {
+      const leagueFilter = getLeagueFilter(page);
+      const seasonFilter = getSeasonFilter(page);
+      
+      await expect(leagueFilter).toBeVisible();
+      await expect(seasonFilter).not.toBeVisible();
+    });
+
+    test('should display all seasons table when data loads', async ({ page }) => {
+      await waitForPageReady(page);
+      
+      const table = page.locator('table');
+      const errorMessage = page.getByText('Failed to load all-seasons data.');
+      
+      await Promise.race([
+        table.waitFor({ state: 'visible', timeout: 5000 }).catch(() => null),
+        errorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => null),
+      ]);
+      
+      const hasError = await errorMessage.isVisible().catch(() => false);
+      if (hasError) {
+        throw new Error('Failed to load all-seasons data - test cannot verify table is displayed');
+      }
+      
+      await expect(table).toBeVisible();
+      await verifyTableWithData(page);
+    });
+
+    test('should display season column in table', async ({ page }) => {
+      await waitForPageReady(page);
+      
+      const table = page.locator('table');
+      const errorMessage = page.getByText('Failed to load all-seasons data.');
+      const hasError = await errorMessage.isVisible({ timeout: 1000 }).catch(() => false);
+      
+      if (hasError) {
+        test.skip();
+      }
+      
+      await expect(table).toBeVisible({ timeout: 5000 });
+      
+      const headers = table.locator('thead th');
+      const headerTexts = await headers.allTextContents();
+      const hasSeasonHeader = headerTexts.some(text => text.includes('Season') || text === 'Season');
+      
+      expect(hasSeasonHeader).toBe(true);
+    });
+
+    test('should filter by league when selecting league', async ({ page }) => {
+      await waitForPageReady(page);
+      
+      const leagueFilter = getLeagueFilter(page);
+      const initialUrl = page.url();
+      
+      const selected = await selectFilterOptionIfAvailable(page, leagueFilter, 1);
+      
+      expect(selected).toBe(true);
+      
+      const newUrl = page.url();
+      expect(newUrl).not.toBe(initialUrl);
+      expect(getUrlParam(page, 'league_id')).toBeTruthy();
+    });
+
+    test('should reset to all leagues when selecting "All Leagues"', async ({ page }) => {
+      await waitForPageReady(page);
+      
+      const leagueFilter = getLeagueFilter(page);
+      const options = leagueFilter.locator('option');
+      const optionCount = await options.count();
+      
+      expect(optionCount).toBeGreaterThan(1);
+      
+      await leagueFilter.selectOption({ index: 1 });
+      await waitForPageReady(page);
+      
+      expect(getUrlParam(page, 'league_id')).toBeTruthy();
+      
+      await leagueFilter.selectOption('');
+      await waitForPageReady(page);
+      
+      expect(getUrlParam(page, 'league_id')).toBeNull();
+    });
+
+    test('should allow same player to appear multiple times for different seasons', async ({ page }) => {
+      await waitForPageReady(page);
+      
+      const table = page.locator('table');
+      const errorMessage = page.getByText('Failed to load all-seasons data.');
+      const hasError = await errorMessage.isVisible({ timeout: 1000 }).catch(() => false);
+      
+      if (hasError) {
+        test.skip();
+      }
+      
+      await expect(table).toBeVisible({ timeout: 5000 });
+      
+      const headers = table.locator('thead th');
+      const headerTexts = await headers.allTextContents();
+      
+      const hasPlayerColumn = headerTexts.some(text => 
+        text.includes('Player') || text.includes('Name')
+      );
+      const hasSeasonColumn = headerTexts.some(text => 
+        text.includes('Season')
+      );
+      
+      expect(hasPlayerColumn).toBe(true);
+      expect(hasSeasonColumn).toBe(true);
+      
+      const rows = table.locator('tbody tr');
+      const rowCount = await rows.count();
+      
+      if (rowCount >= 2) {
+        const playerNames = await Promise.all(
+          Array.from({ length: Math.min(rowCount, 5) }).map(async (_, i) => {
+            const playerCell = rows.nth(i).locator('td').nth(1);
+            return await playerCell.textContent();
+          })
+        );
+        
+        const seenPlayers = new Set<string>();
+        for (let i = 0; i < playerNames.length; i++) {
+          const player = playerNames[i]?.trim();
+          if (player) {
+            if (seenPlayers.has(player)) {
+              const seasonCell = rows.nth(i).locator('td').nth(2);
+              const season = await seasonCell.textContent();
+              expect(season?.trim().length).toBeGreaterThan(0);
+            }
+            seenPlayers.add(player);
+          }
+        }
+      }
     });
   });
 
@@ -212,14 +363,21 @@ test.describe('Leaders', () => {
   });
 
   test.describe('Tab Switching', () => {
-    test('should switch between Career Totals and By Season tabs', async ({ page }) => {
+    test('should switch between all tabs', async ({ page }) => {
       await waitForPageReady(page);
       
       const careerTab = getCareerTotalsTab(page);
+      const allSeasonsTab = getAllSeasonsTab(page);
       const bySeasonTab = getBySeasonTab(page);
       
       await expect(careerTab).toHaveClass(/bg-orange-400/);
       await expect(page.getByRole('heading', { name: 'Career Leaders by Goal Value' })).toBeVisible();
+      
+      await allSeasonsTab.click();
+      await waitForPageReady(page);
+      
+      await expect(allSeasonsTab).toHaveClass(/bg-orange-400/);
+      await expect(page.getByRole('heading', { name: 'All Seasons Leaders by Goal Value' })).toBeVisible();
       
       await bySeasonTab.click();
       await waitForPageReady(page);
@@ -237,11 +395,17 @@ test.describe('Leaders', () => {
     test('should maintain tab state in URL', async ({ page }) => {
       await waitForPageReady(page);
       
+      const allSeasonsTab = getAllSeasonsTab(page);
+      await allSeasonsTab.click();
+      await waitForPageReady(page);
+      
+      expect(getUrlParam(page, 'view')).toBe('all-seasons');
+      
       const bySeasonTab = getBySeasonTab(page);
       await bySeasonTab.click();
       await waitForPageReady(page);
       
-      expect(getUrlParam(page, 'view')).toBe('season');
+      expect(getUrlParam(page, 'view')).toBe('by-season');
       
       const careerTab = getCareerTotalsTab(page);
       await careerTab.click();

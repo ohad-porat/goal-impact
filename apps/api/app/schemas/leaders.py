@@ -39,3 +39,23 @@ class BySeasonResponse(BaseModel):
     """Response for by season leaders."""
 
     top_goal_value: list[BySeasonPlayer]
+
+
+class AllSeasonsPlayer(BaseModel):
+    """Player all-seasons information."""
+
+    player_id: int
+    player_name: str
+    season_id: int
+    season_display_name: str
+    clubs: str
+    total_goal_value: float
+    goal_value_avg: float
+    total_goals: int
+    total_matches: int
+
+
+class AllSeasonsResponse(BaseModel):
+    """Response for all seasons leaders."""
+
+    top_goal_value: list[AllSeasonsPlayer]

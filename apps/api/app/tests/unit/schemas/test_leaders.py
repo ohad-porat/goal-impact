@@ -5,6 +5,8 @@ from pydantic import ValidationError
 
 from app.schemas.common import NationInfo
 from app.schemas.leaders import (
+    AllSeasonsPlayer,
+    AllSeasonsResponse,
     BySeasonPlayer,
     BySeasonResponse,
     CareerTotalsPlayer,
@@ -555,3 +557,290 @@ class TestBySeasonResponse:
         response = BySeasonResponse.model_validate(data)
         assert len(response.top_goal_value) == 1
         assert response.top_goal_value[0].player_name == "Lionel Messi"
+
+
+class TestAllSeasonsPlayer:
+    """Test AllSeasonsPlayer schema validation."""
+
+    def test_creates_with_required_fields(self) -> None:
+        """Test creating AllSeasonsPlayer with required fields."""
+        player = AllSeasonsPlayer(
+            player_id=1,
+            player_name="Lionel Messi",
+            season_id=10,
+            season_display_name="2022/2023",
+            clubs="Barcelona",
+            total_goal_value=50.5,
+            goal_value_avg=1.25,
+            total_goals=40,
+            total_matches=45,
+        )
+        assert player.player_id == 1
+        assert player.player_name == "Lionel Messi"
+        assert player.season_id == 10
+        assert player.season_display_name == "2022/2023"
+        assert player.clubs == "Barcelona"
+        assert player.total_goal_value == 50.5
+        assert player.goal_value_avg == 1.25
+        assert player.total_goals == 40
+        assert player.total_matches == 45
+
+    def test_requires_player_id(self) -> None:
+        """Test that player_id is required."""
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsPlayer(
+                player_name="Lionel Messi",
+                season_id=10,
+                season_display_name="2022/2023",
+                clubs="Barcelona",
+                total_goal_value=50.5,
+                goal_value_avg=1.25,
+                total_goals=40,
+                total_matches=45,
+            )
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("player_id",) for error in errors)
+
+    def test_requires_season_id(self) -> None:
+        """Test that season_id is required."""
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsPlayer(
+                player_id=1,
+                player_name="Lionel Messi",
+                season_display_name="2022/2023",
+                clubs="Barcelona",
+                total_goal_value=50.5,
+                goal_value_avg=1.25,
+                total_goals=40,
+                total_matches=45,
+            )
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("season_id",) for error in errors)
+
+    def test_requires_season_display_name(self) -> None:
+        """Test that season_display_name is required."""
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsPlayer(
+                player_id=1,
+                player_name="Lionel Messi",
+                season_id=10,
+                clubs="Barcelona",
+                total_goal_value=50.5,
+                goal_value_avg=1.25,
+                total_goals=40,
+                total_matches=45,
+            )
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("season_display_name",) for error in errors)
+
+    def test_validates_types(self) -> None:
+        """Test that types are validated."""
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsPlayer(
+                player_id="not_int",
+                player_name="Lionel Messi",
+                season_id=10,
+                season_display_name="2022/2023",
+                clubs="Barcelona",
+                total_goal_value=50.5,
+                goal_value_avg=1.25,
+                total_goals=40,
+                total_matches=45,
+            )
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("player_id",) for error in errors)
+
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsPlayer(
+                player_id=1,
+                player_name=123,
+                season_id=10,
+                season_display_name="2022/2023",
+                clubs="Barcelona",
+                total_goal_value=50.5,
+                goal_value_avg=1.25,
+                total_goals=40,
+                total_matches=45,
+            )
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("player_name",) for error in errors)
+
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsPlayer(
+                player_id=1,
+                player_name="Lionel Messi",
+                season_id="not_int",
+                season_display_name="2022/2023",
+                clubs="Barcelona",
+                total_goal_value=50.5,
+                goal_value_avg=1.25,
+                total_goals=40,
+                total_matches=45,
+            )
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("season_id",) for error in errors)
+
+    def test_accepts_zero_values(self) -> None:
+        """Test that zero is a valid value for numeric fields."""
+        player = AllSeasonsPlayer(
+            player_id=1,
+            player_name="Lionel Messi",
+            season_id=10,
+            season_display_name="2022/2023",
+            clubs="Barcelona",
+            total_goal_value=0.0,
+            goal_value_avg=0.0,
+            total_goals=0,
+            total_matches=0,
+        )
+        assert player.total_goal_value == 0.0
+        assert player.total_goals == 0
+        assert player.total_matches == 0
+
+    def test_accepts_unicode_in_names(self) -> None:
+        """Test that player names with unicode characters work."""
+        player = AllSeasonsPlayer(
+            player_id=1,
+            player_name="José Mourinho",
+            season_id=10,
+            season_display_name="2022/2023",
+            clubs="Barcelona",
+            total_goal_value=50.0,
+            goal_value_avg=1.0,
+            total_goals=40,
+            total_matches=50,
+        )
+        assert player.player_name == "José Mourinho"
+
+    def test_serializes_to_dict(self) -> None:
+        """Test serialization to dictionary."""
+        player = AllSeasonsPlayer(
+            player_id=1,
+            player_name="Lionel Messi",
+            season_id=10,
+            season_display_name="2022/2023",
+            clubs="Barcelona",
+            total_goal_value=50.5,
+            goal_value_avg=1.25,
+            total_goals=40,
+            total_matches=45,
+        )
+        data = player.model_dump()
+        assert data["player_id"] == 1
+        assert data["player_name"] == "Lionel Messi"
+        assert data["season_id"] == 10
+        assert data["season_display_name"] == "2022/2023"
+        assert data["total_goal_value"] == 50.5
+
+    def test_deserializes_from_dict(self) -> None:
+        """Test deserialization from dictionary."""
+        data = {
+            "player_id": 1,
+            "player_name": "Lionel Messi",
+            "season_id": 10,
+            "season_display_name": "2022/2023",
+            "clubs": "Barcelona",
+            "total_goal_value": 50.5,
+            "goal_value_avg": 1.25,
+            "total_goals": 40,
+            "total_matches": 45,
+        }
+        player = AllSeasonsPlayer.model_validate(data)
+        assert player.player_id == 1
+        assert player.player_name == "Lionel Messi"
+        assert player.season_id == 10
+        assert player.season_display_name == "2022/2023"
+
+
+class TestAllSeasonsResponse:
+    """Test AllSeasonsResponse schema validation."""
+
+    def test_creates_with_empty_list(self) -> None:
+        """Test creating AllSeasonsResponse with empty list."""
+        response = AllSeasonsResponse(top_goal_value=[])
+        assert response.top_goal_value == []
+
+    def test_creates_with_players(self) -> None:
+        """Test creating AllSeasonsResponse with players."""
+        player1 = AllSeasonsPlayer(
+            player_id=1,
+            player_name="Lionel Messi",
+            season_id=10,
+            season_display_name="2022/2023",
+            clubs="Barcelona",
+            total_goal_value=50.5,
+            goal_value_avg=1.25,
+            total_goals=40,
+            total_matches=45,
+        )
+        player2 = AllSeasonsPlayer(
+            player_id=1,
+            player_name="Lionel Messi",
+            season_id=11,
+            season_display_name="2023/2024",
+            clubs="PSG",
+            total_goal_value=45.0,
+            goal_value_avg=1.20,
+            total_goals=35,
+            total_matches=40,
+        )
+        response = AllSeasonsResponse(top_goal_value=[player1, player2])
+        assert len(response.top_goal_value) == 2
+        assert response.top_goal_value[0].player_name == "Lionel Messi"
+        assert response.top_goal_value[0].season_display_name == "2022/2023"
+        assert response.top_goal_value[1].season_display_name == "2023/2024"
+
+    def test_requires_top_goal_value(self) -> None:
+        """Test that top_goal_value is required."""
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsResponse()
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("top_goal_value",) for error in errors)
+
+    def test_validates_list_type(self) -> None:
+        """Test that top_goal_value must be a list."""
+        with pytest.raises(ValidationError) as exc_info:
+            AllSeasonsResponse(top_goal_value="not_a_list")
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("top_goal_value",) for error in errors)
+
+    def test_serializes_to_dict(self) -> None:
+        """Test serialization to dictionary."""
+        player = AllSeasonsPlayer(
+            player_id=1,
+            player_name="Lionel Messi",
+            season_id=10,
+            season_display_name="2022/2023",
+            clubs="Barcelona",
+            total_goal_value=50.5,
+            goal_value_avg=1.25,
+            total_goals=40,
+            total_matches=45,
+        )
+        response = AllSeasonsResponse(top_goal_value=[player])
+        data = response.model_dump()
+        assert len(data["top_goal_value"]) == 1
+        assert data["top_goal_value"][0]["player_name"] == "Lionel Messi"
+        assert data["top_goal_value"][0]["season_display_name"] == "2022/2023"
+
+    def test_deserializes_from_dict(self) -> None:
+        """Test deserialization from dictionary."""
+        data = {
+            "top_goal_value": [
+                {
+                    "player_id": 1,
+                    "player_name": "Lionel Messi",
+                    "season_id": 10,
+                    "season_display_name": "2022/2023",
+                    "clubs": "Barcelona",
+                    "total_goal_value": 50.5,
+                    "goal_value_avg": 1.25,
+                    "total_goals": 40,
+                    "total_matches": 45,
+                }
+            ]
+        }
+        response = AllSeasonsResponse.model_validate(data)
+        assert len(response.top_goal_value) == 1
+        assert response.top_goal_value[0].player_name == "Lionel Messi"
+        assert response.top_goal_value[0].season_display_name == "2022/2023"
