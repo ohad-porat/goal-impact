@@ -19,6 +19,9 @@ export default function Navbar() {
               GOAL IMPACT
             </Link>
             <div className="hidden md:flex items-center space-x-8">
+              <Link href="/leaders" className={linkClasses}>
+                Leaders
+              </Link>
               <Link href="/nations" className={linkClasses}>
                 Nations
               </Link>
@@ -27,9 +30,6 @@ export default function Navbar() {
               </Link>
               <Link href="/clubs" className={linkClasses}>
                 Clubs
-              </Link>
-              <Link href="/leaders" className={linkClasses}>
-                Leaders
               </Link>
             </div>
           </div>
@@ -59,6 +59,13 @@ export default function Navbar() {
               <SearchBar />
             </div>
             <Link 
+              href="/leaders" 
+              className={`${linkClasses} block`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Leaders
+            </Link>
+            <Link 
               href="/nations" 
               className={`${linkClasses} block`}
               onClick={() => setIsMobileMenuOpen(false)}
@@ -78,13 +85,6 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Clubs
-            </Link>
-            <Link 
-              href="/leaders" 
-              className={`${linkClasses} block`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Leaders
             </Link>
           </div>
         )}
