@@ -161,7 +161,7 @@ export function CareerTotalsScatterChart() {
           </div>
         </div>
       ) : (
-        <div className="bg-slate-800 rounded-lg p-4">
+        <div className="bg-slate-800 rounded-lg p-4" data-testid="career-totals-scatter-chart">
           <ResponsiveContainer width="100%" height={500}>
             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
