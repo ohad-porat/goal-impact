@@ -22,6 +22,9 @@ export default function Navbar() {
               <Link href="/leaders" className={linkClasses}>
                 Leaders
               </Link>
+              <Link href="/charts" className={linkClasses}>
+                Charts
+              </Link>
               <Link href="/nations" className={linkClasses}>
                 Nations
               </Link>
@@ -64,6 +67,13 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Leaders
+            </Link>
+            <Link 
+              href="/charts" 
+              className={`${linkClasses} block`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Charts
             </Link>
             <Link 
               href="/nations" 
