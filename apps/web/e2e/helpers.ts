@@ -156,3 +156,8 @@ export async function verifyTableHasHorizontalScroll(page: Page, url: string): P
   const className = await tableContainer.getAttribute('class');
   expect(className).toContain('overflow-x-auto');
 }
+
+export async function checkForChartError(page: Page): Promise<boolean> {
+  const errorMessage = page.getByText('Failed to load career totals data.');
+  return await errorMessage.isVisible().catch(() => false);
+}

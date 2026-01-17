@@ -6,9 +6,10 @@ const NAV_PAGES = [
   { link: 'Leagues', url: '/leagues', heading: 'Leagues' },
   { link: 'Clubs', url: '/clubs', heading: 'Top Clubs' },
   { link: 'Leaders', url: '/leaders', heading: 'Leaders' },
+  { link: 'Charts', url: '/charts', heading: 'Charts' },
 ] as const;
 
-const NAV_LINK_NAMES = ['Nations', 'Leagues', 'Clubs', 'Leaders'] as const;
+const NAV_LINK_NAMES = ['Nations', 'Leagues', 'Clubs', 'Leaders', 'Charts'] as const;
 
 async function navigateToPage(page: Page, linkName: string, expectedUrl: string, expectedHeading: string) {
   await page.getByRole('link', { name: linkName }).click();
