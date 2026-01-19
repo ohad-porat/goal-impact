@@ -244,3 +244,180 @@ class TestSearchRoute:
         assert len(data["results"]) >= 1
         result = next((r for r in data["results"] if r["id"] == player.id), None)
         assert result is not None
+
+    def test_filters_by_type_player(self, client: TestClient, db_session) -> None:
+        """Test that type filter restricts results to specified type (Player)."""
+        nation = NationFactory()
+        player = PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        CompetitionFactory(name="Test Competition", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=Player")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 1
+        assert all(r["type"] == "Player" for r in data["results"])
+        types = {r["type"] for r in data["results"]}
+        assert "Club" not in types
+        assert "Competition" not in types
+        assert "Nation" not in types
+        player_result = next((r for r in data["results"] if r["id"] == player.id), None)
+        assert player_result is not None
+        assert player_result["name"] == "Test Player"
+
+    def test_filters_by_type_club(self, client: TestClient, db_session) -> None:
+        """Test that type filter restricts results to specified type (Club)."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+        team = TeamFactory(name="Test Club", nation=nation)
+        CompetitionFactory(name="Test Competition", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=Club")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 1
+        assert all(r["type"] == "Club" for r in data["results"])
+        types = {r["type"] for r in data["results"]}
+        assert "Player" not in types
+        assert "Competition" not in types
+        assert "Nation" not in types
+        team_result = next((r for r in data["results"] if r["id"] == team.id), None)
+        assert team_result is not None
+        assert team_result["name"] == "Test Club"
+
+    def test_filters_by_type_competition(self, client: TestClient, db_session) -> None:
+        """Test that type filter restricts results to specified type (Competition)."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        comp = CompetitionFactory(name="Test Competition", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=Competition")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 1
+        assert all(r["type"] == "Competition" for r in data["results"])
+        types = {r["type"] for r in data["results"]}
+        assert "Player" not in types
+        assert "Club" not in types
+        assert "Nation" not in types
+        comp_result = next((r for r in data["results"] if r["id"] == comp.id), None)
+        assert comp_result is not None
+        assert comp_result["name"] == "Test Competition"
+
+    def test_filters_by_type_nation(self, client: TestClient, db_session) -> None:
+        """Test that type filter restricts results to specified type (Nation)."""
+        nation = NationFactory(name="Test Nation", country_code="TST")
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        CompetitionFactory(name="Test Competition", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=Nation")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 1
+        assert all(r["type"] == "Nation" for r in data["results"])
+        types = {r["type"] for r in data["results"]}
+        assert "Player" not in types
+        assert "Club" not in types
+        assert "Competition" not in types
+        nation_result = next((r for r in data["results"] if r["id"] == nation.id), None)
+        assert nation_result is not None
+        assert nation_result["name"] == "Test Nation"
+
+    def test_type_filter_is_optional(self, client: TestClient, db_session) -> None:
+        """Test that type filter is optional and doesn't break existing functionality."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 2
+        types = {r["type"] for r in data["results"]}
+        assert "Player" in types
+        assert "Club" in types
+
+    def test_type_filter_with_invalid_value_returns_empty(
+        self, client: TestClient, db_session
+    ) -> None:
+        """Test that invalid type filter value returns empty results."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=InvalidType")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) == 0
+        assert isinstance(data["results"], list)
+
+    def test_type_filter_is_case_sensitive(self, client: TestClient, db_session) -> None:
+        """Test that type filter is case sensitive (lowercase doesn't match)."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=player")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) == 0
+
+        response = client.get("/api/v1/search/?q=test&type=Player")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 1
+        assert all(r["type"] == "Player" for r in data["results"])
+
+    def test_type_filter_returns_empty_when_no_matches(
+        self, client: TestClient, db_session
+    ) -> None:
+        """Test that type filter returns empty list when no entities of that type match."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=Competition")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) == 0
+        assert isinstance(data["results"], list)
+
+    def test_type_filter_with_multiple_matches(self, client: TestClient, db_session) -> None:
+        """Test that type filter works correctly when multiple entities of that type match."""
+        nation = NationFactory()
+        player1 = PlayerFactory(name="Test Player One", nation=nation)
+        player2 = PlayerFactory(name="Test Player Two", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        CompetitionFactory(name="Test Competition", nation=nation)
+        db_session.commit()
+
+        response = client.get("/api/v1/search/?q=test&type=Player")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) >= 2
+        assert all(r["type"] == "Player" for r in data["results"])
+        types = {r["type"] for r in data["results"]}
+        assert "Club" not in types
+        assert "Competition" not in types
+        player_ids = {r["id"] for r in data["results"]}
+        assert player1.id in player_ids
+        assert player2.id in player_ids

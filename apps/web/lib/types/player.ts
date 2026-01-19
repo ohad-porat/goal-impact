@@ -39,6 +39,14 @@ export interface PlayerSeasonRecord {
   stats: PlayerSeasonStats
 }
 
+export interface CareerTotals {
+  total_goal_value: number
+  goal_value_avg: number
+  total_goals: number
+  total_assists: number
+  total_matches_played: number
+}
+
 export interface PlayerDetailsResponse {
   player: {
     id: number
@@ -50,5 +58,6 @@ export interface PlayerDetailsResponse {
     }
   }
   seasons: PlayerSeasonRecord[]
+  career_totals: CareerTotals
 }
 

@@ -100,10 +100,11 @@ class TestGetPlayerSeasonsStats:
 
     def test_returns_none_when_player_not_found(self, db_session) -> None:
         """Test that None and empty list are returned when player is missing."""
-        player_info, seasons = get_player_seasons_stats(db_session, 999999)
+        player_info, seasons, career_totals = get_player_seasons_stats(db_session, 999999)
 
         assert player_info is None
         assert seasons == []
+        assert career_totals is None
 
     def test_returns_player_info_with_sorted_seasons(self, db_session) -> None:
         """Test that player info and seasons are returned in sorted order."""
@@ -141,6 +142,7 @@ class TestGetPlayerSeasonsStats:
             team=team1,
             season=season1,
             matches_played=30,
+            goals_scored=1,
             goal_value=1.234,
             gv_avg=0.0567,
             goal_per_90=0.9876,
@@ -154,6 +156,7 @@ class TestGetPlayerSeasonsStats:
             team=team2,
             season=season2,
             matches_played=34,
+            goals_scored=1,
             goal_value=2.345,
             gv_avg=0.0789,
             goal_per_90=0.6543,
@@ -167,6 +170,7 @@ class TestGetPlayerSeasonsStats:
             team=team3,
             season=season3,
             matches_played=10,
+            goals_scored=0,
             goal_value=None,
             gv_avg=None,
         )
@@ -194,7 +198,7 @@ class TestGetPlayerSeasonsStats:
             match2, player, minute=30, home_pre=0, home_post=0, away_pre=0, away_post=1
         )
 
-        player_info, seasons = get_player_seasons_stats(db_session, player.id)
+        player_info, seasons, career_totals = get_player_seasons_stats(db_session, player.id)
 
         assert player_info is not None
         assert player_info.name == "Star Player"
@@ -212,15 +216,183 @@ class TestGetPlayerSeasonsStats:
         assert seasons[2].stats.goal_value is None
         assert seasons[0].season.display_name == "2022/2023"
 
+        assert career_totals is not None
+        assert career_totals.total_goal_value == 3.58
+        assert career_totals.total_goals == 2
+        assert career_totals.goal_value_avg == 1.79
+
     def test_returns_player_info_without_stats(self, db_session) -> None:
         """Test that player info is returned even when stats are missing."""
         player = PlayerFactory(name="No Stats Player")
 
-        player_info, seasons = get_player_seasons_stats(db_session, player.id)
+        player_info, seasons, career_totals = get_player_seasons_stats(db_session, player.id)
 
         assert player_info is not None
         assert player_info.name == "No Stats Player"
         assert seasons == []
+        assert career_totals is not None
+        assert career_totals.total_goal_value == 0.0
+        assert career_totals.total_goals == 0
+        assert career_totals.goal_value_avg == 0.0
+
+    def test_career_totals_includes_assists_and_matches(self, db_session) -> None:
+        """Test that career totals correctly aggregates assists and matches_played."""
+        player = PlayerFactory(name="Test Player")
+        nation = player.nation
+        team = TeamFactory(nation=nation)
+        _, _, season = create_basic_season_setup(db_session, nation=nation)
+
+        PlayerStatsFactory(
+            player=player,
+            team=team,
+            season=season,
+            goals_scored=10,
+            assists=5,
+            matches_played=30,
+            goal_value=15.5,
+        )
+        db_session.commit()
+
+        _, _, career_totals = get_player_seasons_stats(db_session, player.id)
+
+        assert career_totals is not None
+        assert career_totals.total_assists == 5
+        assert career_totals.total_matches_played == 30
+        assert career_totals.total_goals == 10
+        assert career_totals.total_goal_value == 15.5
+        assert career_totals.goal_value_avg == 1.55
+
+    def test_career_totals_handles_mixed_none_values(self, db_session) -> None:
+        """Test that career totals correctly handles seasons with None values."""
+        player = PlayerFactory(name="Test Player")
+        nation = player.nation
+        team = TeamFactory(nation=nation)
+        _, _, season1 = create_basic_season_setup(
+            db_session, nation=nation, start_year=2022, end_year=2023
+        )
+        _, _, season2 = create_basic_season_setup(
+            db_session, nation=nation, start_year=2023, end_year=2024
+        )
+
+        PlayerStatsFactory(
+            player=player,
+            team=team,
+            season=season1,
+            goals_scored=5,
+            assists=3,
+            matches_played=20,
+            goal_value=10.0,
+        )
+        PlayerStatsFactory(
+            player=player,
+            team=team,
+            season=season2,
+            goals_scored=None,
+            assists=None,
+            matches_played=None,
+            matches_started=None,
+            total_minutes=None,
+            minutes_divided_90=0,
+            total_goal_assists=None,
+            non_pk_goals=None,
+            goal_value=None,
+        )
+        db_session.commit()
+
+        _, _, career_totals = get_player_seasons_stats(db_session, player.id)
+
+        assert career_totals is not None
+        assert career_totals.total_goals == 5
+        assert career_totals.total_assists == 3
+        assert career_totals.total_matches_played == 20
+        assert career_totals.total_goal_value == 10.0
+        assert career_totals.goal_value_avg == 2.0
+
+    def test_career_totals_goal_value_avg_when_no_goals(self, db_session) -> None:
+        """Test that goal_value_avg is 0.0 when total_goals is 0."""
+        player = PlayerFactory(name="Test Player")
+        nation = player.nation
+        team = TeamFactory(nation=nation)
+        _, _, season = create_basic_season_setup(db_session, nation=nation)
+
+        PlayerStatsFactory(
+            player=player,
+            team=team,
+            season=season,
+            goals_scored=0,
+            matches_played=10,
+            goal_value=0.0,
+        )
+        db_session.commit()
+
+        _, _, career_totals = get_player_seasons_stats(db_session, player.id)
+
+        assert career_totals is not None
+        assert career_totals.total_goals == 0
+        assert career_totals.goal_value_avg == 0.0
+
+    def test_career_totals_rounding(self, db_session) -> None:
+        """Test that career totals are rounded to 2 decimal places."""
+        player = PlayerFactory(name="Test Player")
+        nation = player.nation
+        team = TeamFactory(nation=nation)
+        _, _, season = create_basic_season_setup(db_session, nation=nation)
+
+        PlayerStatsFactory(
+            player=player,
+            team=team,
+            season=season,
+            goals_scored=3,
+            goal_value=10.123456,
+        )
+        db_session.commit()
+
+        _, _, career_totals = get_player_seasons_stats(db_session, player.id)
+
+        assert career_totals is not None
+        assert career_totals.total_goal_value == 10.12
+        assert career_totals.goal_value_avg == 3.37
+
+    def test_career_totals_aggregates_multiple_seasons(self, db_session) -> None:
+        """Test that career totals correctly aggregate across multiple seasons."""
+        player = PlayerFactory(name="Test Player")
+        nation = player.nation
+        team = TeamFactory(nation=nation)
+        _, _, season1 = create_basic_season_setup(
+            db_session, nation=nation, start_year=2022, end_year=2023
+        )
+        _, _, season2 = create_basic_season_setup(
+            db_session, nation=nation, start_year=2023, end_year=2024
+        )
+
+        PlayerStatsFactory(
+            player=player,
+            team=team,
+            season=season1,
+            goals_scored=15,
+            assists=8,
+            matches_played=35,
+            goal_value=22.5,
+        )
+        PlayerStatsFactory(
+            player=player,
+            team=team,
+            season=season2,
+            goals_scored=12,
+            assists=6,
+            matches_played=30,
+            goal_value=18.75,
+        )
+        db_session.commit()
+
+        _, _, career_totals = get_player_seasons_stats(db_session, player.id)
+
+        assert career_totals is not None
+        assert career_totals.total_goals == 27
+        assert career_totals.total_assists == 14
+        assert career_totals.total_matches_played == 65
+        assert career_totals.total_goal_value == 41.25
+        assert career_totals.goal_value_avg == 1.53
 
 
 class TestGetPlayerCareerGoalLog:

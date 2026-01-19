@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.search import SearchResponse, SearchResult, SearchResultType
+from app.schemas.search import SearchResponse, SearchResult, SearchType
 
 
 class TestSearchResult:
@@ -17,8 +17,13 @@ class TestSearchResult:
         assert result.type == "Player"
 
     def test_accepts_all_valid_types(self) -> None:
-        """Test that all valid SearchResultType values are accepted."""
-        valid_types: list[SearchResultType] = ["Player", "Club", "Competition", "Nation"]
+        """Test that all valid SearchType values are accepted."""
+        valid_types = [
+            SearchType.PLAYER,
+            SearchType.CLUB,
+            SearchType.COMPETITION,
+            SearchType.NATION,
+        ]
         for result_type in valid_types:
             result = SearchResult(id=1, name="Test", type=result_type)
             assert result.type == result_type
@@ -58,8 +63,8 @@ class TestSearchResult:
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("name",) for error in errors)
 
-    def test_validates_type_literal(self) -> None:
-        """Test that type must be a valid SearchResultType."""
+    def test_validates_type_enum(self) -> None:
+        """Test that type must be a valid SearchType."""
         with pytest.raises(ValidationError) as exc_info:
             SearchResult(id=1, name="Lionel Messi", type="InvalidType")
         errors = exc_info.value.errors()
