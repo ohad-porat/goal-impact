@@ -18,7 +18,12 @@ class TestSearchResult:
 
     def test_accepts_all_valid_types(self) -> None:
         """Test that all valid SearchType values are accepted."""
-        valid_types = [SearchType.PLAYER, SearchType.CLUB, SearchType.COMPETITION, SearchType.NATION]
+        valid_types = [
+            SearchType.PLAYER,
+            SearchType.CLUB,
+            SearchType.COMPETITION,
+            SearchType.NATION,
+        ]
         for result_type in valid_types:
             result = SearchResult(id=1, name="Test", type=result_type)
             assert result.type == result_type
