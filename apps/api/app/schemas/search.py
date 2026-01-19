@@ -1,10 +1,17 @@
 """Search-related schemas for API responses."""
 
-from typing import Literal
+from enum import Enum
 
 from pydantic import BaseModel
 
-SearchResultType = Literal["Player", "Club", "Competition", "Nation"]
+
+class SearchType(str, Enum):
+    """Enum for search result types."""
+
+    PLAYER = "Player"
+    CLUB = "Club"
+    COMPETITION = "Competition"
+    NATION = "Nation"
 
 
 class SearchResult(BaseModel):
@@ -12,7 +19,7 @@ class SearchResult(BaseModel):
 
     id: int
     name: str
-    type: SearchResultType
+    type: SearchType
 
 
 class SearchResponse(BaseModel):

@@ -8,10 +8,12 @@ from app.models.nations import Nation
 from app.models.player_stats import PlayerStats
 from app.models.players import Player
 from app.models.teams import Team
-from app.schemas.search import SearchResult
+from app.schemas.search import SearchResult, SearchType
 
 
-def search_all(db: Session, query: str, limit_per_type: int = 1) -> list[SearchResult]:
+def search_all(
+    db: Session, query: str, limit_per_type: int = 1, type_filter: str | None = None
+) -> list[SearchResult]:
     """Search across players, clubs, competitions, and nations with prefix preference.
 
     Prefix matches (name starts with query) are returned before contains matches.
@@ -21,6 +23,9 @@ def search_all(db: Session, query: str, limit_per_type: int = 1) -> list[SearchR
         db: Database session
         query: Search query string (lowercased and trimmed)
         limit_per_type: Max results per entity type (default: 1)
+        type_filter: Optional filter to restrict results to a specific type.
+                    Should be one of SearchType enum values: "Player", "Club",
+                    "Competition", or "Nation". If None, searches all types.
 
     Returns:
         List of SearchResult objects: prefix matches first, then contains matches.
@@ -29,6 +34,11 @@ def search_all(db: Session, query: str, limit_per_type: int = 1) -> list[SearchR
         return []
 
     query_lower = query.lower().strip()
+
+    if type_filter is not None:
+        valid_types = {st.value for st in SearchType}
+        if type_filter not in valid_types:
+            return []
 
     matches_played_subquery = (
         select(
@@ -42,90 +52,106 @@ def search_all(db: Session, query: str, limit_per_type: int = 1) -> list[SearchR
     prefix_queries = []
     contains_queries = []
 
-    prefix_queries.append(
-        select(
-            Player.id,
-            Player.name,
-            literal("Player").label("type"),
-            func.coalesce(matches_played_subquery.c.total_matches, 0).label("matches_played"),
+    if type_filter is None or type_filter == SearchType.PLAYER.value:
+        prefix_queries.append(
+            select(
+                Player.id,
+                Player.name,
+                literal(SearchType.PLAYER.value).label("type"),
+                func.coalesce(matches_played_subquery.c.total_matches, 0).label("matches_played"),
+            )
+            .outerjoin(matches_played_subquery, Player.id == matches_played_subquery.c.player_id)
+            .where(func.lower(Player.name).like(f"{query_lower}%"), Player.name.isnot(None))
         )
-        .outerjoin(matches_played_subquery, Player.id == matches_played_subquery.c.player_id)
-        .where(func.lower(Player.name).like(f"{query_lower}%"), Player.name.isnot(None))
-    )
 
-    prefix_queries.append(
-        select(
-            Team.id, Team.name, literal("Club").label("type"), literal(0).label("matches_played")
-        ).where(func.lower(Team.name).like(f"{query_lower}%"), Team.name.isnot(None))
-    )
-
-    prefix_queries.append(
-        select(
-            Competition.id,
-            Competition.name,
-            literal("Competition").label("type"),
-            literal(0).label("matches_played"),
-        ).where(func.lower(Competition.name).like(f"{query_lower}%"), Competition.name.isnot(None))
-    )
-
-    prefix_queries.append(
-        select(
-            Nation.id,
-            Nation.name,
-            literal("Nation").label("type"),
-            literal(0).label("matches_played"),
-        ).where(func.lower(Nation.name).like(f"{query_lower}%"))
-    )
-
-    contains_queries.append(
-        select(
-            Player.id,
-            Player.name,
-            literal("Player").label("type"),
-            func.coalesce(matches_played_subquery.c.total_matches, 0).label("matches_played"),
+    if type_filter is None or type_filter == SearchType.CLUB.value:
+        prefix_queries.append(
+            select(
+                Team.id,
+                Team.name,
+                literal(SearchType.CLUB.value).label("type"),
+                literal(0).label("matches_played"),
+            ).where(func.lower(Team.name).like(f"{query_lower}%"), Team.name.isnot(None))
         )
-        .outerjoin(matches_played_subquery, Player.id == matches_played_subquery.c.player_id)
-        .where(
-            func.lower(Player.name).like(f"%{query_lower}%"),
-            Player.name.isnot(None),
-            ~func.lower(Player.name).like(f"{query_lower}%"),
-        )
-    )
 
-    contains_queries.append(
-        select(
-            Team.id, Team.name, literal("Club").label("type"), literal(0).label("matches_played")
-        ).where(
-            func.lower(Team.name).like(f"%{query_lower}%"),
-            Team.name.isnot(None),
-            ~func.lower(Team.name).like(f"{query_lower}%"),
+    if type_filter is None or type_filter == SearchType.COMPETITION.value:
+        prefix_queries.append(
+            select(
+                Competition.id,
+                Competition.name,
+                literal(SearchType.COMPETITION.value).label("type"),
+                literal(0).label("matches_played"),
+            ).where(
+                func.lower(Competition.name).like(f"{query_lower}%"), Competition.name.isnot(None)
+            )
         )
-    )
 
-    contains_queries.append(
-        select(
-            Competition.id,
-            Competition.name,
-            literal("Competition").label("type"),
-            literal(0).label("matches_played"),
-        ).where(
-            func.lower(Competition.name).like(f"%{query_lower}%"),
-            Competition.name.isnot(None),
-            ~func.lower(Competition.name).like(f"{query_lower}%"),
+    if type_filter is None or type_filter == SearchType.NATION.value:
+        prefix_queries.append(
+            select(
+                Nation.id,
+                Nation.name,
+                literal(SearchType.NATION.value).label("type"),
+                literal(0).label("matches_played"),
+            ).where(func.lower(Nation.name).like(f"{query_lower}%"))
         )
-    )
 
-    contains_queries.append(
-        select(
-            Nation.id,
-            Nation.name,
-            literal("Nation").label("type"),
-            literal(0).label("matches_played"),
-        ).where(
-            func.lower(Nation.name).like(f"%{query_lower}%"),
-            ~func.lower(Nation.name).like(f"{query_lower}%"),
+    if type_filter is None or type_filter == SearchType.PLAYER.value:
+        contains_queries.append(
+            select(
+                Player.id,
+                Player.name,
+                literal(SearchType.PLAYER.value).label("type"),
+                func.coalesce(matches_played_subquery.c.total_matches, 0).label("matches_played"),
+            )
+            .outerjoin(matches_played_subquery, Player.id == matches_played_subquery.c.player_id)
+            .where(
+                func.lower(Player.name).like(f"%{query_lower}%"),
+                Player.name.isnot(None),
+                ~func.lower(Player.name).like(f"{query_lower}%"),
+            )
         )
-    )
+
+    if type_filter is None or type_filter == SearchType.CLUB.value:
+        contains_queries.append(
+            select(
+                Team.id,
+                Team.name,
+                literal(SearchType.CLUB.value).label("type"),
+                literal(0).label("matches_played"),
+            ).where(
+                func.lower(Team.name).like(f"%{query_lower}%"),
+                Team.name.isnot(None),
+                ~func.lower(Team.name).like(f"{query_lower}%"),
+            )
+        )
+
+    if type_filter is None or type_filter == SearchType.COMPETITION.value:
+        contains_queries.append(
+            select(
+                Competition.id,
+                Competition.name,
+                literal(SearchType.COMPETITION.value).label("type"),
+                literal(0).label("matches_played"),
+            ).where(
+                func.lower(Competition.name).like(f"%{query_lower}%"),
+                Competition.name.isnot(None),
+                ~func.lower(Competition.name).like(f"{query_lower}%"),
+            )
+        )
+
+    if type_filter is None or type_filter == SearchType.NATION.value:
+        contains_queries.append(
+            select(
+                Nation.id,
+                Nation.name,
+                literal(SearchType.NATION.value).label("type"),
+                literal(0).label("matches_played"),
+            ).where(
+                func.lower(Nation.name).like(f"%{query_lower}%"),
+                ~func.lower(Nation.name).like(f"{query_lower}%"),
+            )
+        )
 
     prefix_results = []
     contains_results = []

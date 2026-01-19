@@ -1,14 +1,13 @@
 """Player-related business logic services."""
 
-from datetime import date
-
-from sqlalchemy import and_, case, func, or_
+from sqlalchemy import and_, case, or_
 from sqlalchemy.orm import Session, aliased, joinedload
 
 from app.models import Competition, Event, Match, Player, Season, Team, TeamStats
 from app.models import PlayerStats as PlayerStatsModel
 from app.schemas.clubs import PlayerBasic, PlayerGoalLogEntry
 from app.schemas.players import (
+    CareerTotals,
     CompetitionInfo,
     PlayerInfo,
     PlayerStats,
@@ -16,7 +15,11 @@ from app.schemas.players import (
     SeasonDisplay,
     TeamInfo,
 )
-from app.services.common import build_nation_info, format_season_display_name
+from app.services.common import (
+    build_nation_info,
+    calculate_goal_value_avg,
+    format_season_display_name,
+)
 from app.services.goal_log import (
     build_player_career_goal_log_entry_from_data,
     sort_and_format_player_career_goal_entries,
@@ -66,44 +69,22 @@ def transform_player_stats(stats: PlayerStatsModel) -> PlayerStats:
 
 def get_player_seasons_stats(
     db: Session, player_id: int
-) -> tuple[PlayerInfo | None, list[SeasonData]]:
+) -> tuple[PlayerInfo | None, list[SeasonData], CareerTotals | None]:
     """Get player information with statistics across all seasons.
-
-    Uses subquery to find earliest goal date per team/season for sorting when
-    player played for multiple teams in same season.
 
     Args:
         db: Database session
         player_id: ID of the player
 
     Returns:
-        Tuple of (PlayerInfo, list[SeasonData]). Sorted by start_year and earliest goal date.
+        Tuple of (PlayerInfo, list[SeasonData], CareerTotals). Sorted by start_year.
     """
     player = (
         db.query(Player).options(joinedload(Player.nation)).filter(Player.id == player_id).first()
     )
 
     if not player:
-        return None, []
-
-    team_case = case(
-        (Event.home_team_goals_post_event > Event.home_team_goals_pre_event, Match.home_team_id),
-        else_=Match.away_team_id,
-    )
-
-    earliest_dates_subquery = (
-        db.query(
-            Match.season_id, team_case.label("team_id"), func.min(Match.date).label("earliest_date")
-        )
-        .select_from(Event)
-        .join(Match, Event.match_id == Match.id)
-        .filter(
-            Event.player_id == player_id,
-            or_(Event.event_type == "goal", Event.event_type == "own goal"),
-        )
-        .group_by(Match.season_id, team_case)
-        .subquery()
-    )
+        return None, [], None
 
     player_stats_query = (
         db.query(
@@ -112,7 +93,6 @@ def get_player_seasons_stats(
             Team,
             Competition,
             TeamStats,
-            earliest_dates_subquery.c.earliest_date,
         )
         .select_from(PlayerStatsModel)
         .join(Season, PlayerStatsModel.season_id == Season.id)
@@ -123,43 +103,56 @@ def get_player_seasons_stats(
             (TeamStats.team_id == PlayerStatsModel.team_id)
             & (TeamStats.season_id == PlayerStatsModel.season_id),
         )
-        .outerjoin(
-            earliest_dates_subquery,
-            (earliest_dates_subquery.c.season_id == Season.id)
-            & (earliest_dates_subquery.c.team_id == PlayerStatsModel.team_id),
-        )
         .filter(PlayerStatsModel.player_id == player_id)
         .order_by(Season.start_year.asc())
         .all()
     )
 
     seasons_data = [
-        (
-            SeasonData(
-                season=SeasonDisplay(
-                    id=season.id,
-                    start_year=season.start_year,
-                    end_year=season.end_year,
-                    display_name=format_season_display_name(season.start_year, season.end_year),
-                ),
-                team=TeamInfo(id=team.id, name=team.name),
-                competition=CompetitionInfo(id=competition.id, name=competition.name),
-                league_rank=team_stats.ranking if team_stats else None,
-                stats=transform_player_stats(player_stats),
+        SeasonData(
+            season=SeasonDisplay(
+                id=season.id,
+                start_year=season.start_year,
+                end_year=season.end_year,
+                display_name=format_season_display_name(season.start_year, season.end_year),
             ),
-            earliest_date,
+            team=TeamInfo(id=team.id, name=team.name),
+            competition=CompetitionInfo(id=competition.id, name=competition.name),
+            league_rank=team_stats.ranking if team_stats else None,
+            stats=transform_player_stats(player_stats),
         )
-        for player_stats, season, team, competition, team_stats, earliest_date in player_stats_query
+        for player_stats, season, team, competition, team_stats in player_stats_query
     ]
 
-    seasons_data.sort(key=lambda x: (x[0].season.start_year, x[1] if x[1] else date.max))
-    seasons_data = [sd[0] for sd in seasons_data]
+    seasons_data.sort(key=lambda x: x.season.start_year)
+
+    total_goal_value = sum(
+        season.stats.goal_value for season in seasons_data if season.stats.goal_value
+    )
+    total_goals = sum(
+        season.stats.goals_scored for season in seasons_data if season.stats.goals_scored
+    )
+    total_assists = sum(season.stats.assists for season in seasons_data if season.stats.assists)
+    total_matches_played = sum(
+        season.stats.matches_played for season in seasons_data if season.stats.matches_played
+    )
+
+    goal_value_avg = calculate_goal_value_avg(total_goal_value, total_goals)
+    goal_value_avg_rounded = round(goal_value_avg, 2) if goal_value_avg else 0.0
+
+    career_totals = CareerTotals(
+        total_goal_value=round(total_goal_value, 2) if total_goal_value else 0.0,
+        goal_value_avg=goal_value_avg_rounded,
+        total_goals=int(total_goals) if total_goals else 0,
+        total_assists=int(total_assists) if total_assists else 0,
+        total_matches_played=int(total_matches_played) if total_matches_played else 0,
+    )
 
     player_info = PlayerInfo(
         id=player.id, name=player.name, nation=build_nation_info(player.nation)
     )
 
-    return player_info, seasons_data
+    return player_info, seasons_data, career_totals
 
 
 def get_player_career_goal_log(

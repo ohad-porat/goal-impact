@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from app.schemas.common import NationInfo
 from app.schemas.players import (
+    CareerTotals,
     CompetitionInfo,
     PlayerDetailsResponse,
     PlayerInfo,
@@ -543,11 +544,21 @@ class TestPlayerDetailsResponse:
             stats=stats,
         )
 
-        response = PlayerDetailsResponse(player=sample_player_info, seasons=[season_data])
+        career_totals = CareerTotals(
+            total_goal_value=10.5,
+            goal_value_avg=1.05,
+            total_goals=10,
+            total_assists=5,
+            total_matches_played=30,
+        )
+        response = PlayerDetailsResponse(
+            player=sample_player_info, seasons=[season_data], career_totals=career_totals
+        )
 
         assert response.player.id == 1
         assert len(response.seasons) == 1
         assert response.seasons[0].stats.goals_scored == 10
+        assert response.career_totals.total_goals == 10
 
     def test_requires_player(self) -> None:
         """Test that player is required."""
@@ -558,14 +569,30 @@ class TestPlayerDetailsResponse:
 
     def test_requires_seasons(self, sample_player_info: PlayerInfo) -> None:
         """Test that seasons is required."""
+        career_totals = CareerTotals(
+            total_goal_value=0.0,
+            goal_value_avg=0.0,
+            total_goals=0,
+            total_assists=0,
+            total_matches_played=0,
+        )
         with pytest.raises(ValidationError) as exc_info:
-            PlayerDetailsResponse(player=sample_player_info)
+            PlayerDetailsResponse(player=sample_player_info, career_totals=career_totals)
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("seasons",) for error in errors)
 
     def test_accepts_empty_seasons_list(self, sample_player_info: PlayerInfo) -> None:
         """Test that empty seasons list is accepted."""
-        response = PlayerDetailsResponse(player=sample_player_info, seasons=[])
+        career_totals = CareerTotals(
+            total_goal_value=0.0,
+            goal_value_avg=0.0,
+            total_goals=0,
+            total_assists=0,
+            total_matches_played=0,
+        )
+        response = PlayerDetailsResponse(
+            player=sample_player_info, seasons=[], career_totals=career_totals
+        )
         assert response.seasons == []
 
     def test_accepts_multiple_seasons(
@@ -594,33 +621,69 @@ class TestPlayerDetailsResponse:
             stats=empty_player_stats,
         )
 
+        career_totals = CareerTotals(
+            total_goal_value=0.0,
+            goal_value_avg=0.0,
+            total_goals=0,
+            total_assists=0,
+            total_matches_played=0,
+        )
         response = PlayerDetailsResponse(
-            player=sample_player_info, seasons=[season_data1, season_data2]
+            player=sample_player_info,
+            seasons=[season_data1, season_data2],
+            career_totals=career_totals,
         )
 
         assert len(response.seasons) == 2
 
     def test_validates_seasons_list_type(self, sample_player_info: PlayerInfo) -> None:
         """Test that seasons must be a list."""
+        career_totals = CareerTotals(
+            total_goal_value=0.0,
+            goal_value_avg=0.0,
+            total_goals=0,
+            total_assists=0,
+            total_matches_played=0,
+        )
         with pytest.raises(ValidationError) as exc_info:
-            PlayerDetailsResponse(player=sample_player_info, seasons="not_a_list")
+            PlayerDetailsResponse(
+                player=sample_player_info, seasons="not_a_list", career_totals=career_totals
+            )
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("seasons",) for error in errors)
 
     def test_serializes_to_dict(self, sample_player_info: PlayerInfo) -> None:
         """Test serialization to dictionary."""
-        response = PlayerDetailsResponse(player=sample_player_info, seasons=[])
+        career_totals = CareerTotals(
+            total_goal_value=0.0,
+            goal_value_avg=0.0,
+            total_goals=0,
+            total_assists=0,
+            total_matches_played=0,
+        )
+        response = PlayerDetailsResponse(
+            player=sample_player_info, seasons=[], career_totals=career_totals
+        )
         data = response.model_dump()
         assert data["player"]["id"] == 1
         assert data["seasons"] == []
+        assert "career_totals" in data
 
     def test_deserializes_from_dict(self) -> None:
         """Test deserialization from dictionary."""
         data = {
             "player": {"id": 1, "name": "Lionel Messi", "nation": None},
             "seasons": [],
+            "career_totals": {
+                "total_goal_value": 10.5,
+                "goal_value_avg": 1.05,
+                "total_goals": 10,
+                "total_assists": 5,
+                "total_matches_played": 30,
+            },
         }
         response = PlayerDetailsResponse.model_validate(data)
         assert response.player.id == 1
         assert response.player.name == "Lionel Messi"
         assert response.seasons == []
+        assert response.career_totals.total_goals == 10

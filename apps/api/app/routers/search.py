@@ -12,9 +12,13 @@ router = APIRouter()
 
 @router.get("/", response_model=SearchResponse)
 async def search(
-    q: str = Query(..., min_length=1, description="Search query"), db: Session = Depends(get_db)
+    q: str = Query(..., min_length=1, description="Search query"),
+    type: str | None = Query(
+        None, description="Filter results by type (Player, Club, Competition, Nation)"
+    ),
+    db: Session = Depends(get_db),
 ):
     """Search across players, clubs, competitions, and nations."""
-    results = search_all(db, q, limit_per_type=5)
+    results = search_all(db, q, limit_per_type=5, type_filter=type)
 
     return SearchResponse(results=results)
