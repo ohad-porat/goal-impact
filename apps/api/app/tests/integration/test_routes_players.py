@@ -38,9 +38,11 @@ class TestGetPlayerDetailsRoute:
         data = response.json()
         assert "player" in data
         assert "seasons" in data
+        assert "career_totals" in data
         assert data["player"]["id"] == player.id
         assert data["player"]["name"] == "Test Player"
         assert isinstance(data["seasons"], list)
+        assert data["career_totals"]["total_goals"] == 0
 
     def test_returns_player_with_seasons(self, client: TestClient, db_session) -> None:
         """Test that player with seasons returns correct data."""
@@ -71,6 +73,10 @@ class TestGetPlayerDetailsRoute:
         assert season_data["stats"]["matches_played"] == 30
         assert season_data["stats"]["goals_scored"] == 15
         assert season_data["stats"]["assists"] == 10
+        assert "career_totals" in data
+        assert data["career_totals"]["total_goals"] == 15
+        assert data["career_totals"]["total_assists"] == 10
+        assert data["career_totals"]["total_matches_played"] == 30
 
     def test_returns_player_without_seasons(self, client: TestClient, db_session) -> None:
         """Test that player without seasons returns empty seasons list."""
@@ -83,6 +89,8 @@ class TestGetPlayerDetailsRoute:
         data = response.json()
         assert data["player"]["id"] == player.id
         assert data["seasons"] == []
+        assert "career_totals" in data
+        assert data["career_totals"]["total_goals"] == 0
 
     def test_handles_various_invalid_player_id_types(self, client: TestClient, db_session) -> None:
         """Test that various invalid player_id types return validation error."""

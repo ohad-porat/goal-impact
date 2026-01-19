@@ -42,9 +42,12 @@ export const api = {
     }
     return url.toString()
   },
-  search: (query: string) => {
+  search: (query: string, type?: string) => {
     const url = new URL(`${API_BASE_URL}/search/`)
     url.searchParams.set('q', query)
+    if (type) {
+      url.searchParams.set('type', type)
+    }
     return url.toString()
   },
 }

@@ -14,12 +14,14 @@ router = APIRouter()
 @router.get("/{player_id}", response_model=PlayerDetailsResponse)
 async def get_player_details(player_id: int, db: Session = Depends(get_db)):
     """Get detailed player information with statistics across all seasons"""
-    player_info, seasons_data = get_player_seasons_stats(db, player_id)
+    player_info, seasons_data, career_totals = get_player_seasons_stats(db, player_id)
 
     if not player_info:
         raise HTTPException(status_code=404, detail="Player not found")
 
-    return PlayerDetailsResponse(player=player_info, seasons=seasons_data)
+    return PlayerDetailsResponse(
+        player=player_info, seasons=seasons_data, career_totals=career_totals
+    )
 
 
 @router.get("/{player_id}/goals", response_model=PlayerGoalLogResponse)

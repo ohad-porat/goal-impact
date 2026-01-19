@@ -1,5 +1,7 @@
 """Unit tests for search service layer."""
 
+import pytest
+
 from app.services.search import search_all
 from app.tests.utils.factories import (
     CompetitionFactory,
@@ -252,3 +254,151 @@ class TestSearchAll:
 
         assert len(result) == 1
         assert result[0].name == "Alice Smith"
+
+    @pytest.mark.parametrize("type_filter", ["Player", "Club", "Competition", "Nation"])
+    def test_type_filter_returns_only_matching_type(self, db_session, type_filter) -> None:
+        """Test that type_filter returns only entities of the specified type."""
+        nation = NationFactory(name="Test Nation", country_code="TST")
+        player = PlayerFactory(name="Test Player", nation=nation)
+        team = TeamFactory(name="Test Club", nation=nation)
+        competition = CompetitionFactory(name="Test Competition", nation=nation)
+
+        db_session.commit()
+
+        result = search_all(db_session, "test", limit_per_type=5, type_filter=type_filter)
+
+        assert len(result) == 1
+        assert all(r.type == type_filter for r in result)
+
+        expected_map = {
+            "Player": (player.id, "Test Player"),
+            "Club": (team.id, "Test Club"),
+            "Competition": (competition.id, "Test Competition"),
+            "Nation": (nation.id, "Test Nation"),
+        }
+        expected_id, expected_name = expected_map[type_filter]
+        assert result[0].id == expected_id
+        assert result[0].name == expected_name
+
+    def test_type_filter_none_returns_all_types(self, db_session) -> None:
+        """Test that type_filter=None returns all types (backward compatibility)."""
+        nation = NationFactory(name="Test Nation", country_code="TST")
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        CompetitionFactory(name="Test Competition", nation=nation)
+
+        db_session.commit()
+
+        result = search_all(db_session, "test", limit_per_type=5, type_filter=None)
+
+        types = {r.type for r in result}
+        assert types == {"Player", "Club", "Competition", "Nation"}
+        assert len(result) == 4
+
+    def test_type_filter_invalid_value_returns_empty(self, db_session) -> None:
+        """Test that invalid type_filter value returns empty results."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+
+        db_session.commit()
+
+        result = search_all(db_session, "test", limit_per_type=5, type_filter="InvalidType")
+
+        assert result == []
+
+    def test_type_filter_works_with_prefix_matches(self, db_session) -> None:
+        """Test that type_filter works with prefix matches."""
+        nation = NationFactory()
+        player1 = PlayerFactory(name="Alice Smith", nation=nation)
+        PlayerFactory(name="Bob Alice", nation=nation)
+        TeamFactory(name="Alice FC", nation=nation)
+
+        db_session.commit()
+
+        result = search_all(db_session, "alice", limit_per_type=5, type_filter="Player")
+
+        assert len(result) == 2
+        assert all(r.type == "Player" for r in result)
+        assert result[0].id == player1.id
+        assert result[0].name == "Alice Smith"
+
+    def test_type_filter_works_with_contains_matches(self, db_session) -> None:
+        """Test that type_filter works with contains matches."""
+        nation = NationFactory()
+        PlayerFactory(name="Alice Smith", nation=nation)
+        player2 = PlayerFactory(name="Bob Alice", nation=nation)
+        TeamFactory(name="Team Alice", nation=nation)
+
+        db_session.commit()
+
+        result = search_all(db_session, "alice", limit_per_type=5, type_filter="Player")
+
+        assert len(result) == 2
+        assert all(r.type == "Player" for r in result)
+        player_ids = {r.id for r in result}
+        assert player2.id in player_ids
+
+    def test_type_filter_respects_limit_per_type(self, db_session) -> None:
+        """Test that type_filter respects limit_per_type for the filtered type."""
+        nation = NationFactory()
+
+        for i in range(10):
+            PlayerFactory(name=f"Test Player {i}", nation=nation)
+
+        db_session.commit()
+
+        result = search_all(db_session, "test", limit_per_type=3, type_filter="Player")
+
+        assert len(result) == 3
+        assert all(r.type == "Player" for r in result)
+
+    def test_type_filter_with_multiple_matches(self, db_session) -> None:
+        """Test that type_filter works correctly when multiple entities of that type match."""
+        nation = NationFactory()
+        player1 = PlayerFactory(name="Test Player One", nation=nation)
+        player2 = PlayerFactory(name="Test Player Two", nation=nation)
+        TeamFactory(name="Test Club", nation=nation)
+        CompetitionFactory(name="Test Competition", nation=nation)
+
+        db_session.commit()
+
+        result = search_all(db_session, "test", limit_per_type=5, type_filter="Player")
+
+        assert len(result) == 2
+        assert all(r.type == "Player" for r in result)
+        player_ids = {r.id for r in result}
+        assert player1.id in player_ids
+        assert player2.id in player_ids
+
+    def test_type_filter_case_insensitive_search(self, db_session) -> None:
+        """Test that search is case-insensitive with type_filter."""
+        nation = NationFactory()
+        player = PlayerFactory(name="John Smith", nation=nation)
+
+        db_session.commit()
+
+        result_lower = search_all(db_session, "john", limit_per_type=5, type_filter="Player")
+        result_upper = search_all(db_session, "JOHN", limit_per_type=5, type_filter="Player")
+        result_mixed = search_all(db_session, "JoHn", limit_per_type=5, type_filter="Player")
+
+        assert len(result_lower) == 1
+        assert len(result_upper) == 1
+        assert len(result_mixed) == 1
+
+        assert result_lower[0].id == player.id
+        assert result_upper[0].id == player.id
+        assert result_mixed[0].id == player.id
+
+    def test_type_filter_with_empty_query_returns_empty(self, db_session) -> None:
+        """Test that empty query returns empty results even with type_filter."""
+        nation = NationFactory()
+        PlayerFactory(name="Test Player", nation=nation)
+
+        db_session.commit()
+
+        result_empty = search_all(db_session, "", limit_per_type=5, type_filter="Player")
+        assert result_empty == []
+
+        result_whitespace = search_all(db_session, "   ", limit_per_type=5, type_filter="Player")
+        assert result_whitespace == []

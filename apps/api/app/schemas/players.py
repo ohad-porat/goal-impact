@@ -70,8 +70,19 @@ class SeasonData(BaseModel):
     stats: PlayerStats
 
 
+class CareerTotals(BaseModel):
+    """Career totals for a player across all seasons."""
+
+    total_goal_value: float
+    goal_value_avg: float
+    total_goals: int
+    total_assists: int
+    total_matches_played: int
+
+
 class PlayerDetailsResponse(BaseModel):
     """Response for player details endpoint."""
 
     player: PlayerInfo
     seasons: list[SeasonData]
+    career_totals: CareerTotals
