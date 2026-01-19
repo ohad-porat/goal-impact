@@ -17,17 +17,17 @@ A full-stack web application for soccer data analytics featuring proprietary Goa
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Next.js 14 + React + TypeScript |
-| **Styling** | Tailwind CSS |
-| **Backend** | FastAPI + Python 3.10+ |
-| **Database** | PostgreSQL |
-| **ORM** | SQLAlchemy 2.0 + Alembic |
-| **Data Ingestion** | Custom FBRef scraper system |
-| **Build System** | Turborepo + Yarn Workspaces |
-| **Testing** | Vitest + React Testing Library (Frontend), Pytest + Factory Boy (Backend), Playwright (E2E) |
-| **Code Quality** | Ruff (Python), ESLint + Prettier (TypeScript) |
+| Layer              | Technology                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| **Frontend**       | Next.js 14 + React + TypeScript                                                             |
+| **Styling**        | Tailwind CSS                                                                                |
+| **Backend**        | FastAPI + Python 3.10+                                                                      |
+| **Database**       | PostgreSQL                                                                                  |
+| **ORM**            | SQLAlchemy 2.0 + Alembic                                                                    |
+| **Data Ingestion** | Custom FBRef scraper system                                                                 |
+| **Build System**   | Turborepo + Yarn Workspaces                                                                 |
+| **Testing**        | Vitest + React Testing Library (Frontend), Pytest + Factory Boy (Backend), Playwright (E2E) |
+| **Code Quality**   | Ruff (Python), ESLint + Prettier (TypeScript)                                               |
 
 ## Features
 
@@ -64,12 +64,14 @@ Create a PostgreSQL database for the application.
 Create environment files for both applications:
 
 **`apps/api/.env.local`** - Required variables:
+
 ```bash
 DATABASE_URL=postgresql://user:password@localhost:5432/goal_impact
 ALLOWED_HOSTS=["http://localhost:3000"]
 ```
 
 **`apps/web/.env.local`** - Required variables:
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
@@ -89,6 +91,7 @@ yarn dev
 ```
 
 This will start:
+
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost:8000`
 
@@ -155,11 +158,13 @@ The project includes comprehensive test coverage across multiple layers:
 ### Test Structure
 
 **Backend Tests:**
+
 - **Unit Tests**: Models, services, schemas, and goal value core logic
 - **Integration Tests**: API route endpoints
 - **Scraper Tests**: FBRef scraper system components
 
 **Frontend Tests:**
+
 - **Component Tests**: React components with user interaction testing
 - **Hook Tests**: Custom React hooks and data fetching logic
 - **Utility Tests**: Helper functions and API client utilities
@@ -224,6 +229,7 @@ cd apps/web
 ```
 
 This script automatically:
+
 - Sets up a test database (SQLite)
 - Runs migrations
 - Seeds test data
@@ -260,6 +266,7 @@ yarn test:e2e e2e/home.spec.ts
 ### CI/CD
 
 The project uses GitHub Actions for continuous integration, running:
+
 - **Backend**: Unit tests for models, services, and schemas; Integration tests for API routes; Scraper tests
 - **Frontend**: Component tests, hook tests, and utility tests using Vitest
 - **E2E**: Browser-based end-to-end tests using Playwright (Chromium in CI, all browsers locally)

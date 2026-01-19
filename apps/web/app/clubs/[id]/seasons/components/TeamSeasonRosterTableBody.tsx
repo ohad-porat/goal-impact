@@ -1,14 +1,16 @@
-import { tableStyles } from '../../../../../lib/tableStyles'
-import { StatCell } from '../../../../../lib/components/StatCell'
-import { PlayerSeasonData } from '../../../../../lib/types/club'
-import Link from 'next/link'
+import { tableStyles } from "../../../../../lib/tableStyles";
+import { StatCell } from "../../../../../lib/components/StatCell";
+import { PlayerSeasonData } from "../../../../../lib/types/club";
+import Link from "next/link";
 
 interface TeamSeasonRosterTableBodyProps {
-  players: PlayerSeasonData[]
+  players: PlayerSeasonData[];
 }
 
-export function TeamSeasonRosterTableBody({ players }: TeamSeasonRosterTableBodyProps) {
-  const { statsTable } = tableStyles
+export function TeamSeasonRosterTableBody({
+  players,
+}: TeamSeasonRosterTableBodyProps) {
+  const { statsTable } = tableStyles;
 
   if (players.length === 0) {
     return (
@@ -19,28 +21,34 @@ export function TeamSeasonRosterTableBody({ players }: TeamSeasonRosterTableBody
           </td>
         </tr>
       </tbody>
-    )
+    );
   }
 
   return (
     <tbody className="bg-slate-800 divide-y divide-gray-700">
       {players.map((playerData, index) => {
-        const { player, stats } = playerData
+        const { player, stats } = playerData;
 
         return (
-          <tr key={player.id} className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}>
-            <td className={`${statsTable.cell} px-2 max-w-[320px] overflow-hidden`}>
-              <Link 
+          <tr
+            key={player.id}
+            className={`${index % 2 === 0 ? "bg-slate-800" : "bg-slate-750"} hover:bg-slate-700 transition-colors`}
+          >
+            <td
+              className={`${statsTable.cell} px-2 max-w-[320px] overflow-hidden`}
+            >
+              <Link
                 href={`/players/${player.id}`}
                 className={`${statsTable.text.primary} hover:text-orange-400 transition-colors`}
               >
-                <span className="block truncate">
-                  {player.name}
-                </span>
+                <span className="block truncate">{player.name}</span>
               </Link>
             </td>
 
-            <StatCell value={stats.goal_value} formatter={(v) => v.toFixed(2)} />
+            <StatCell
+              value={stats.goal_value}
+              formatter={(v) => v.toFixed(2)}
+            />
             <StatCell value={stats.gv_avg} formatter={(v) => v.toFixed(2)} />
             <StatCell value={stats.goals_scored} />
             <StatCell value={stats.assists} />
@@ -52,11 +60,14 @@ export function TeamSeasonRosterTableBody({ players }: TeamSeasonRosterTableBody
             <StatCell value={stats.red_cards} />
             <StatCell value={stats.matches_played} />
             <StatCell value={stats.matches_started} />
-            <StatCell value={stats.total_minutes} formatter={(v) => v.toLocaleString()} />
+            <StatCell
+              value={stats.total_minutes}
+              formatter={(v) => v.toLocaleString()}
+            />
             <StatCell value={stats.minutes_divided_90} className="border-r" />
           </tr>
-        )
+        );
       })}
     </tbody>
-  )
+  );
 }

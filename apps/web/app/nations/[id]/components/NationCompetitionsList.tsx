@@ -1,11 +1,13 @@
-import Link from 'next/link'
-import { NationCompetition } from '../../../../lib/types/nation'
+import Link from "next/link";
+import { NationCompetition } from "../../../../lib/types/nation";
 
 interface NationCompetitionsListProps {
-  competitions: NationCompetition[]
+  competitions: NationCompetition[];
 }
 
-export function NationCompetitionsList({ competitions }: NationCompetitionsListProps) {
+export function NationCompetitionsList({
+  competitions,
+}: NationCompetitionsListProps) {
   return (
     <div className="mb-10 max-w-2xl mx-auto">
       <h2 className="text-2xl font-semibold text-white mb-3">Leagues</h2>
@@ -16,15 +18,23 @@ export function NationCompetitionsList({ competitions }: NationCompetitionsListP
           ) : (
             <ul className="divide-y divide-gray-700">
               {competitions.map((competition) => (
-                <li key={competition.id} className="py-2 flex items-center justify-between">
+                <li
+                  key={competition.id}
+                  className="py-2 flex items-center justify-between"
+                >
                   {competition.has_seasons ? (
-                    <Link href={`/leagues/${competition.id}`} className="text-white hover:text-orange-400 transition-colors">
+                    <Link
+                      href={`/leagues/${competition.id}`}
+                      className="text-white hover:text-orange-400 transition-colors"
+                    >
                       {competition.name}
                     </Link>
                   ) : (
                     <span className="text-white">{competition.name}</span>
                   )}
-                  <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">{competition.tier || 'Other'}</span>
+                  <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">
+                    {competition.tier || "Other"}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -32,6 +42,5 @@ export function NationCompetitionsList({ competitions }: NationCompetitionsListP
         </div>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,33 +1,31 @@
-import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
-import './globals.css'
-import Navbar from '../components/Navbar'
+import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
+import "./globals.css";
+import Navbar from "../components/Navbar";
 
-const poppins = Poppins({ 
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-poppins',
-})
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-poppins",
+});
 
 export const metadata: Metadata = {
-  title: 'Goal Impact - Soccer Analytics',
-  description: 'Advanced soccer data analytics with Goal Value metric',
-}
+  title: "Goal Impact - Soccer Analytics",
+  description: "Advanced soccer data analytics with Goal Value metric",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en" className={poppins.variable}>
       <body className={`${poppins.className} bg-slate-900`}>
         <Navbar />
-        <main className="pt-6 sm:pt-12 pb-6 sm:pb-12">
-          {children}
-        </main>
+        <main className="pt-6 sm:pt-12 pb-6 sm:pb-12">{children}</main>
       </body>
     </html>
-  )
+  );
 }

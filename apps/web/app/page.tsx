@@ -1,51 +1,51 @@
-import { League } from '../lib/types/league'
-import { api } from '../lib/api'
-import { ErrorDisplay } from '../components/ErrorDisplay'
-import { RecentImpactGoals } from './components/RecentImpactGoals'
-import { RecentImpactGoalsResponse } from '../lib/types/home'
+import { League } from "../lib/types/league";
+import { api } from "../lib/api";
+import { ErrorDisplay } from "../components/ErrorDisplay";
+import { RecentImpactGoals } from "./components/RecentImpactGoals";
+import { RecentImpactGoalsResponse } from "../lib/types/home";
 
 async function getLeagues(): Promise<League[]> {
   const response = await fetch(api.leagues, {
-    next: { revalidate: 86400 }
-  })
-  
+    next: { revalidate: 86400 },
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch leagues')
+    throw new Error("Failed to fetch leagues");
   }
-  
-  const data = await response.json()
-  return data.leagues
+
+  const data = await response.json();
+  return data.leagues;
 }
 
 async function getRecentGoals(): Promise<RecentImpactGoalsResponse> {
   const response = await fetch(api.recentGoals(), {
-    next: { revalidate: 300 }
-  })
-  
+    next: { revalidate: 300 },
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch recent goals')
+    throw new Error("Failed to fetch recent goals");
   }
-  
-  return response.json()
+
+  return response.json();
 }
 
 export default async function HomePage() {
-  let leagues: League[] = []
-  let initialGoals: RecentImpactGoalsResponse | null = null
-  
+  let leagues: League[] = [];
+  let initialGoals: RecentImpactGoalsResponse | null = null;
+
   const [leaguesResult, goalsResult] = await Promise.allSettled([
     getLeagues(),
-    getRecentGoals()
-  ])
-  
-  if (leaguesResult.status === 'fulfilled') {
-    leagues = leaguesResult.value
+    getRecentGoals(),
+  ]);
+
+  if (leaguesResult.status === "fulfilled") {
+    leagues = leaguesResult.value;
   } else {
-    return <ErrorDisplay message="Failed to load leagues." />
+    return <ErrorDisplay message="Failed to load leagues." />;
   }
-  
-  if (goalsResult.status === 'fulfilled') {
-    initialGoals = goalsResult.value
+
+  if (goalsResult.status === "fulfilled") {
+    initialGoals = goalsResult.value;
   }
 
   return (
@@ -67,24 +67,43 @@ export default async function HomePage() {
         <h2 className="text-4xl font-bold text-white mb-6">How it works</h2>
         <div className="text-white text-lg max-w-4xl space-y-4">
           <p>
-            <strong>Goal Value</strong> measures how much a goal changes a team&apos;s win probability based on the context in which it was scored. Not all goals are created equal—a last-minute equalizer is worth more than a goal that makes it 4-0.
+            <strong>Goal Value</strong> measures how much a goal changes a
+            team&apos;s win probability based on the context in which it was
+            scored. Not all goals are created equal—a last-minute equalizer is
+            worth more than a goal that makes it 4-0.
           </p>
           <p>
-            The metric is calculated by analyzing historical match data across thousands of games. For each goal, we look at:
+            The metric is calculated by analyzing historical match data across
+            thousands of games. For each goal, we look at:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
-            <li><strong>When it was scored:</strong> A goal in the 90th minute has more value than one in the 10th minute</li>
-            <li><strong>The score difference:</strong> Equalizing from 0-1 down is more valuable than extending a 3-0 lead</li>
-            <li><strong>Match outcome:</strong> Whether the team that scored the goal went on to win, draw, or lose</li>
+            <li>
+              <strong>When it was scored:</strong> A goal in the 90th minute has
+              more value than one in the 10th minute
+            </li>
+            <li>
+              <strong>The score difference:</strong> Equalizing from 0-1 down is
+              more valuable than extending a 3-0 lead
+            </li>
+            <li>
+              <strong>Match outcome:</strong> Whether the team that scored the
+              goal went on to win, draw, or lose
+            </li>
           </ul>
           <p>
-            By aggregating historical outcomes for similar situations (same minute, same score difference), we calculate the expected change in win probability for each goal. A Goal Value of +0.64 means that goal increased the team&apos;s win probability by 64 percentage points on average.
+            By aggregating historical outcomes for similar situations (same
+            minute, same score difference), we calculate the expected change in
+            win probability for each goal. A Goal Value of +0.64 means that goal
+            increased the team&apos;s win probability by 64 percentage points on
+            average.
           </p>
           <p>
-            This allows us to identify which goals truly mattered—those that turned defeats into draws, draws into wins, or secured crucial victories when it mattered most.
+            This allows us to identify which goals truly mattered—those that
+            turned defeats into draws, draws into wins, or secured crucial
+            victories when it mattered most.
           </p>
         </div>
       </section>
     </div>
-  )
+  );
 }

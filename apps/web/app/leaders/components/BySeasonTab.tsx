@@ -1,115 +1,128 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
-import { getShortLeagueName } from '../../../lib/utils'
-import { BySeasonTableHeader } from './BySeasonTableHeader'
-import { BySeasonTableBody } from './BySeasonTableBody'
-import { LeadersTable } from './LeadersTable'
-import { useLeagues } from '../hooks/useLeagues'
-import { useLeaderFilters } from '../hooks/useLeaderFilters'
-import { api } from '../../../lib/api'
-import { Season } from '../../../lib/types'
-import { BySeasonResponse } from '../../../lib/types/leaders'
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { getShortLeagueName } from "../../../lib/utils";
+import { BySeasonTableHeader } from "./BySeasonTableHeader";
+import { BySeasonTableBody } from "./BySeasonTableBody";
+import { LeadersTable } from "./LeadersTable";
+import { useLeagues } from "../hooks/useLeagues";
+import { useLeaderFilters } from "../hooks/useLeaderFilters";
+import { api } from "../../../lib/api";
+import { Season } from "../../../lib/types";
+import { BySeasonResponse } from "../../../lib/types/leaders";
 
 function getSeasonsUrl(leagueId?: number): string {
-  return leagueId ? api.leagueSeasons(leagueId) : api.allSeasons
+  return leagueId ? api.leagueSeasons(leagueId) : api.allSeasons;
 }
 
 async function fetchSeasons(leagueId?: number): Promise<Season[]> {
-  const response = await fetch(getSeasonsUrl(leagueId), { cache: 'no-cache' })
+  const response = await fetch(getSeasonsUrl(leagueId), { cache: "no-cache" });
   if (!response.ok) {
-    throw new Error('Failed to fetch seasons')
+    throw new Error("Failed to fetch seasons");
   }
-  const data = await response.json()
-  return data.seasons || []
+  const data = await response.json();
+  return data.seasons || [];
 }
 
-async function fetchBySeasonData(seasonId: number, leagueId?: number): Promise<BySeasonResponse> {
-  const response = await fetch(api.leadersBySeason(seasonId, leagueId), { cache: 'no-cache' })
+async function fetchBySeasonData(
+  seasonId: number,
+  leagueId?: number,
+): Promise<BySeasonResponse> {
+  const response = await fetch(api.leadersBySeason(seasonId, leagueId), {
+    cache: "no-cache",
+  });
   if (!response.ok) {
-    throw new Error('Failed to fetch by-season data')
+    throw new Error("Failed to fetch by-season data");
   }
-  return response.json()
+  return response.json();
 }
 
 function autoSelectMostRecentSeason(
   seasons: Season[],
   searchParams: ReturnType<typeof useSearchParams>,
-  router: ReturnType<typeof useRouter>
+  router: ReturnType<typeof useRouter>,
 ) {
-  if (seasons.length === 0) return
-  
-  const mostRecentSeason = seasons[0]
-  const params = new URLSearchParams(searchParams.toString())
-  params.set('season_id', mostRecentSeason.id.toString())
-  if (!params.get('view')) {
-    params.set('view', 'by-season')
+  if (seasons.length === 0) return;
+
+  const mostRecentSeason = seasons[0];
+  const params = new URLSearchParams(searchParams.toString());
+  params.set("season_id", mostRecentSeason.id.toString());
+  if (!params.get("view")) {
+    params.set("view", "by-season");
   }
-  router.push(`/leaders?${params.toString()}`, { scroll: false })
+  router.push(`/leaders?${params.toString()}`, { scroll: false });
 }
 
 export function BySeasonTab() {
-  const { leagues, loading: loadingLeagues } = useLeagues()
-  const { leagueId, seasonId, selectedLeagueId, selectedSeasonId, updateParams } = useLeaderFilters()
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [seasons, setSeasons] = useState<Season[]>([])
-  const [loadingSeasons, setLoadingSeasons] = useState(false)
-  const [bySeason, setBySeason] = useState<BySeasonResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { leagues, loading: loadingLeagues } = useLeagues();
+  const {
+    leagueId,
+    seasonId,
+    selectedLeagueId,
+    selectedSeasonId,
+    updateParams,
+  } = useLeaderFilters();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [loadingSeasons, setLoadingSeasons] = useState(false);
+  const [bySeason, setBySeason] = useState<BySeasonResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoadingSeasons(true)
-      setBySeason(null)
-      setError(null)
-      
+      setLoadingSeasons(true);
+      setBySeason(null);
+      setError(null);
+
       try {
         if (seasonId) {
           const [seasonsList, bySeasonData] = await Promise.all([
             fetchSeasons(leagueId),
-            fetchBySeasonData(seasonId, leagueId)
-          ])
-          setSeasons(seasonsList)
-          setBySeason(bySeasonData)
+            fetchBySeasonData(seasonId, leagueId),
+          ]);
+          setSeasons(seasonsList);
+          setBySeason(bySeasonData);
         } else {
-          const seasonsList = await fetchSeasons(leagueId)
-          setSeasons(seasonsList)
-          autoSelectMostRecentSeason(seasonsList, searchParams, router)
+          const seasonsList = await fetchSeasons(leagueId);
+          setSeasons(seasonsList);
+          autoSelectMostRecentSeason(seasonsList, searchParams, router);
         }
       } catch (err) {
-        console.error('Error fetching data:', err)
-        setError('Failed to load by-season data.')
+        console.error("Error fetching data:", err);
+        setError("Failed to load by-season data.");
       } finally {
-        setLoadingSeasons(false)
+        setLoadingSeasons(false);
       }
-    }
-    fetchData()
-  }, [leagueId, seasonId, searchParams, router])
+    };
+    fetchData();
+  }, [leagueId, seasonId, searchParams, router]);
 
   const handleLeagueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLeagueId = event.target.value === '' ? null : event.target.value
-    updateParams('by-season', { league_id: newLeagueId, season_id: null })
-  }
+    const newLeagueId = event.target.value === "" ? null : event.target.value;
+    updateParams("by-season", { league_id: newLeagueId, season_id: null });
+  };
 
   const handleSeasonChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSeasonId = event.target.value || null
-    updateParams('by-season', { season_id: newSeasonId })
-  }
+    const newSeasonId = event.target.value || null;
+    updateParams("by-season", { season_id: newSeasonId });
+  };
 
-  const isEmpty = bySeason !== null && bySeason.top_goal_value.length === 0
-  const isLoading = loadingSeasons || bySeason === null
+  const isEmpty = bySeason !== null && bySeason.top_goal_value.length === 0;
+  const isLoading = loadingSeasons || bySeason === null;
 
   return (
     <div>
       <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">Season Leaders by Goal Value</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-white">
+          Season Leaders by Goal Value
+        </h2>
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <select
             id="league-filter"
-            value={selectedLeagueId || ''}
+            value={selectedLeagueId || ""}
             onChange={handleLeagueChange}
             className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-auto"
             disabled={loadingLeagues}
@@ -123,7 +136,7 @@ export function BySeasonTab() {
           </select>
           <select
             id="season-filter"
-            value={selectedSeasonId || ''}
+            value={selectedSeasonId || ""}
             onChange={handleSeasonChange}
             className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-auto"
             disabled={loadingSeasons || !seasons.length}
@@ -151,5 +164,5 @@ export function BySeasonTab() {
         />
       )}
     </div>
-  )
+  );
 }

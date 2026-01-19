@@ -1,90 +1,99 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import { api } from '../../../lib/api'
-import { SearchResult } from '../../../lib/types/search'
+import { useState, useEffect, useRef } from "react";
+import { api } from "../../../lib/api";
+import { SearchResult } from "../../../lib/types/search";
 
 interface PlayerSearchInputProps {
-  label: string
-  onPlayerSelect: (player: SearchResult | null) => void
-  selectedPlayer: SearchResult | null
+  label: string;
+  onPlayerSelect: (player: SearchResult | null) => void;
+  selectedPlayer: SearchResult | null;
 }
 
-export function PlayerSearchInput({ label, onPlayerSelect, selectedPlayer }: PlayerSearchInputProps) {
-  const [query, setQuery] = useState(selectedPlayer?.name || '')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const searchRef = useRef<HTMLDivElement>(null)
+export function PlayerSearchInput({
+  label,
+  onPlayerSelect,
+  selectedPlayer,
+}: PlayerSearchInputProps) {
+  const [query, setQuery] = useState(selectedPlayer?.name || "");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedPlayer) {
-      setQuery(selectedPlayer.name)
+      setQuery(selectedPlayer.name);
     } else {
-      setQuery('')
+      setQuery("");
     }
-  }, [selectedPlayer])
+  }, [selectedPlayer]);
 
   useEffect(() => {
     if (!query.trim()) {
-      setResults([])
-      setIsOpen(false)
-      setIsLoading(false)
-      return
+      setResults([]);
+      setIsOpen(false);
+      setIsLoading(false);
+      return;
     }
 
-    setIsLoading(true)
-    setIsOpen(true)
+    setIsLoading(true);
+    setIsOpen(true);
 
     const timeoutId = setTimeout(async () => {
       try {
-        const response = await fetch(api.search(query, 'Player'))
+        const response = await fetch(api.search(query, "Player"));
         if (!response.ok) {
-          throw new Error('Search failed')
+          throw new Error("Search failed");
         }
-        const data = await response.json()
-        setResults(data.results || [])
-        setIsOpen(true)
+        const data = await response.json();
+        setResults(data.results || []);
+        setIsOpen(true);
       } catch (error) {
-        console.error('Search error:', error)
-        setResults([])
-        setIsOpen(false)
+        console.error("Search error:", error);
+        setResults([]);
+        setIsOpen(false);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }, 400)
+    }, 400);
 
-    return () => clearTimeout(timeoutId)
-  }, [query])
+    return () => clearTimeout(timeoutId);
+  }, [query]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleResultClick = (result: SearchResult) => {
-    onPlayerSelect(result)
-    setQuery(result.name)
-    setIsOpen(false)
-  }
+    onPlayerSelect(result);
+    setQuery(result.name);
+    setIsOpen(false);
+  };
 
   const handleClear = () => {
-    onPlayerSelect(null)
-    setQuery('')
-    setIsOpen(false)
-  }
+    onPlayerSelect(null);
+    setQuery("");
+    setIsOpen(false);
+  };
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+      <label className="block text-sm font-medium text-gray-300 mb-2">
+        {label}
+      </label>
       <div ref={searchRef} className="relative">
         <div className="flex gap-2">
           <input
@@ -93,7 +102,7 @@ export function PlayerSearchInput({ label, onPlayerSelect, selectedPlayer }: Pla
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => {
               if (results.length > 0 || isLoading || query.trim()) {
-                setIsOpen(true)
+                setIsOpen(true);
               }
             }}
             placeholder="Search for a player..."
@@ -108,7 +117,7 @@ export function PlayerSearchInput({ label, onPlayerSelect, selectedPlayer }: Pla
             </button>
           )}
         </div>
-        
+
         {isOpen && (
           <div className="absolute top-full mt-1 w-full bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
             {isLoading ? (
@@ -122,8 +131,12 @@ export function PlayerSearchInput({ label, onPlayerSelect, selectedPlayer }: Pla
                     className="w-full text-left px-4 py-2 hover:bg-slate-600 text-white transition-colors"
                   >
                     <div className="flex justify-between items-center gap-4">
-                      <span className="font-medium flex-1 truncate">{result.name}</span>
-                      <span className="text-sm text-gray-300 shrink-0">{result.type}</span>
+                      <span className="font-medium flex-1 truncate">
+                        {result.name}
+                      </span>
+                      <span className="text-sm text-gray-300 shrink-0">
+                        {result.type}
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -135,5 +148,5 @@ export function PlayerSearchInput({ label, onPlayerSelect, selectedPlayer }: Pla
         )}
       </div>
     </div>
-  )
+  );
 }

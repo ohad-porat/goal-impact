@@ -1,31 +1,34 @@
-'use client'
+"use client";
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from "next/navigation";
 
 interface Season {
-  id: number
-  display_name: string
+  id: number;
+  display_name: string;
 }
 
 interface SeasonSelectorProps {
-  seasons: Season[]
-  selectedSeasonId: number | null
+  seasons: Season[];
+  selectedSeasonId: number | null;
 }
 
-export function SeasonSelector({ seasons, selectedSeasonId }: SeasonSelectorProps) {
-  const router = useRouter()
-  const pathname = usePathname()
+export function SeasonSelector({
+  seasons,
+  selectedSeasonId,
+}: SeasonSelectorProps) {
+  const router = useRouter();
+  const pathname = usePathname();
 
   const handleSeasonChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const seasonId = event.target.value
-    const params = new URLSearchParams()
-    params.set('season', seasonId)
-    
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
-  }
+    const seasonId = event.target.value;
+    const params = new URLSearchParams();
+    params.set("season", seasonId);
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   if (!selectedSeasonId) {
-    return null
+    return null;
   }
 
   return (
@@ -40,5 +43,5 @@ export function SeasonSelector({ seasons, selectedSeasonId }: SeasonSelectorProp
         </option>
       ))}
     </select>
-  )
+  );
 }
