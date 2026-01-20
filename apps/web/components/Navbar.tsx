@@ -1,14 +1,16 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import SearchBar from './SearchBar'
-import { Menu, X } from 'lucide-react'
+import { useState } from "react";
+import Link from "next/link";
+import SearchBar from "./SearchBar";
+import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const linkClasses = "text-black font-semibold text-base sm:text-lg uppercase tracking-wide hover:text-slate-700 transition-colors"
-  const logoClasses = "text-black font-bold text-xl sm:text-2xl uppercase tracking-wide hover:text-slate-700 transition-colors"
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const linkClasses =
+    "text-black font-semibold text-base sm:text-lg uppercase tracking-wide hover:text-slate-700 transition-colors";
+  const logoClasses =
+    "text-black font-bold text-xl sm:text-2xl uppercase tracking-wide hover:text-slate-700 transition-colors";
 
   return (
     <nav className="bg-orange-400 w-full">
@@ -36,12 +38,12 @@ export default function Navbar() {
               </Link>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="hidden sm:block">
               <SearchBar />
             </div>
-            
+
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2 text-black hover:text-slate-700 transition-colors"
@@ -61,36 +63,36 @@ export default function Navbar() {
             <div className="sm:hidden mb-4">
               <SearchBar />
             </div>
-            <Link 
-              href="/leaders" 
+            <Link
+              href="/leaders"
               className={`${linkClasses} block`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Leaders
             </Link>
-            <Link 
-              href="/charts" 
+            <Link
+              href="/charts"
               className={`${linkClasses} block`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Charts
             </Link>
-            <Link 
-              href="/nations" 
+            <Link
+              href="/nations"
               className={`${linkClasses} block`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Nations
             </Link>
-            <Link 
-              href="/leagues" 
+            <Link
+              href="/leagues"
               className={`${linkClasses} block`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Leagues
             </Link>
-            <Link 
-              href="/clubs" 
+            <Link
+              href="/clubs"
               className={`${linkClasses} block`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -100,5 +102,5 @@ export default function Navbar() {
         )}
       </div>
     </nav>
-  )
+  );
 }

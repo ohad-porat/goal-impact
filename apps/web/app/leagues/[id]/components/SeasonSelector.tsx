@@ -1,20 +1,26 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { Season } from '../../../../lib/types'
+import { useRouter } from "next/navigation";
+import { Season } from "../../../../lib/types";
 
 interface SeasonSelectorProps {
-  seasons: Season[]
-  currentSeasonId: number
-  leagueId: number
+  seasons: Season[];
+  currentSeasonId: number;
+  leagueId: number;
 }
 
-export function SeasonSelector({ seasons, currentSeasonId, leagueId }: SeasonSelectorProps) {
-  const router = useRouter()
+export function SeasonSelector({
+  seasons,
+  currentSeasonId,
+  leagueId,
+}: SeasonSelectorProps) {
+  const router = useRouter();
 
   const handleSeasonChange = (newSeasonId: number) => {
-    router.replace(`/leagues/${leagueId}?season=${newSeasonId}`, { scroll: false })
-  }
+    router.replace(`/leagues/${leagueId}?season=${newSeasonId}`, {
+      scroll: false,
+    });
+  };
 
   return (
     <select
@@ -28,5 +34,5 @@ export function SeasonSelector({ seasons, currentSeasonId, leagueId }: SeasonSel
         </option>
       ))}
     </select>
-  )
+  );
 }

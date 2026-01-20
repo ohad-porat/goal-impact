@@ -1,37 +1,39 @@
-import { Nation } from '../../lib/types'
-import { api } from '../../lib/api'
-import { tableStyles } from '../../lib/tableStyles'
-import { ErrorDisplay } from '../../components/ErrorDisplay'
-import Link from 'next/link'
+import { Nation } from "../../lib/types";
+import { api } from "../../lib/api";
+import { tableStyles } from "../../lib/tableStyles";
+import { ErrorDisplay } from "../../components/ErrorDisplay";
+import Link from "next/link";
 
 async function getNations(): Promise<Nation[]> {
   const response = await fetch(api.nations, {
-    next: { revalidate: 86400 }
-  })
-  
+    next: { revalidate: 86400 },
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch nations')
+    throw new Error("Failed to fetch nations");
   }
-  
-  const data = await response.json()
-  return data.nations
+
+  const data = await response.json();
+  return data.nations;
 }
 
 export default async function NationsPage() {
-  let nations: Nation[] = []
+  let nations: Nation[] = [];
   try {
-    nations = await getNations()
+    nations = await getNations();
   } catch (error) {
-    return <ErrorDisplay message="Failed to load nations." />
+    return <ErrorDisplay message="Failed to load nations." />;
   }
 
-  const styles = tableStyles.standard
+  const styles = tableStyles.standard;
 
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Nations</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+            Nations
+          </h1>
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
@@ -41,7 +43,9 @@ export default async function NationsPage() {
                 <tr>
                   <th className={styles.header}>Nation</th>
                   <th className={`${styles.header} text-center`}>FIFA Code</th>
-                  <th className={`${styles.header} text-center`}>Governing Body</th>
+                  <th className={`${styles.header} text-center`}>
+                    Governing Body
+                  </th>
                   <th className={`${styles.header} text-center`}>Players</th>
                 </tr>
               </thead>
@@ -54,10 +58,16 @@ export default async function NationsPage() {
                   </tr>
                 ) : (
                   nations.map((nation) => (
-                    <tr key={nation.id} className="hover:bg-slate-700 transition-colors">
+                    <tr
+                      key={nation.id}
+                      className="hover:bg-slate-700 transition-colors"
+                    >
                       <td className={styles.cell}>
                         <div className={styles.text.primary}>
-                          <Link href={`/nations/${nation.id}`} className={`${styles.text.primary} hover:text-orange-400 transition-colors`}>
+                          <Link
+                            href={`/nations/${nation.id}`}
+                            className={`${styles.text.primary} hover:text-orange-400 transition-colors`}
+                          >
                             {nation.name}
                           </Link>
                         </div>
@@ -86,5 +96,5 @@ export default async function NationsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

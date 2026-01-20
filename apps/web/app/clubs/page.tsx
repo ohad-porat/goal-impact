@@ -1,33 +1,35 @@
-import { ClubsResponse } from '../../lib/types/club'
-import { api } from '../../lib/api'
-import Link from 'next/link'
-import { ErrorDisplay } from '../../components/ErrorDisplay'
+import { ClubsResponse } from "../../lib/types/club";
+import { api } from "../../lib/api";
+import Link from "next/link";
+import { ErrorDisplay } from "../../components/ErrorDisplay";
 
 async function getClubsByNation(): Promise<ClubsResponse> {
   const response = await fetch(api.clubs, {
-    next: { revalidate: 86400 }
-  })
-  
+    next: { revalidate: 86400 },
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch clubs')
+    throw new Error("Failed to fetch clubs");
   }
-  
-  return response.json()
+
+  return response.json();
 }
 
 export default async function ClubsPage() {
-  let data: ClubsResponse
+  let data: ClubsResponse;
   try {
-    data = await getClubsByNation()
+    data = await getClubsByNation();
   } catch (error) {
-    return <ErrorDisplay message="Failed to load clubs." />
+    return <ErrorDisplay message="Failed to load clubs." />;
   }
-  
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Top Clubs</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+            Top Clubs
+          </h1>
         </div>
 
         {data.nations.length === 0 ? (
@@ -37,7 +39,10 @@ export default async function ClubsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.nations.map((nationData) => (
-              <div key={nationData.nation.id} className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+              <div
+                key={nationData.nation.id}
+                className="bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+              >
                 <div className="bg-gray-700 px-4 py-3 border-b border-gray-600 text-center">
                   <h2 className="text-xl font-semibold text-white">
                     {nationData.nation.name}
@@ -45,12 +50,14 @@ export default async function ClubsPage() {
                 </div>
                 <div className="p-4">
                   {nationData.clubs.length === 0 ? (
-                    <p className="text-gray-400 text-sm">No clubs with 1st place finishes</p>
+                    <p className="text-gray-400 text-sm">
+                      No clubs with 1st place finishes
+                    </p>
                   ) : (
                     <div className="space-y-1">
                       {nationData.clubs.map((club) => (
-                        <Link 
-                          key={club.id} 
+                        <Link
+                          key={club.id}
                           href={`/clubs/${club.id}`}
                           className="block px-4 py-2 hover:bg-slate-700 transition-colors -mx-4"
                         >
@@ -68,5 +75,5 @@ export default async function ClubsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

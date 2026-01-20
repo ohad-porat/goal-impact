@@ -7,5 +7,5 @@ export const ErrorDisplay = ({ message }: { message: string }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

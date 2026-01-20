@@ -1,102 +1,113 @@
-import { PlayerGoalLogResponse } from '../../../../lib/types/club'
-import { api } from '../../../../lib/api'
-import { ErrorDisplay } from '../../../../components/ErrorDisplay'
-import { PlayerGoalLogTableHeader } from './components/PlayerGoalLogTableHeader'
-import { PlayerGoalLogTableBody } from './components/PlayerGoalLogTableBody'
-import { SeasonSelector } from './components/SeasonSelector'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { PlayerGoalLogResponse } from "../../../../lib/types/club";
+import { api } from "../../../../lib/api";
+import { ErrorDisplay } from "../../../../components/ErrorDisplay";
+import { PlayerGoalLogTableHeader } from "./components/PlayerGoalLogTableHeader";
+import { PlayerGoalLogTableBody } from "./components/PlayerGoalLogTableBody";
+import { SeasonSelector } from "./components/SeasonSelector";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 
 interface PlayerGoalLogPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
   searchParams: {
-    season?: string
-  }
+    season?: string;
+  };
 }
 
-async function getPlayerGoalLog(playerId: number): Promise<PlayerGoalLogResponse> {
-  const cacheOption = process.env.DISABLE_FETCH_CACHE === 'true' ? 'no-store' : 'default'
-  const nextOption = process.env.DISABLE_FETCH_CACHE === 'true' ? undefined : { revalidate: 86400 }
-  
+async function getPlayerGoalLog(
+  playerId: number,
+): Promise<PlayerGoalLogResponse> {
+  const cacheOption =
+    process.env.DISABLE_FETCH_CACHE === "true" ? "no-store" : "default";
+  const nextOption =
+    process.env.DISABLE_FETCH_CACHE === "true"
+      ? undefined
+      : { revalidate: 86400 };
+
   const response = await fetch(api.playerGoalLog(playerId), {
     cache: cacheOption,
-    next: nextOption
-  })
-  
+    next: nextOption,
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch player goal log')
+    throw new Error("Failed to fetch player goal log");
   }
-  
-  return response.json()
+
+  return response.json();
 }
 
 function getSeasonStartYear(displayName: string): number {
-  const match = displayName.match(/^(\d{4})/)
-  return match ? parseInt(match[1], 10) : 0
+  const match = displayName.match(/^(\d{4})/);
+  return match ? parseInt(match[1], 10) : 0;
 }
 
-function extractUniqueSeasons(goals: PlayerGoalLogResponse['goals']) {
-  const seasonMap = new Map<string, Set<number>>()
-  
+function extractUniqueSeasons(goals: PlayerGoalLogResponse["goals"]) {
+  const seasonMap = new Map<string, Set<number>>();
+
   goals.forEach((goal) => {
-    const { season_display_name: displayName, season_id } = goal
+    const { season_display_name: displayName, season_id } = goal;
     if (!seasonMap.has(displayName)) {
-      seasonMap.set(displayName, new Set())
+      seasonMap.set(displayName, new Set());
     }
-    seasonMap.get(displayName)!.add(season_id)
-  })
-  
+    seasonMap.get(displayName)!.add(season_id);
+  });
+
   return Array.from(seasonMap.entries())
     .map(([displayName, seasonIdSet]) => {
-      const seasonIds = Array.from(seasonIdSet)
+      const seasonIds = Array.from(seasonIdSet);
       return {
         display_name: displayName,
         season_ids: seasonIds,
-        id: seasonIds[0]
-      }
+        id: seasonIds[0],
+      };
     })
     .sort((a, b) => {
-      const yearA = getSeasonStartYear(a.display_name)
-      const yearB = getSeasonStartYear(b.display_name)
-      return yearB !== yearA 
-        ? yearB - yearA 
-        : b.display_name.localeCompare(a.display_name)
-    })
+      const yearA = getSeasonStartYear(a.display_name);
+      const yearB = getSeasonStartYear(b.display_name);
+      return yearB !== yearA
+        ? yearB - yearA
+        : b.display_name.localeCompare(a.display_name);
+    });
 }
 
 function isRedirectError(error: unknown): boolean {
   return (
     error !== null &&
-    typeof error === 'object' &&
-    'digest' in error &&
-    typeof error.digest === 'string' &&
-    error.digest.startsWith('NEXT_REDIRECT')
-  )
+    typeof error === "object" &&
+    "digest" in error &&
+    typeof error.digest === "string" &&
+    error.digest.startsWith("NEXT_REDIRECT")
+  );
 }
 
-export default async function PlayerGoalLogPage({ params, searchParams }: PlayerGoalLogPageProps) {
-  const [{ id }, { season }] = await Promise.all([params, searchParams])
-  const playerId = parseInt(id)
-  
+export default async function PlayerGoalLogPage({
+  params,
+  searchParams,
+}: PlayerGoalLogPageProps) {
+  const [{ id }, { season }] = await Promise.all([params, searchParams]);
+  const playerId = parseInt(id);
+
   if (isNaN(playerId)) {
-    return <ErrorDisplay message={`The player ID "${id}" is not valid.`} />
-  }
-  
-  let data: PlayerGoalLogResponse
-  try {
-    data = await getPlayerGoalLog(playerId)
-  } catch (error) {
-    if (isRedirectError(error)) {
-      throw error
-    }
-    console.error('Error fetching player goal log:', error)
-    return <ErrorDisplay message="The requested goal log could not be found or does not exist." />
+    return <ErrorDisplay message={`The player ID "${id}" is not valid.`} />;
   }
 
-  const { player, goals } = data
-  
+  let data: PlayerGoalLogResponse;
+  try {
+    data = await getPlayerGoalLog(playerId);
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    console.error("Error fetching player goal log:", error);
+    return (
+      <ErrorDisplay message="The requested goal log could not be found or does not exist." />
+    );
+  }
+
+  const { player, goals } = data;
+
   const backButton = (
     <Link
       href={`/players/${playerId}`}
@@ -104,8 +115,8 @@ export default async function PlayerGoalLogPage({ params, searchParams }: Player
     >
       Back to Player
     </Link>
-  )
-  
+  );
+
   if (goals.length === 0) {
     return (
       <div className="min-h-screen">
@@ -118,32 +129,36 @@ export default async function PlayerGoalLogPage({ params, searchParams }: Player
           </div>
           <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
             <div className="px-6 py-8 text-center">
-              <p className="text-gray-400 text-lg">No goals found for this player</p>
+              <p className="text-gray-400 text-lg">
+                No goals found for this player
+              </p>
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
-  
-  const seasons = extractUniqueSeasons(goals)
-  const defaultSeason = seasons[0]
-  
+
+  const seasons = extractUniqueSeasons(goals);
+  const defaultSeason = seasons[0];
+
   if (!season && defaultSeason) {
-    redirect(`/players/${playerId}/goals?season=${defaultSeason.id}`)
+    redirect(`/players/${playerId}/goals?season=${defaultSeason.id}`);
   }
-  
-  const selectedSeasonId = season ? parseInt(season) : null
-  const selectedSeason = selectedSeasonId 
-    ? seasons.find(s => s.season_ids.includes(selectedSeasonId))
-    : null
-  
+
+  const selectedSeasonId = season ? parseInt(season) : null;
+  const selectedSeason = selectedSeasonId
+    ? seasons.find((s) => s.season_ids.includes(selectedSeasonId))
+    : null;
+
   if (!selectedSeason) {
-    return <ErrorDisplay message="No valid season found." />
+    return <ErrorDisplay message="No valid season found." />;
   }
-  
-  const filteredGoals = goals.filter(goal => selectedSeason.season_ids.includes(goal.season_id))
-  
+
+  const filteredGoals = goals.filter((goal) =>
+    selectedSeason.season_ids.includes(goal.season_id),
+  );
+
   return (
     <div className="min-h-screen">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -152,7 +167,10 @@ export default async function PlayerGoalLogPage({ params, searchParams }: Player
             Goal Log: {player.name}
           </h1>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
-            <SeasonSelector seasons={seasons} selectedSeasonId={selectedSeasonId} />
+            <SeasonSelector
+              seasons={seasons}
+              selectedSeasonId={selectedSeasonId}
+            />
             {backButton}
           </div>
         </div>
@@ -169,5 +187,5 @@ export default async function PlayerGoalLogPage({ params, searchParams }: Player
         </div>
       </div>
     </div>
-  )
+  );
 }

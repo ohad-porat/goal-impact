@@ -1,74 +1,77 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { api } from '../lib/api'
-import { SearchResult, SearchResultType } from '../lib/types/search'
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "../lib/api";
+import { SearchResult, SearchResultType } from "../lib/types/search";
 
 const typeToPath: Record<SearchResultType, string> = {
-  Player: '/players',
-  Club: '/clubs',
-  Competition: '/leagues',
-  Nation: '/nations',
-}
+  Player: "/players",
+  Club: "/clubs",
+  Competition: "/leagues",
+  Nation: "/nations",
+};
 
 export default function SearchBar() {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const searchRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!query.trim()) {
-      setResults([])
-      setIsOpen(false)
-      return
+      setResults([]);
+      setIsOpen(false);
+      return;
     }
 
     const timeoutId = setTimeout(async () => {
-      setIsLoading(true)
-      setIsOpen(true)
+      setIsLoading(true);
+      setIsOpen(true);
       try {
-        const response = await fetch(api.search(query))
+        const response = await fetch(api.search(query));
         if (!response.ok) {
-          throw new Error('Search failed')
+          throw new Error("Search failed");
         }
-        const data = await response.json()
-        setResults(data.results || [])
-        setIsOpen(true)
+        const data = await response.json();
+        setResults(data.results || []);
+        setIsOpen(true);
       } catch (error) {
-        console.error('Search error:', error)
-        setResults([])
-        setIsOpen(false)
+        console.error("Search error:", error);
+        setResults([]);
+        setIsOpen(false);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }, 300)
+    }, 300);
 
-    return () => clearTimeout(timeoutId)
-  }, [query])
+    return () => clearTimeout(timeoutId);
+  }, [query]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleResultClick = (result: SearchResult) => {
-    const path = `${typeToPath[result.type]}/${result.id}`
-    setQuery('')
-    setIsOpen(false)
-    router.push(path)
-  }
+    const path = `${typeToPath[result.type]}/${result.id}`;
+    setQuery("");
+    setIsOpen(false);
+    router.push(path);
+  };
 
   return (
     <div ref={searchRef} className="relative">
@@ -78,13 +81,13 @@ export default function SearchBar() {
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => {
           if (results.length > 0 || isLoading || query.trim()) {
-            setIsOpen(true)
+            setIsOpen(true);
           }
         }}
         placeholder="Search..."
         className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-64"
       />
-      
+
       {isOpen && (
         <div className="absolute top-full mt-1 w-full sm:w-64 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
           {isLoading ? (
@@ -98,8 +101,12 @@ export default function SearchBar() {
                   className="w-full text-left px-4 py-2 hover:bg-slate-600 text-white transition-colors"
                 >
                   <div className="flex justify-between items-center gap-4">
-                    <span className="font-medium flex-1 truncate">{result.name}</span>
-                    <span className="text-sm text-gray-300 flex-shrink-0">{result.type}</span>
+                    <span className="font-medium flex-1 truncate">
+                      {result.name}
+                    </span>
+                    <span className="text-sm text-gray-300 flex-shrink-0">
+                      {result.type}
+                    </span>
                   </div>
                 </button>
               ))}
@@ -110,5 +117,5 @@ export default function SearchBar() {
         </div>
       )}
     </div>
-  )
+  );
 }

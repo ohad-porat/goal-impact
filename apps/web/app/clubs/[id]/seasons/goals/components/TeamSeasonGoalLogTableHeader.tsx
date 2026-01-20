@@ -1,8 +1,8 @@
-import { tableStyles } from '../../../../../../lib/tableStyles'
+import { tableStyles } from "../../../../../../lib/tableStyles";
 
 export function TeamSeasonGoalLogTableHeader() {
-  const { statsTable } = tableStyles
-  
+  const { statsTable } = tableStyles;
+
   return (
     <thead className="bg-gray-700">
       <tr>
@@ -15,8 +15,10 @@ export function TeamSeasonGoalLogTableHeader() {
         <th className={`${statsTable.header} w-[80px]`}>Goal Value</th>
         <th className={`${statsTable.header} w-[70px]`}>xG</th>
         <th className={`${statsTable.header} w-[80px]`}>PSxG</th>
-        <th className={`${statsTable.headerLeft} pl-3 border-r-0 w-[180px]`}>Assisted By</th>
+        <th className={`${statsTable.headerLeft} pl-3 border-r-0 w-[180px]`}>
+          Assisted By
+        </th>
       </tr>
     </thead>
-  )
+  );
 }

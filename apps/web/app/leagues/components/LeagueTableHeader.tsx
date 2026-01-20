@@ -1,4 +1,4 @@
-import { tableStyles } from '../../../lib/tableStyles'
+import { tableStyles } from "../../../lib/tableStyles";
 
 export function LeagueTableHeader() {
   return (
@@ -16,5 +16,5 @@ export function LeagueTableHeader() {
         <th className={`${tableStyles.compact.header} w-[60px]`}>Pts</th>
       </tr>
     </thead>
-  )
+  );
 }

@@ -1,70 +1,87 @@
-import { LeagueTableData, Season } from '../../../lib/types'
-import { api } from '../../../lib/api'
-import { LeagueTableHeader } from '../components/LeagueTableHeader'
-import { LeagueTableBody } from '../components/LeagueTableBody'
-import { ErrorDisplay } from '../../../components/ErrorDisplay'
-import { SeasonSelector } from './components/SeasonSelector'
+import { LeagueTableData, Season } from "../../../lib/types";
+import { api } from "../../../lib/api";
+import { LeagueTableHeader } from "../components/LeagueTableHeader";
+import { LeagueTableBody } from "../components/LeagueTableBody";
+import { ErrorDisplay } from "../../../components/ErrorDisplay";
+import { SeasonSelector } from "./components/SeasonSelector";
 
 async function getLeagueSeasons(leagueId: number): Promise<Season[]> {
-  const cacheOption = process.env.DISABLE_FETCH_CACHE === 'true' ? 'no-store' : 'default'
-  const nextOption = process.env.DISABLE_FETCH_CACHE === 'true' ? undefined : { revalidate: 86400 }
-  
+  const cacheOption =
+    process.env.DISABLE_FETCH_CACHE === "true" ? "no-store" : "default";
+  const nextOption =
+    process.env.DISABLE_FETCH_CACHE === "true"
+      ? undefined
+      : { revalidate: 86400 };
+
   const response = await fetch(api.leagueSeasons(leagueId), {
     cache: cacheOption,
-    next: nextOption
-  })
+    next: nextOption,
+  });
   if (!response.ok) {
-    throw new Error('Failed to fetch league seasons')
+    throw new Error("Failed to fetch league seasons");
   }
-  const data = await response.json()
-  return data.seasons
+  const data = await response.json();
+  return data.seasons;
 }
 
-async function getLeagueTable(leagueId: number, seasonId: number): Promise<LeagueTableData> {
+async function getLeagueTable(
+  leagueId: number,
+  seasonId: number,
+): Promise<LeagueTableData> {
   const response = await fetch(api.leagueTable(leagueId, seasonId), {
-    next: { revalidate: 86400 }
-  })
+    next: { revalidate: 86400 },
+  });
   if (!response.ok) {
-    throw new Error('Failed to fetch league table')
+    throw new Error("Failed to fetch league table");
   }
-  return response.json()
+  return response.json();
 }
 
-const getTargetSeasonId = (seasonId: number | null, seasons: Season[]): number => {
+const getTargetSeasonId = (
+  seasonId: number | null,
+  seasons: Season[],
+): number => {
   if (seasonId && !isNaN(seasonId)) {
-    const requestedSeason = seasons.find(season => season.id === seasonId)
+    const requestedSeason = seasons.find((season) => season.id === seasonId);
     if (!requestedSeason) {
-      throw new Error('Invalid season')
+      throw new Error("Invalid season");
     }
-    return seasonId
+    return seasonId;
   }
-  return seasons[0].id
-}
+  return seasons[0].id;
+};
 
 interface LeagueShowPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
   searchParams: {
-    season?: string
-  }
+    season?: string;
+  };
 }
 
-const LeagueTableContent = ({ tableData, seasons, targetSeasonId, leagueId }: {
-  tableData: LeagueTableData
-  seasons: Season[]
-  targetSeasonId: number
-  leagueId: number
+const LeagueTableContent = ({
+  tableData,
+  seasons,
+  targetSeasonId,
+  leagueId,
+}: {
+  tableData: LeagueTableData;
+  seasons: Season[];
+  targetSeasonId: number;
+  leagueId: number;
 }) => {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{tableData.league.name}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+              {tableData.league.name}
+            </h1>
             <div className="w-full sm:w-auto">
-              <SeasonSelector 
-                seasons={seasons} 
+              <SeasonSelector
+                seasons={seasons}
                 currentSeasonId={targetSeasonId}
                 leagueId={leagueId}
               />
@@ -84,37 +101,51 @@ const LeagueTableContent = ({ tableData, seasons, targetSeasonId, leagueId }: {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default async function LeagueShowPage({ params, searchParams }: LeagueShowPageProps) {
-  const [{ id }, { season }] = await Promise.all([params, searchParams])
-  const leagueId = parseInt(id)
-  const seasonId = season ? parseInt(season) : null
+export default async function LeagueShowPage({
+  params,
+  searchParams,
+}: LeagueShowPageProps) {
+  const [{ id }, { season }] = await Promise.all([params, searchParams]);
+  const leagueId = parseInt(id);
+  const seasonId = season ? parseInt(season) : null;
 
   if (isNaN(leagueId)) {
-    return <ErrorDisplay message={`The league ID "${id}" is not valid.`} />
+    return <ErrorDisplay message={`The league ID "${id}" is not valid.`} />;
   }
 
-  let seasons: Season[]
-  let tableData: LeagueTableData
-  let targetSeasonId: number
+  let seasons: Season[];
+  let tableData: LeagueTableData;
+  let targetSeasonId: number;
 
   try {
-    seasons = await getLeagueSeasons(leagueId)
-    targetSeasonId = getTargetSeasonId(seasonId, seasons)
-    tableData = await getLeagueTable(leagueId, targetSeasonId)
+    seasons = await getLeagueSeasons(leagueId);
+    targetSeasonId = getTargetSeasonId(seasonId, seasons);
+    tableData = await getLeagueTable(leagueId, targetSeasonId);
   } catch (error) {
-    console.error('Error fetching league data:', error)
-    if (error instanceof Error && error.message === 'Invalid season') {
-      return <ErrorDisplay message="The requested season is not valid." />
+    console.error("Error fetching league data:", error);
+    if (error instanceof Error && error.message === "Invalid season") {
+      return <ErrorDisplay message="The requested season is not valid." />;
     }
-    return <ErrorDisplay message="The requested league could not be found or does not exist." />
+    return (
+      <ErrorDisplay message="The requested league could not be found or does not exist." />
+    );
   }
 
   if (seasons.length === 0) {
-    return <ErrorDisplay message="The requested league has no available seasons." />
+    return (
+      <ErrorDisplay message="The requested league has no available seasons." />
+    );
   }
 
-  return <LeagueTableContent tableData={tableData} seasons={seasons} targetSeasonId={targetSeasonId} leagueId={leagueId} />
+  return (
+    <LeagueTableContent
+      tableData={tableData}
+      seasons={seasons}
+      targetSeasonId={targetSeasonId}
+      leagueId={leagueId}
+    />
+  );
 }

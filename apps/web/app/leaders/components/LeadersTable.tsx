@@ -1,12 +1,12 @@
-import { ReactNode } from 'react'
-import { ErrorDisplay } from '../../../components/ErrorDisplay'
+import { ReactNode } from "react";
+import { ErrorDisplay } from "../../../components/ErrorDisplay";
 
 interface LeadersTableProps {
-  title: string
-  header: ReactNode
-  body: ReactNode
-  error?: string | null
-  isEmpty?: boolean
+  title: string;
+  header: ReactNode;
+  body: ReactNode;
+  error?: string | null;
+  isEmpty?: boolean;
 }
 
 export function LeadersTable({
@@ -17,7 +17,7 @@ export function LeadersTable({
   isEmpty = false,
 }: LeadersTableProps) {
   if (error) {
-    return <ErrorDisplay message={error} />
+    return <ErrorDisplay message={error} />;
   }
 
   if (isEmpty) {
@@ -25,7 +25,7 @@ export function LeadersTable({
       <div className="text-white text-center">
         <p>No data available</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -40,5 +40,5 @@ export function LeadersTable({
         </div>
       </div>
     </div>
-  )
+  );
 }

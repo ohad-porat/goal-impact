@@ -1,10 +1,10 @@
-import { tableStyles } from '../../../lib/tableStyles'
-import { StatCell } from '../../../lib/components/StatCell'
-import { AllSeasonsPlayer } from '../../../lib/types/leaders'
-import Link from 'next/link'
+import { tableStyles } from "../../../lib/tableStyles";
+import { StatCell } from "../../../lib/components/StatCell";
+import { AllSeasonsPlayer } from "../../../lib/types/leaders";
+import Link from "next/link";
 
 interface AllSeasonsTableBodyProps {
-  players: AllSeasonsPlayer[]
+  players: AllSeasonsPlayer[];
 }
 
 export function AllSeasonsTableBody({ players }: AllSeasonsTableBodyProps) {
@@ -17,7 +17,7 @@ export function AllSeasonsTableBody({ players }: AllSeasonsTableBodyProps) {
           </td>
         </tr>
       </tbody>
-    )
+    );
   }
 
   return (
@@ -25,7 +25,7 @@ export function AllSeasonsTableBody({ players }: AllSeasonsTableBodyProps) {
       {players.map((player, index) => (
         <tr
           key={`${player.player_id}-${player.season_id}`}
-          className={`${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'} hover:bg-slate-700 transition-colors`}
+          className={`${index % 2 === 0 ? "bg-slate-800" : "bg-slate-750"} hover:bg-slate-700 transition-colors`}
         >
           <td className={`${tableStyles.compact.cell} text-center w-[60px]`}>
             <span className={tableStyles.compact.text.center}>{index + 1}</span>
@@ -43,7 +43,9 @@ export function AllSeasonsTableBody({ players }: AllSeasonsTableBodyProps) {
               {player.season_display_name}
             </span>
           </td>
-          <td className={`${tableStyles.compact.cell} text-center w-[200px] px-2`}>
+          <td
+            className={`${tableStyles.compact.cell} text-center w-[200px] px-2`}
+          >
             <span
               className={`${tableStyles.compact.text.center} block truncate`}
               title={player.clubs}
@@ -76,5 +78,5 @@ export function AllSeasonsTableBody({ players }: AllSeasonsTableBodyProps) {
         </tr>
       ))}
     </tbody>
-  )
+  );
 }

@@ -1,66 +1,72 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
-import { getShortLeagueName } from '../../../lib/utils'
-import { AllSeasonsTableHeader } from './AllSeasonsTableHeader'
-import { AllSeasonsTableBody } from './AllSeasonsTableBody'
-import { LeadersTable } from './LeadersTable'
-import { useLeagues } from '../hooks/useLeagues'
-import { useLeaderFilters } from '../hooks/useLeaderFilters'
-import { api } from '../../../lib/api'
-import { AllSeasonsResponse } from '../../../lib/types/leaders'
+import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { getShortLeagueName } from "../../../lib/utils";
+import { AllSeasonsTableHeader } from "./AllSeasonsTableHeader";
+import { AllSeasonsTableBody } from "./AllSeasonsTableBody";
+import { LeadersTable } from "./LeadersTable";
+import { useLeagues } from "../hooks/useLeagues";
+import { useLeaderFilters } from "../hooks/useLeaderFilters";
+import { api } from "../../../lib/api";
+import { AllSeasonsResponse } from "../../../lib/types/leaders";
 
-async function fetchAllSeasonsData(leagueId?: number): Promise<AllSeasonsResponse> {
-  const response = await fetch(api.leadersAllSeasons(leagueId), { cache: 'no-cache' })
+async function fetchAllSeasonsData(
+  leagueId?: number,
+): Promise<AllSeasonsResponse> {
+  const response = await fetch(api.leadersAllSeasons(leagueId), {
+    cache: "no-cache",
+  });
   if (!response.ok) {
-    throw new Error('Failed to fetch all-seasons data')
+    throw new Error("Failed to fetch all-seasons data");
   }
-  return response.json()
+  return response.json();
 }
 
 export function AllSeasonsTab() {
-  const { leagues, loading: loadingLeagues } = useLeagues()
-  const { leagueId, selectedLeagueId, updateParams } = useLeaderFilters()
-  const [allSeasons, setAllSeasons] = useState<AllSeasonsResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const { leagues, loading: loadingLeagues } = useLeagues();
+  const { leagueId, selectedLeagueId, updateParams } = useLeaderFilters();
+  const [allSeasons, setAllSeasons] = useState<AllSeasonsResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
-      setAllSeasons(null)
-      setError(null)
+      setLoading(true);
+      setAllSeasons(null);
+      setError(null);
 
       try {
-        const data = await fetchAllSeasonsData(leagueId)
-        setAllSeasons(data)
+        const data = await fetchAllSeasonsData(leagueId);
+        setAllSeasons(data);
       } catch (err) {
-        console.error('Error fetching data:', err)
-        setError('Failed to load all-seasons data.')
+        console.error("Error fetching data:", err);
+        setError("Failed to load all-seasons data.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchData()
-  }, [leagueId])
+    };
+    fetchData();
+  }, [leagueId]);
 
   const handleLeagueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLeagueId = event.target.value === '' ? null : event.target.value
-    updateParams('all-seasons', { league_id: newLeagueId })
-  }
+    const newLeagueId = event.target.value === "" ? null : event.target.value;
+    updateParams("all-seasons", { league_id: newLeagueId });
+  };
 
-  const isEmpty = allSeasons !== null && allSeasons.top_goal_value.length === 0
-  const isLoading = loading || allSeasons === null
+  const isEmpty = allSeasons !== null && allSeasons.top_goal_value.length === 0;
+  const isLoading = loading || allSeasons === null;
 
   return (
     <div>
       <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-white">All Seasons Leaders by Goal Value</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-white">
+          All Seasons Leaders by Goal Value
+        </h2>
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <select
             id="league-filter"
-            value={selectedLeagueId || ''}
+            value={selectedLeagueId || ""}
             onChange={handleLeagueChange}
             className="px-4 py-2 bg-slate-700 text-white rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-full sm:w-auto"
             disabled={loadingLeagues}
@@ -82,11 +88,13 @@ export function AllSeasonsTab() {
         <LeadersTable
           title=""
           header={<AllSeasonsTableHeader />}
-          body={<AllSeasonsTableBody players={allSeasons?.top_goal_value || []} />}
+          body={
+            <AllSeasonsTableBody players={allSeasons?.top_goal_value || []} />
+          }
           error={error}
           isEmpty={isEmpty}
         />
       )}
     </div>
-  )
+  );
 }

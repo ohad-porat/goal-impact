@@ -1,38 +1,48 @@
-import { TeamSeasonGoalLogResponse } from '../../../../../lib/types/club'
-import { api } from '../../../../../lib/api'
-import { ErrorDisplay } from '../../../../../components/ErrorDisplay'
-import { TeamSeasonGoalLogTableHeader } from './components/TeamSeasonGoalLogTableHeader'
-import { TeamSeasonGoalLogTableBody } from './components/TeamSeasonGoalLogTableBody'
-import Link from 'next/link'
+import { TeamSeasonGoalLogResponse } from "../../../../../lib/types/club";
+import { api } from "../../../../../lib/api";
+import { ErrorDisplay } from "../../../../../components/ErrorDisplay";
+import { TeamSeasonGoalLogTableHeader } from "./components/TeamSeasonGoalLogTableHeader";
+import { TeamSeasonGoalLogTableBody } from "./components/TeamSeasonGoalLogTableBody";
+import Link from "next/link";
 
 interface GoalLogPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
   searchParams: {
-    season?: string
-  }
+    season?: string;
+  };
 }
 
-async function getTeamSeasonGoalLog(teamId: number, seasonId: number): Promise<TeamSeasonGoalLogResponse> {
+async function getTeamSeasonGoalLog(
+  teamId: number,
+  seasonId: number,
+): Promise<TeamSeasonGoalLogResponse> {
   const response = await fetch(api.teamSeasonGoalLog(teamId, seasonId), {
-    next: { revalidate: 86400 }
-  })
-  
+    next: { revalidate: 86400 },
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch team season goal log')
+    throw new Error("Failed to fetch team season goal log");
   }
-  
-  return response.json()
+
+  return response.json();
 }
 
-const GoalLogContent = ({ team, season, competition, goals, teamId, seasonId }: {
-  team: TeamSeasonGoalLogResponse['team']
-  season: TeamSeasonGoalLogResponse['season']
-  competition: TeamSeasonGoalLogResponse['competition']
-  goals: TeamSeasonGoalLogResponse['goals']
-  teamId: number
-  seasonId: number
+const GoalLogContent = ({
+  team,
+  season,
+  competition,
+  goals,
+  teamId,
+  seasonId,
+}: {
+  team: TeamSeasonGoalLogResponse["team"];
+  season: TeamSeasonGoalLogResponse["season"];
+  competition: TeamSeasonGoalLogResponse["competition"];
+  goals: TeamSeasonGoalLogResponse["goals"];
+  teamId: number;
+  seasonId: number;
 }) => {
   return (
     <div className="min-h-screen">
@@ -61,37 +71,51 @@ const GoalLogContent = ({ team, season, competition, goals, teamId, seasonId }: 
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default async function GoalLogPage({ params, searchParams }: GoalLogPageProps) {
-  const [{ id }, { season }] = await Promise.all([params, searchParams])
-  const teamId = parseInt(id)
-  const seasonId = season ? parseInt(season) : null
-  
+export default async function GoalLogPage({
+  params,
+  searchParams,
+}: GoalLogPageProps) {
+  const [{ id }, { season }] = await Promise.all([params, searchParams]);
+  const teamId = parseInt(id);
+  const seasonId = season ? parseInt(season) : null;
+
   if (isNaN(teamId)) {
-    return <ErrorDisplay message={`The team ID "${id}" is not valid.`} />
+    return <ErrorDisplay message={`The team ID "${id}" is not valid.`} />;
   }
-  
+
   if (!seasonId || isNaN(seasonId)) {
-    return <ErrorDisplay message="Season parameter is required." />
+    return <ErrorDisplay message="Season parameter is required." />;
   }
-  
-  let team: TeamSeasonGoalLogResponse['team']
-  let seasonData: TeamSeasonGoalLogResponse['season']
-  let competition: TeamSeasonGoalLogResponse['competition']
-  let goals: TeamSeasonGoalLogResponse['goals']
-  
+
+  let team: TeamSeasonGoalLogResponse["team"];
+  let seasonData: TeamSeasonGoalLogResponse["season"];
+  let competition: TeamSeasonGoalLogResponse["competition"];
+  let goals: TeamSeasonGoalLogResponse["goals"];
+
   try {
-    const data = await getTeamSeasonGoalLog(teamId, seasonId)
-    team = data.team
-    seasonData = data.season
-    competition = data.competition
-    goals = data.goals
+    const data = await getTeamSeasonGoalLog(teamId, seasonId);
+    team = data.team;
+    seasonData = data.season;
+    competition = data.competition;
+    goals = data.goals;
   } catch (error) {
-    console.error('Error fetching team season goal log:', error)
-    return <ErrorDisplay message="The requested goal log could not be found or does not exist." />
+    console.error("Error fetching team season goal log:", error);
+    return (
+      <ErrorDisplay message="The requested goal log could not be found or does not exist." />
+    );
   }
-  
-  return <GoalLogContent team={team} season={seasonData} competition={competition} goals={goals} teamId={teamId} seasonId={seasonId} />
+
+  return (
+    <GoalLogContent
+      team={team}
+      season={seasonData}
+      competition={competition}
+      goals={goals}
+      teamId={teamId}
+      seasonId={seasonId}
+    />
+  );
 }

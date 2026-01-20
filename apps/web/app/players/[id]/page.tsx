@@ -1,40 +1,42 @@
-import { PlayerDetailsResponse } from '../../../lib/types/player'
-import { api } from '../../../lib/api'
-import { ErrorDisplay } from '../../../components/ErrorDisplay'
-import { PlayerTableHeader } from './components/PlayerTableHeader'
-import { PlayerTableBody } from './components/PlayerTableBody'
-import Link from 'next/link'
+import { PlayerDetailsResponse } from "../../../lib/types/player";
+import { api } from "../../../lib/api";
+import { ErrorDisplay } from "../../../components/ErrorDisplay";
+import { PlayerTableHeader } from "./components/PlayerTableHeader";
+import { PlayerTableBody } from "./components/PlayerTableBody";
+import Link from "next/link";
 
 interface PlayerPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-async function getPlayerDetails(playerId: number): Promise<PlayerDetailsResponse> {
+async function getPlayerDetails(
+  playerId: number,
+): Promise<PlayerDetailsResponse> {
   const response = await fetch(api.playerDetails(playerId), {
-    next: { revalidate: 86400 }
-  })
-  
+    next: { revalidate: 86400 },
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch player details')
+    throw new Error("Failed to fetch player details");
   }
-  
-  return response.json()
+
+  return response.json();
 }
 
 export default async function PlayerPage({ params }: PlayerPageProps) {
-  const { id } = await params
-  const playerId = parseInt(id)
-  
+  const { id } = await params;
+  const playerId = parseInt(id);
+
   if (isNaN(playerId)) {
-    return <ErrorDisplay message={`The player ID "${id}" is not valid.`} />
+    return <ErrorDisplay message={`The player ID "${id}" is not valid.`} />;
   }
-  
+
   try {
-    const data = await getPlayerDetails(playerId)
-    const { player, seasons } = data
-    
+    const data = await getPlayerDetails(playerId);
+    const { player, seasons } = data;
+
     return (
       <div className="min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,9 +73,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           </div>
         </div>
       </div>
-    )
+    );
   } catch (error) {
-    console.error('Error fetching player details:', error)
-    return <ErrorDisplay message="The requested player could not be found or does not exist." />
+    console.error("Error fetching player details:", error);
+    return (
+      <ErrorDisplay message="The requested player could not be found or does not exist." />
+    );
   }
 }

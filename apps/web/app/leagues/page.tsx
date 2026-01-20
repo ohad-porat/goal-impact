@@ -1,37 +1,39 @@
-import Link from 'next/link'
-import { League } from '../../lib/types'
-import { api } from '../../lib/api'
-import { tableStyles } from '../../lib/tableStyles'
-import { ErrorDisplay } from '../../components/ErrorDisplay'
+import Link from "next/link";
+import { League } from "../../lib/types";
+import { api } from "../../lib/api";
+import { tableStyles } from "../../lib/tableStyles";
+import { ErrorDisplay } from "../../components/ErrorDisplay";
 
 async function getLeagues(): Promise<League[]> {
   const response = await fetch(api.leagues, {
-    next: { revalidate: 86400 }
-  })
-  
+    next: { revalidate: 86400 },
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch leagues')
+    throw new Error("Failed to fetch leagues");
   }
-  
-  const data = await response.json()
-  return data.leagues
+
+  const data = await response.json();
+  return data.leagues;
 }
 
 export default async function LeaguesPage() {
-  let leagues: League[] = []
+  let leagues: League[] = [];
   try {
-    leagues = await getLeagues()
+    leagues = await getLeagues();
   } catch (error) {
-    return <ErrorDisplay message="Failed to load leagues." />
+    return <ErrorDisplay message="Failed to load leagues." />;
   }
-  
-  const styles = tableStyles.standard
+
+  const styles = tableStyles.standard;
 
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Leagues</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+            Leagues
+          </h1>
         </div>
 
         <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
@@ -55,9 +57,15 @@ export default async function LeaguesPage() {
                   </tr>
                 ) : (
                   leagues.map((league) => (
-                    <tr key={league.id} className="hover:bg-slate-700 transition-colors">
+                    <tr
+                      key={league.id}
+                      className="hover:bg-slate-700 transition-colors"
+                    >
                       <td className={styles.cell}>
-                        <Link href={`/leagues/${league.id}`} className="hover:text-orange-400 transition-colors">
+                        <Link
+                          href={`/leagues/${league.id}`}
+                          className="hover:text-orange-400 transition-colors"
+                        >
                           <div className={styles.text.primary}>
                             {league.name}
                           </div>
@@ -70,12 +78,16 @@ export default async function LeaguesPage() {
                       </td>
                       <td className={styles.cell}>
                         <div className={styles.text.secondary}>
-                          {league.gender === 'M' ? 'Men' : league.gender === 'F' ? 'Women' : league.gender}
+                          {league.gender === "M"
+                            ? "Men"
+                            : league.gender === "F"
+                              ? "Women"
+                              : league.gender}
                         </div>
                       </td>
                       <td className={styles.cell}>
                         <div className={styles.text.secondary}>
-                          {league.tier || 'N/A'}
+                          {league.tier || "N/A"}
                         </div>
                       </td>
                       <td className={styles.cell}>
@@ -92,5 +104,5 @@ export default async function LeaguesPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
