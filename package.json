@@ -19,7 +19,7 @@
   "devDependencies": {
     "@turbo/gen": "^2.7.5",
     "turbo": "^2.7.5",
-    "prettier": "^3.8.0"
+    "prettier": "^3.8.1"
   },
   "packageManager": "yarn@1.22.19",
   "engines": {
