@@ -17,7 +17,7 @@
     "db:migrate": "cd apps/api && source venv/bin/activate && alembic upgrade head"
   },
   "devDependencies": {
-    "@turbo/gen": "^2.7.5",
+    "@turbo/gen": "^2.7.6",
     "turbo": "^2.7.5",
     "prettier": "^3.8.0"
   },
